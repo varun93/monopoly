@@ -125,8 +125,34 @@ class Utility(Property):
                 return (self.rent+6) * dice_roll
         return 0
 
-"""Get out of Jail free card. There are 2 of these, each one being present in the Chance and Community CHest card sets."""
-
+class GetOutOfJailFree(Space):
+    """Get out of Jail free card. There are 2 of these, each one being present
+    in the Chance and Community Chest card sets."""
+    """Realise it might not be semantically correct to term this as a Space.
+    Can change as required."""
+    def __init__(self,attrib):
+        #For now, this is just a 2x1 array containing owner information for each card
+        Space.__init__(self, attrib)
+        self.card_owner = None
+    
+    """Return if the assigning of ownership was successful
+    Can optionally specify previous owner in case this is a trade"""
+    def add_ownership(self,owner,previous_owner=None):
+        if self.card_owner is previous_owner:
+            self.card_owner = owner
+            return True
+        return False
+    
+    """Removes ownership, represents the usage of the card.
+    Must return the card to the bottom of the corresponding deck
+    Returns if the removal of ownership was successful."""
+    def remove_ownership(self,owner):
+        if self.card_owner is owner:
+            self.card_owner = None
+            #Should the logic to return the card to the deck be here?
+            return self.name
+        return None
+        
 
 class Tax(Space):
     """Tax object that lists the tax to be paid by a player that lands on a taxed space. Inherits attributes from the
@@ -167,7 +193,8 @@ class Chance:
         
     def draw_card(self):
         drawn_card = self.deck.pop()
-        self.deck.append(drawn_card)
+        if drawn_card.type is not 4:
+            self.deck.append(drawn_card)
         return drawn_card
 
 class Chest:
@@ -179,5 +206,6 @@ class Chest:
         
     def draw_card(self):
         drawn_card = self.deck.pop()
-        self.deck.append(drawn_card)
+        if drawn_card.type is not 4:
+            self.deck.append(drawn_card)
         return drawn_card
