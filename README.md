@@ -6,7 +6,7 @@ Data Science Project CSE 519
 
 ## Run the code
 ```
-export FLASK_APP=hello.py
+export FLASK_APP=app.py
 flask run
 ```
 
