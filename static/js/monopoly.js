@@ -2891,6 +2891,7 @@ window.onload = function() {
 
 		drag = false;
 	});
+	
 	document.getElementById("statsdrag").onmousedown = function(e) {
 		dragObj = document.getElementById("stats");
 		dragObj.style.position = "relative";
