@@ -6,7 +6,6 @@ import json
 # initialize Flask
 app = Flask(__name__)
 socketio = SocketIO(app)
-state = {}
 
 
 @app.route('/')
