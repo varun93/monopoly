@@ -5,10 +5,9 @@ import pandas as pd
 import config
 import dice
 import spaces
+import constants
 
-logging.basicConfig(filename='monopoly.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 class Game:
     """Keeps track of all game pieces."""
@@ -18,49 +17,6 @@ class Game:
         self.turn = 0
         self.dice = None
         self.end_turn = False #Signal showing that it is ok to end the turn. Used to account for Double Throws.            
-    
-    #Function used to generate board in constants.py
-    #Run this again if changes are made on          
-    def generate_board_dictionary(self):
-        board_df = pd.read_csv(config.board_filename)
-        
-        monopoly_groups = {};
-        for _, attributes in board_df.iterrows():
-            if (attributes['monopoly'] not in monopoly_groups):
-                monopoly_groups[attributes['monopoly']] = []
-            monopoly_groups[attributes['monopoly']].append(attributes)
-        
-        headers = [key for key in board_df.dtypes.index]
-        print("{")
-        l=0
-        for _, attributes in board_df.iterrows():
-            
-            outer_comma = ""
-            if l is not len(board_df)-1:
-                outer_comma = ","   
-            
-            print(str(attributes['position']-1)+":{");
-            
-            k=0
-            hasMonopolies = ((attributes['class'] == 'Street') or (attributes['class'] == 'Railroad') or (attributes['class'] == 'Utility'))
-            for y in [z for z in attributes if z is not 'position']:
-                comma = ""
-                if (k is not len(headers)-1) or hasMonopolies:
-                    comma = ","
-                if isinstance(y, int):
-                    print("\""+headers[k]+"\":"+str(y)+comma)
-                else:
-                    print("\""+headers[k]+"\":\""+str(y)+"\""+comma)
-                k+=1
-            
-            if hasMonopolies:
-                groups = [x.position-1 for x in monopoly_groups[attributes['monopoly']] if x.name != attributes.name]
-                print("\"monopoly_group_elements\":"+str(groups))
-                    
-            
-            print("}"+outer_comma);
-            l+=1
-        print("}")
         
     """To reset dice for a new turn"""
     def pass_dice(self):
@@ -86,12 +42,50 @@ class Game:
             #Should there be a GoToJail state to let the player know?
         else:
             #Update player position
-            state.position += self.dice.roll_sum
+            current_player = state.turn%2
+            state.position[current_player] += self.dice.roll_sum
             #Next, perform square effect
             #Preparation for next phase:
-            state.phase = 2 # effect phase
-            state.phase_properties = {}
-            #state.phase_properties.owned = 
+            """
+            Phase Properties:
+            Is the property owned?
+            If unowned, there are 3 sequential sub-phases: BSTM,Buying,Auction. Which one are you in?
+            If owned, 2 sub-phases: BSTM,rent. Note: BSTM here for opponent must be applied after the turn.
+            If cards, draw top card,do effect, return it to bottom of the deck.
+            If Go To Jail, send to jail. Immediately end the turn.
+            If currently in Jail, 3 ways to get out.
+            """
+            isProperty = (state.position in constants.property_to_space_map)
+            
+            if isProperty:
+                prop_value = state.property_status[ constants.property_to_space_map[state.position] ]
+                if prop_value == 0:
+                    #Unowned
+                    state.phase = 3 # buying phase
+                    state.phase_properties = {}
+                    state.phase_properties.prephase_bstm = True
+                else:
+                    #Check if owned by opponent
+                    if current_player == 0:
+                        owned = prop_value < 0
+                    else:
+                        owned = prop_value > 0
+                    
+                    state.phase = 5
+                    state.phase_properties = {}
+                    state.phase_properties.prephase_bstm = True
+            else:
+                if constants.board[state.position]['class'] == 'Chance':
+                    #Chance
+                    pass
+                elif constants.board[state.position]['class'] == 'Chest':
+                    #Community
+                    pass
+                elif constants.board[state.position]['class'] == 'Tax':
+                    #Tax
+                    #First ask for BSTM
+                    #state.current_cash[current_player]-= constants.board[state.position]['tax']
+                    pass
             
     
     
@@ -105,5 +99,5 @@ class Game:
     #def unowned_property(self):
         
 g = Game()
-g.generate_board_dictionary()
+g.dice_roll()
     
