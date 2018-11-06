@@ -1,22 +1,13 @@
 import numpy as np
 
-#Class only stores information about each board position
-
-class Space:
-    """Generic space object that initializes the two attributes shared by all spaces: Name and position on the board."""
-
-    def __init__(self, attrib):
-
-        self.name = attrib['name']            # Property name
-
-class GetOutOfJailFree(Space):
+class GetOutOfJailFree:
     """Get out of Jail free card. There are 2 of these, each one being present
     in the Chance and Community Chest card sets."""
     """Realise it might not be semantically correct to term this as a Space.
     Can change as required."""
     def __init__(self,attrib):
         #For now, this is just a 2x1 array containing owner information for each card
-        Space.__init__(self, attrib)
+        self.name = attrib['name']
         self.card_owner = None
     
     """Return if the assigning of ownership was successful
@@ -37,7 +28,7 @@ class GetOutOfJailFree(Space):
             return self.name
         return None
 
-class Card(object):
+class Card:
     def __init__(self,attrib):
         #Type:
         #1 = Money to/from the bank
@@ -55,21 +46,7 @@ class Card(object):
         self.money = attrib['Money']
         self.money2 = attrib['Money2']
 
-
-class Chance:
-    def __init__(self, df):
-        self.deck = []
-        for _, attributes in df.iterrows():
-            self.deck.append(Card(attributes))
-        np.random.shuffle(self.deck)
-        
-    def draw_card(self):
-        drawn_card = self.deck.pop()
-        if drawn_card.type is not 4:
-            self.deck.append(drawn_card)
-        return drawn_card
-
-class Chest:
+class Cards:
     def __init__(self, df):
         self.deck = []
         for _, attributes in df.iterrows():
