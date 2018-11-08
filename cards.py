@@ -1,38 +1,9 @@
 import numpy as np
 
-class GetOutOfJailFree:
-    """Get out of Jail free card. There are 2 of these, each one being present
-    in the Chance and Community Chest card sets."""
-    """Realise it might not be semantically correct to term this as a Space.
-    Can change as required."""
-    def __init__(self,attrib):
-        #For now, this is just a 2x1 array containing owner information for each card
-        self.name = attrib['name']
-        self.card_owner = None
-    
-    """Return if the assigning of ownership was successful
-    Can optionally specify previous owner in case this is a trade"""
-    def add_ownership(self,owner,previous_owner=None):
-        if self.card_owner is previous_owner:
-            self.card_owner = owner
-            return True
-        return False
-    
-    """Removes ownership, represents the usage of the card.
-    Must return the card to the bottom of the corresponding deck
-    Returns if the removal of ownership was successful."""
-    def remove_ownership(self,owner):
-        if self.card_owner is owner:
-            self.card_owner = None
-            #Should the logic to return the card to the deck be here?
-            return self.name
-        return None
-
-
 class Cards:
     def __init__(self, items):
-        self.deck = np.random.shuffle(list(map(lambda item : self.transformCard(item),
-            items)))
+        self.deck = list(map(lambda item : self.transformCard(item), items))
+        np.random.shuffle(self.deck)
         
     def transformCard(self,item):
         card = {}
