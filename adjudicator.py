@@ -147,15 +147,15 @@ class Adjudicator:
       
       #Jail
       if playerPosition == -1:
-          #Do special handling and return here
-          return
+        #Do special handling and return here
+        return
       
       playerPosition += self.dice.roll_sum
       
       #Passing Go
       if playerPosition >= 40:
-          playerPosition = playerPosition % 40
-          playerCash += 200
+        playerPosition = playerPosition % 40
+        playerCash += 200
       
       state[PLAYER_CASH_INDEX][current_player] = playerCash
       state[PLAYER_POSITION_INDEX][current_player] = playerPosition
@@ -270,14 +270,14 @@ class Adjudicator:
 		# 
 		self.pass_dice()
 		
-		current_player = state[0] % 2
+		current_player = state[PLAYER_TURN_INDEX] % 2
 		playerPosition = state[PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[PLAYER_CASH_INDEX][current_player]
 		#Jail
 		if playerPosition == -1:
 			#Do special handling and return here
 			return
-		
+	
 		self.dice.roll()
 		
 		if self.dice.double_counter == 3:
