@@ -99,143 +99,9 @@ class Adjudicator:
 	def pass_dice(self):
 		self.dice = dice.Dice()
 
-    def update_turn(self):
-        self.turn += 1
-            
-            
-  """
-  Phases
-  1 = Initial BSTM
-  2 = BSTM Before applying turn effect
-  3 = Unowned Property, Buying
-  4 = Unowned Property, Auction
-  5 = Owned Property, Pay Rent
-  6 = Tax (i.e., Pay/Receive money from the Bank.)
-  7 = Cards (Will there need to be nesting here?)
-  Imcomplete
-  
-  
-  (Q: Will there need to be a BSTM if the player receives money?)
-  """
-  
-  """
-  Phase Properties:
-  Is the property owned?
-  If unowned, there are 3 sequential sub-phases: BSTM,Buying,Auction. Which one are you in?
-  If owned, 2 sub-phases: BSTM,rent. Note: BSTM here for opponent must be applied after the turn.
-  If cards, draw top card,do effect, return it to bottom of the deck.
-  If Go To Jail, send to jail. Immediately end the turn.
-  If currently in Jail, 3 ways to get out.
-  """
-  
-  """Phase 2: Dice Roll"""
-  def dice_roll(self):
-
-    self.pass_dice()
-    self.dice.roll()
-
-    if self.dice.double_counter == 3:
-      self.send_player_to_jail(state)
-      #End current player's turn here
-      #Should there be a GoToJail state to let the player know?
-    else:
-      #Update player position
-      current_player = state[PLAYER_TURN_INDEX] % 2
-      playerPosition = state[PLAYER_POSITION_INDEX][current_player]
-      playerCash = state[PLAYER_CASH_INDEX][current_player]
-
-      
-      #Jail
-      if playerPosition == -1:
-        #Do special handling and return here
-        return
-      
-      playerPosition += self.dice.roll_sum
-      
-      #Passing Go
-      if playerPosition >= 40:
-        playerPosition = playerPosition % 40
-        playerCash += 200
-      
-      state[PLAYER_CASH_INDEX][current_player] = playerCash
-      state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-	      #Next, perform square effect
-      #Preparation for next phase:
-      self.update_state()
-          
-            
-  def update_state(self):
-    	
-  	current_player = state[PLAYER_TURN_INDEX] % 2
-    propertyToSpaceMap = constants.property_to_space_map
-    isProperty = (state.position in propertyToSpaceMap)
-    phase_properties = {}
-
-    playerPosition = state[PLAYER_POSITION_INDEX][current_player]
-    playerCash = state[PLAYER_CASH_INDEX][current_player]
-    propertyValue = state[PROPERTY_STATUS_INDEX][propertyToSpaceMap[playerPosition]]
-   
-    if isProperty:
-    	# if its not taken by anyone
-      if propertyValue == 0:
-          #Unowned
-        state[PHASE_NUMBER_INDEX] = 3 # buying phase
-      else:
-        #Check if owned by opponent
-        if current_player == 0:
-            owned = propertyValue < 0
-        else:
-            owned = propertyValue > 0
-        
-        state[PHASE_NUMBER_INDEX] = 5
-    else:
-      
-      if constants.board[playerPosition]['class'] == 'Chance':
-        #Chance
-        pass
-      elif constants.board[playerPosition]['class'] == 'Chest':
-        # Community
-        card = self.chest.draw_card()
-        
-        if card.type == 1:
-          #What should we do if we are receiving cash here? Should there be a BSTM?
-          phase_properties.cash = card.money
-          phase_properties.source = "bank"
-        elif card.type == 2:
-          phase_properties.cash = card.money
-          phase_properties.source = "opponent"
-        elif card.type == 3:
-          if card.position == -1:
-              self.send_player_to_jail(state)
-          else:
-            if card.position < playerPosition:
-                #Passes Go
-                playerCash += 200
-            playerPosition = card.position
-            state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-            state[PLAYER_CASH_INDEX][current_player] = playerCash
-            # why is this needed?
-            self.update_state()
-        elif card.type == 2:
-          pass
-        elif card.type == 4:
-			    pass
-        elif constants.board[state.position]['class'] == 'Tax':
-          #Tax
-          #First ask for BSTM
-          phase_properties.cash = constants.board[playerPosition]['tax']
-          phase_properties.source = "bank"
-        elif constants.board[playerPosition]['class'] == 'Idle':
-          pass
-  
-    state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-    state[PLAYER_CASH_INDEX][current_player] = playerCash
-    state[5] = phase_properties
-    		
-
 	def send_player_to_jail(self,state):
-    current_player = state[PLAYER_TURN_INDEX] % 2
-    state[PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
+		current_player = state[PLAYER_TURN_INDEX]%2
+		state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
         
 	def update_turn(self):
 		self.turn += 1
@@ -271,8 +137,8 @@ class Adjudicator:
 		self.pass_dice()
 		
 		current_player = state[PLAYER_TURN_INDEX] % 2
-		playerPosition = state[PLAYER_POSITION_INDEX][current_player]
-		playerCash = state[PLAYER_CASH_INDEX][current_player]
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 		#Jail
 		if playerPosition == -1:
 			#Do special handling and return here
@@ -297,8 +163,8 @@ class Adjudicator:
 			#Next, perform square effect
 			#Preparation for next phase:
 
-			state[PLAYER_POSITION_INDEX[current_player] = playerPosition
-			state[PLAYER_CASH_INDEX[current_player] = playerCash
+			state[self.PLAYER_POSITION_INDEX[current_player]] = playerPosition
+			state[self.PLAYER_CASH_INDEX[current_player]] = playerCash
 
 			self.update_state(state)
 			
@@ -308,7 +174,7 @@ class Adjudicator:
 			
 	def update_state(self,state):
 		current_player = state[PLAYER_TURN_INDEX]%2
-		playerPosition = state[PLAYER_POSITION_INDEX][current_player]
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		
 		isProperty = (playerPosition in constants.space_to_property_map)
 		
@@ -346,10 +212,12 @@ class Adjudicator:
 	"""
 	def handle_property(self,state):
 		current_player = state[0]%2
-		prop_value = state[1][ constants.space_to_property_map[playerPosition] ]
-		playerPosition = state[PLAYER_POSITION_INDEX][current_player]
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		
+		#Could add a check here for whether this is a property. If not there will be an error here.
+		propertyValue = state[self.PROPERTY_STATUS_INDEX][ constants.space_to_property_map[playerPosition] ]
 		output = {}
-		if prop_value == 0:
+		if propertyValue == 0:
 			#Unowned
 			output['phase'] = 3
 			output['phase_properties'] = {}
@@ -358,22 +226,22 @@ class Adjudicator:
 		else:
 			#Check if owned by opponent
 			if current_player == 0:
-				owned = (prop_value < 0)
+				owned = (propertyValue < 0)
 			else:
-				owned = (prop_value > 0)
+				owned = (propertyValue > 0)
 			
 			if owned:
 				rent = 0
-				abs_prop_value = abs(prop_value)
+				absPropertyValue = abs(propertyValue)
 				
-				if abs_prop_value == 1:
+				if absPropertyValue == 1:
 					rent = constants.board[playerPosition]['rent']
 					monopolies = constants.board[playerPosition]['monopoly_group_elements']
-					sign = prop_value/abs_prop_value
+					sign = propertyValue/absPropertyValue
 					
 					counter = 1
 					for monopoly in monopolies:
-						monopoly_sign = state[1][constants.space_to_property_map[monopoly]]
+						monopoly_sign = state[self.PROPERTY_STATUS_INDEX][constants.space_to_property_map[monopoly]]
 						if monopoly_sign!=0 and monopoly_sign/abs(monopoly_sign) == sign:
 							counter += 1
 					
@@ -387,15 +255,15 @@ class Adjudicator:
 							rent = 10
 						rent = rent * self.dice.roll_sum
 				
-				elif abs_prop_value == 2:
+				elif absPropertyValue == 2:
 					rent = constants.board[playerPosition]['rent_house_1']
-				elif abs_prop_value == 3:
+				elif absPropertyValue == 3:
 					rent = constants.board[playerPosition]['rent_house_2']
-				elif abs_prop_value == 4:
+				elif absPropertyValue == 4:
 					rent = constants.board[playerPosition]['rent_house_3']
-				elif abs_prop_value == 5:
+				elif absPropertyValue == 5:
 					rent = constants.board[playerPosition]['rent_house_4']
-				elif abs_prop_value == 6:
+				elif absPropertyValue == 6:
 					rent = constants.board[playerPosition]['rent_hotel']
 				
 				output['phase_properties'] = {}
@@ -414,17 +282,17 @@ class Adjudicator:
 	"""
 	def handle_cards_pre_turn(self,state,card,deck):
 		current_player = state[0]%2
-		playerPosition = state[PLAYER_POSITION_INDEX][current_player]
-		playerCash = state[PLAYER_CASH_INDEX][current_player]
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 
 		if card.type == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
-			state[5]['cash'] = card.money
-			state[5]['source'] = "bank"
+			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card.money
+			state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 
 		elif card.type == 2:
-			state[5]['cash'] = card.money
-			state[5]['source'] = "opponent"
+			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card.money
+			state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 			
 		elif card.type == 3:
 			if card.position == -1:
@@ -435,8 +303,8 @@ class Adjudicator:
 					playerCash += 200
 				playerPosition = card.position
 
-				state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-				state[PLAYER_CASH_INDEX][current_player] = playerCash
+				state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
+				state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 				self.update_state(state)
 				
 		elif card.type == 4:
@@ -447,14 +315,14 @@ class Adjudicator:
 			29 = Community Chest
 			"""
 			if deck == 'Chest':
-				prop_value = 29
+				propertyValue = 29
 			else:
-				prop_value = 28
+				propertyValue = 28
 			
 			if current_player == 0:
-				state[PROPERTY_STATUS_INDEX][prop_value] = 1
+				state[PROPERTY_STATUS_INDEX][propertyValue] = 1
 			else:
-				state[PROPERTY_STATUS_INDEX][prop_value] = -1
+				state[PROPERTY_STATUS_INDEX][propertyValue] = -1
 				
 		elif card.type == 5:
 			n_houses = 0
@@ -491,8 +359,8 @@ class Adjudicator:
 			elif (playerPosition < 35) and (playerPosition>=25):
 				playerPosition = 35
 			
-			state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-			state[PLAYER_CASH_INDEX][current_player] = playerCash
+			state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
+			state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 			# 
 			output = self.handle_property(state)
 			if 'phase' in output:
@@ -515,8 +383,8 @@ class Adjudicator:
 			elif (playerPosition < 28) and (playerPosition>=12):
 				playerPosition = 28
 			
-				prop_value = state[1][ constants.space_to_property_map[playerPosition] ]
-				if prop_value == 0:
+				propertyValue = state[self.PROPERTY_STATUS_INDEX][ constants.space_to_property_map[playerPosition] ]
+				if propertyValue == 0:
 					#Unowned
 					state[PHASE_NUMBER_INDEX] = 3
 					state[PHASE_PAYLOAD_INDEX]['cash'] = constants.board[playerPosition]['price']
@@ -524,36 +392,32 @@ class Adjudicator:
 				else:
 					#Check if owned by opponent
 					if current_player == 0:
-						owned = (prop_value < 0)
+						owned = (propertyValue < 0)
 					else:
-						owned = (prop_value > 0)
+						owned = (propertyValue > 0)
 					
 					if owned:
-						abs_prop_value = abs(prop_value)
+						absPropertyValue = abs(propertyValue)
 						#This point is up for contention.
 						#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
 						#But, not considering that as it doesn't seem to be in the spirit of the game.
-						if abs_prop_value == 1:
+						if absPropertyValue == 1:
 							self.dice.roll(True)
 							state[PHASE_PAYLOAD_INDEX]['cash'] = 10 * self.dice.roll_sum
 							state[PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 		
 		elif card.type == 8:
 			#Go back 3 spaces
-			state[PLAYER_POSITION_INDEX][current_player]-= 3
+			state[self.PLAYER_POSITION_INDEX][current_player]-= 3
 			self.update_state(state)
 		else:
 			logger.info('Invalid card type {type}...'.format(type=card.type))
 
 
 		# update the player positon and cash and call update_state and property here?
-		state[PLAYER_POSITION_INDEX][current_player] = playerPosition
-		state[PLAYER_CASH_INDEX][current_player] = playerCash
+		state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
+		state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 		# make further calls
-	
-	def send_player_to_jail(self,state):
-		current_player = state[PLAYER_TURN_INDEX]%2
-		state[PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
 		
 	
 	def runPlayerOnState(self):
@@ -570,7 +434,7 @@ class Adjudicator:
 
 		# diceValue = rollDice()
 		# state[4] = 3
-		# state[5] = diceValue
+		# state[self.PHASE_PAYLOAD_INDEX] = diceValue
 
 		if nextPlayer == 0:
 			actionTaken = agent.run(state)
