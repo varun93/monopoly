@@ -1,7 +1,7 @@
 """TODO:Ensure board can't be modified by agents""" 
 
 board = {
--1:{
+"-1":{
 "class":"Jail",
 "name":"Jail",
 "monopoly":"None",
@@ -16,7 +16,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-0:{
+"0":{
 "class":"Idle",
 "name":"Go",
 "monopoly":"None",
@@ -31,7 +31,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-1:{
+"1":{
 "class":"Street",
 "name":"Mediterranean Avenue",
 "monopoly":"Brown",
@@ -47,7 +47,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[3]
 },
-2:{
+"2":{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -62,7 +62,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-3:{
+"3":{
 "class":"Street",
 "name":"Baltic Avenue",
 "monopoly":"Brown",
@@ -78,7 +78,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[1]
 },
-4:{
+"4":{
 "class":"Tax",
 "name":"Income Tax",
 "monopoly":"None",
@@ -93,7 +93,7 @@ board = {
 "rent_hotel":0,
 "tax":200
 },
-5:{
+"5":{
 "class":"Railroad",
 "name":"Reading Railroad",
 "monopoly":"Railroad",
@@ -109,7 +109,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[15, 25, 35]
 },
-6:{
+"6":{
 "class":"Street",
 "name":"Oriental Avenue",
 "monopoly":"Light Blue",
@@ -125,7 +125,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[8, 9]
 },
-7:{
+"7":{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -140,7 +140,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-8:{
+"8":{
 "class":"Street",
 "name":"Vermont Avenue",
 "monopoly":"Light Blue",
@@ -156,7 +156,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[6, 9]
 },
-9:{
+"9":{
 "class":"Street",
 "name":"Connecticut Avenue",
 "monopoly":"Light Blue",
@@ -172,7 +172,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[6, 8]
 },
-10:{
+"10":{
 "class":"Idle",
 "name":"Jail",
 "monopoly":"None",
@@ -187,7 +187,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-11:{
+"11":{
 "class":"Street",
 "name":"St. Charles Place",
 "monopoly":"Pink",
@@ -203,7 +203,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[13, 14]
 },
-12:{
+"12":{
 "class":"Utility",
 "name":"Electric Company",
 "monopoly":"Utility",
@@ -219,7 +219,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[28]
 },
-13:{
+"13":{
 "class":"Street",
 "name":"States Avenue",
 "monopoly":"Pink",
@@ -235,7 +235,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[11, 14]
 },
-14:{
+"14":{
 "class":"Street",
 "name":"Virginia Avenue",
 "monopoly":"Pink",
@@ -251,7 +251,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[11, 13]
 },
-15:{
+"15":{
 "class":"Railroad",
 "name":"Pennsylvania Railroad",
 "monopoly":"Railroad",
@@ -267,7 +267,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 25, 35]
 },
-16:{
+"16":{
 "class":"Street",
 "name":"St. James Place",
 "monopoly":"Orange",
@@ -283,7 +283,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[18, 19]
 },
-17:{
+"17":{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -298,7 +298,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-18:{
+"18":{
 "class":"Street",
 "name":"Tennessee Avenue",
 "monopoly":"Orange",
@@ -314,7 +314,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[16, 19]
 },
-19:{
+"19":{
 "class":"Street",
 "name":"New York Avenue",
 "monopoly":"Orange",
@@ -330,7 +330,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[16, 18]
 },
-20:{
+"20":{
 "class":"Idle",
 "name":"Free Parking",
 "monopoly":"None",
@@ -345,7 +345,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-21:{
+"21":{
 "class":"Street",
 "name":"Kentucky Avenue",
 "monopoly":"Red",
@@ -361,7 +361,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[23, 24]
 },
-22:{
+"22":{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -376,7 +376,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-23:{
+"23":{
 "class":"Street",
 "name":"Indiana Avenue",
 "monopoly":"Red",
@@ -392,7 +392,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[21, 24]
 },
-24:{
+"24":{
 "class":"Street",
 "name":"Illinois Avenue",
 "monopoly":"Red",
@@ -408,7 +408,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[21, 23]
 },
-25:{
+"25":{
 "class":"Railroad",
 "name":"B. & O. Railroad",
 "monopoly":"Railroad",
@@ -424,7 +424,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 15, 35]
 },
-26:{
+"26":{
 "class":"Street",
 "name":"Atlantic Avenue",
 "monopoly":"Yellow",
@@ -440,7 +440,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[27, 29]
 },
-27:{
+"27":{
 "class":"Street",
 "name":"Ventnor Avenue",
 "monopoly":"Yellow",
@@ -456,7 +456,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[26, 29]
 },
-28:{
+"28":{
 "class":"Utility",
 "name":"Water Works",
 "monopoly":"Utility",
@@ -472,7 +472,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[12]
 },
-29:{
+"29":{
 "class":"Street",
 "name":"Marvin Gardens",
 "monopoly":"Yellow",
@@ -488,7 +488,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[26, 27]
 },
-30:{
+"30":{
 "class":"GoToJail",
 "name":"Go To Jail",
 "monopoly":"None",
@@ -503,7 +503,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-31:{
+"31":{
 "class":"Street",
 "name":"Pacific Avenue",
 "monopoly":"Green",
@@ -519,7 +519,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[32, 34]
 },
-32:{
+"32":{
 "class":"Street",
 "name":"North Carolina Avenue",
 "monopoly":"Green",
@@ -535,7 +535,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[31, 34]
 },
-33:{
+"33":{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -550,7 +550,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-34:{
+"34":{
 "class":"Street",
 "name":"Pennsylvania Avenue",
 "monopoly":"Green",
@@ -566,7 +566,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[31, 32]
 },
-35:{
+"35":{
 "class":"Railroad",
 "name":"Short Line",
 "monopoly":"Railroad",
@@ -582,7 +582,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 15, 25]
 },
-36:{
+"36":{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -597,7 +597,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-37:{
+"37":{
 "class":"Street",
 "name":"Park Place",
 "monopoly":"Dark Blue",
@@ -613,7 +613,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[39]
 },
-38:{
+"38":{
 "class":"Tax",
 "name":"Luxury Tax",
 "monopoly":"None",
@@ -628,7 +628,7 @@ board = {
 "rent_hotel":0,
 "tax":100
 },
-39:{
+"39":{
 "class":"Street",
 "name":"Boardwalk",
 "monopoly":"Dark Blue",
@@ -646,36 +646,297 @@ board = {
 }
 }
 
-
 property_to_space_map = {
-2:0,
-4:1,
-6:2,
-7:3,
-9:4,
-10:5,
-12:6,
-13:7,
-14:8,
-15:9,
-16:10,
-17:11,
-19:12,
-20:13,
-22:14,
-24:15,
-25:16,
-26:17,
-27:18,
-28:19,
-29:20,
-30:21,
-32:22,
-33:23,
-35:24,
-36:25,
-38:26,
-40:27
+"2":0,
+"4":1,
+"6":2,
+"7":3,
+"9":4,
+"10":5,
+"12":6,
+"13":7,
+"14":8,
+"15":9,
+"16":10,
+"17":11,
+"19":12,
+"20":13,
+"22":14,
+"24":15,
+"25":16,
+"26":17,
+"27":18,
+"28":19,
+"29":20,
+"30":21,
+"32":22,
+"33":23,
+"35":24,
+"36":25,
+"38":26,
+"40":27
 }
+
+communityChestCards = [
+  {
+    "Id": 0,
+    "Content": "Advance to Go (Collect $200)",
+    "Type": 3,
+    "Position": 1,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 1,
+    "Content": "Bank error in your favor, collect $200",
+    "Type": 1,
+    "Position": 0,
+    "Money": 200,
+    "Money2": 0
+  },
+  {
+    "Id": 2,
+    "Content": "Doctor's fees, Pay $50",
+    "Type": 1,
+    "Position": 0,
+    "Money": -50,
+    "Money2": 0
+  },
+  {
+    "Id": 3,
+    "Content": "From sale of stock you get $50",
+    "Type": 1,
+    "Position": 0,
+    "Money": 50,
+    "Money2": 0
+  },
+  {
+    "Id": 4,
+    "Content": "Get out of jail free, this card may be kept until needed",
+    "Type": 4,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 5,
+    "Content": "Go to jail, go directly to jail – Do not pass Go, do not collect $200",
+    "Type": 3,
+    "Position": -1,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 6,
+    "Content": "Grand Opera Night. Collect $50 from every player for opening night seats.",
+    "Type": 2,
+    "Position": 0,
+    "Money": 50,
+    "Money2": 0
+  },
+  {
+    "Id": 7,
+    "Content": "Holiday Fund matures - Receive $100",
+    "Type": 1,
+    "Position": 0,
+    "Money": 100,
+    "Money2": 0
+  },
+  {
+    "Id": 8,
+    "Content": "Income Tax refund. Collect $20",
+    "Type": 1,
+    "Position": 0,
+    "Money": 20,
+    "Money2": 0
+  },
+  {
+    "Id": 9,
+    "Content": "Life Insurance Matures - Collect $100",
+    "Type": 1,
+    "Position": 0,
+    "Money": 100,
+    "Money2": 0
+  },
+  {
+    "Id": 10,
+    "Content": "Pay Hospital Fees of $50",
+    "Type": 1,
+    "Position": 0,
+    "Money": -50,
+    "Money2": 0
+  },
+  {
+    "Id": 11,
+    "Content": "Pay School Fees of $50",
+    "Type": 1,
+    "Position": 0,
+    "Money": -50,
+    "Money2": 0
+  },
+  {
+    "Id": 12,
+    "Content": "Receive $25 Consultancy Fee",
+    "Type": 1,
+    "Position": 0,
+    "Money": 25,
+    "Money2": 0
+  },
+  {
+    "Id": 13,
+    "Content": "You are assessed for street repairs: Pay $40 per house and $115 per hotel you own.",
+    "Type": 5,
+    "Position": 0,
+    "Money": -40,
+    "Money2": -115
+  },
+  {
+    "Id": 14,
+    "Content": "You have won second prize in a beauty contest– collect $10",
+    "Type": 1,
+    "Position": 0,
+    "Money": 10,
+    "Money2": 0
+  },
+  {
+    "Id": 15,
+    "Content": "You inherit $100",
+    "Type": 1,
+    "Position": 0,
+    "Money": 100,
+    "Money2": 0
+  }
+]
+
+chanceCards = [
+  {
+    "Id": 0,
+    "Content": "Advance to Go (Collect $200)",
+    "Type": 3,
+    "Position": 1,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 1,
+    "Content": "Advance to Illinois Ave. If you pass Go, collect $200.",
+    "Type": 3,
+    "Position": 25,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 2,
+    "Content": "Advance to St. Charles Place. If you pass Go, collect $200",
+    "Type": 3,
+    "Position": 12,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 3,
+    "Content": "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total 10 times the amount thrown.",
+    "Type": 7,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 4,
+    "Content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
+    "Type": 6,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 5,
+    "Content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
+    "Type": 6,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 6,
+    "Content": "Bank pays you dividend of $50",
+    "Type": 1,
+    "Position": 0,
+    "Money": 50,
+    "Money2": 0
+  },
+  {
+    "Id": 7,
+    "Content": "Get out of Jail free, this card may be kept until needed, or traded",
+    "Type": 4,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 8,
+    "Content": "Go Back 3 Spaces",
+    "Type": 8,
+    "Position": 0,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 9,
+    "Content": "Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200.",
+    "Type": 3,
+    "Position": -1,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 10,
+    "Content": "Make general repairs on all your property: For each house pay $25, For each hotel {pay} $100.",
+    "Type": 5,
+    "Position": 0,
+    "Money": -25,
+    "Money2": -100
+  },
+  {
+    "Id": 11,
+    "Content": "Pay poor tax of $15",
+    "Type": 1,
+    "Position": 0,
+    "Money": 15,
+    "Money2": 0
+  },
+  {
+    "Id": 12,
+    "Content": "Take a trip to Reading Railroad.",
+    "Type": 3,
+    "Position": 6,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 13,
+    "Content": "Advance to Boardwalk",
+    "Type": 3,
+    "Position": 40,
+    "Money": 0,
+    "Money2": 0
+  },
+  {
+    "Id": 14,
+    "Content": "You have been elected chairman of the board, pay each player $50",
+    "Type": 2,
+    "Position": 0,
+    "Money": -50,
+    "Money2": 0
+  },
+  {
+    "Id": 15,
+    "Content": "Your building loan matures, collect $150",
+    "Type": 1,
+    "Position": 0,
+    "Money": 150,
+    "Money2": 0
+  }
+]
 
 print(0 in property_to_space_map)

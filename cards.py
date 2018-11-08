@@ -28,9 +28,15 @@ class GetOutOfJailFree:
             return self.name
         return None
 
-class Card:
-    def __init__(self,attrib):
-        #Type:
+
+class Cards:
+    def __init__(self, items):
+        self.deck = np.random.shuffle(list(map(lambda item : self.transformCard(item),
+            items)))
+        
+    def transformCard(self,item):
+        card = {}
+         #Type:
         #1 = Money to/from the bank
         #2 = Money to/from other players
         #3 = Change position to self.position
@@ -39,22 +45,20 @@ class Card:
         #6 = Advance to nearest Railroad
         #7 = Advance to nearest Utility
         #8 = Go back 3 spaces
-        self.id = attrib['Id']
-        self.content = attrib['Content']
-        self.type = attrib['Type']
-        self.position = attrib['Position']
-        self.money = attrib['Money']
-        self.money2 = attrib['Money2']
+        card['id'] = item['Id']
+        card['content'] = item['Content']
+        card['type'] = item['Type']
+        card['position'] = item['Position']
+        card['money'] = item['Money']
+        card['money2'] = item['Money2']
 
-class Cards:
-    def __init__(self, df):
-        self.deck = []
-        for _, attributes in df.iterrows():
-            self.deck.append(Card(attributes))
-        np.random.shuffle(self.deck)
+        return card
         
+
     def draw_card(self):
         drawn_card = self.deck.pop()
+
         if drawn_card.type is not 4:
             self.deck.append(drawn_card)
+        
         return drawn_card
