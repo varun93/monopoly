@@ -60,12 +60,11 @@ class Adjudicator:
 	def __init__(self):
 		self.state =  [
 			0, #player turn; 0
-		    [], #player properties; 1
+		    np.zeros(30), #player properties; 1
 		    (0,0),#player's position; 2
 		    (0,0), #player's cash; 3
 		    0, #phase number; 4
 		    None, #phase payload; 5
-		    [] #state history; 6
 		]
 
 		self.agentOne = Agent(self.state)
