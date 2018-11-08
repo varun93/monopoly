@@ -173,19 +173,20 @@ class Adjudicator:
         phase_properties = {}
 
         playerPosition = state[PLAYER_POSITION_INDEX][current_player]
-        playerProperty = state[PROPERTY_STATUS_INDEX][propertyToSpaceMap[playerPosition]]
-
+        playerCash = state[PLAYER_CASH_INDEX][current_player]
+        propertyValue = state[PROPERTY_STATUS_INDEX][propertyToSpaceMap[playerPosition]]
+       
         if isProperty:
         	# if its not taken by anyone
-            if prop_value == 0:
+            if propertyValue == 0:
                 #Unowned
                 state[PHASE_NUMBER_INDEX] = 3 # buying phase
             else:
                 #Check if owned by opponent
                 if current_player == 0:
-                    owned = prop_value < 0
+                    owned = propertyValue < 0
                 else:
-                    owned = prop_value > 0
+                    owned = propertyValue > 0
                 
                 state[PHASE_NUMBER_INDEX] = 5
         else:
@@ -206,11 +207,13 @@ class Adjudicator:
                     if card.position == -1:
                         self.send_player_to_jail(state)
                     else:
-                        if card.position < state.position:
+                        if card.position < playerPosition:
                             #Passes Go
-                            state.current_cash[current_player] += 200
-                        state.position = card.position
-                        # 
+                            playerCash += 200
+                        playerPosition = card.position
+                        # why is this needed?
+                        propertyValue = state[PROPERTY_STATUS_INDEX][propertyToSpaceMap[playerPosition]]
+                        playerCash = state[PLAYER_CASH_INDEX][current_player]
                         self.update_state()
 				elif card.type == 2:
                     pass
@@ -224,8 +227,10 @@ class Adjudicator:
                 phase_properties.source = "bank"
             elif constants.board[state.position]['class'] == 'Idle':
                 pass
-
-        state[5] = phase_properties
+    
+    state[PLAYER_POSITION_INDEX][current_player] = playerPosition
+    state[PLAYER_CASH_INDEX][current_player] = playerCash
+    state[5] = phase_properties
     		
 
 	def send_player_to_jail(self,state):
