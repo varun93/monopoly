@@ -14,7 +14,7 @@ class Dice:
         self.double = False
         self.double_counter = 0
 
-    def roll(self):
+    def roll(self,ignore=False):
         """Roll two fair six-sided die and store (1) the sum of the roll, (2) an indicator of whether it was a double
         roll and (3) a counter of the number of consecutive double rolls."""
 
@@ -22,7 +22,8 @@ class Dice:
 
         self.roll_sum = roll.sum()
         self.double = roll[0] == roll[1]
-        self.double_counter += self.double
+        if not ignore:
+            self.double_counter += self.double
 
         if config.verbose['dice']:
             logger.info('Roll a {die_1} and a {die_2}'.format(die_1=roll[0], die_2=roll[1]))
