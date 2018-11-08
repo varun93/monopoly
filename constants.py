@@ -1,7 +1,7 @@
 """TODO:Ensure board can't be modified by agents""" 
 
 board = {
-"-1":{
+-1:{
 "class":"Jail",
 "name":"Jail",
 "monopoly":"None",
@@ -16,7 +16,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"0":{
+0:{
 "class":"Idle",
 "name":"Go",
 "monopoly":"None",
@@ -31,7 +31,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"1":{
+1:{
 "class":"Street",
 "name":"Mediterranean Avenue",
 "monopoly":"Brown",
@@ -47,7 +47,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[3]
 },
-"2":{
+2:{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -62,7 +62,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"3":{
+3:{
 "class":"Street",
 "name":"Baltic Avenue",
 "monopoly":"Brown",
@@ -78,7 +78,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[1]
 },
-"4":{
+4:{
 "class":"Tax",
 "name":"Income Tax",
 "monopoly":"None",
@@ -93,7 +93,7 @@ board = {
 "rent_hotel":0,
 "tax":200
 },
-"5":{
+5:{
 "class":"Railroad",
 "name":"Reading Railroad",
 "monopoly":"Railroad",
@@ -109,7 +109,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[15, 25, 35]
 },
-"6":{
+6:{
 "class":"Street",
 "name":"Oriental Avenue",
 "monopoly":"Light Blue",
@@ -125,7 +125,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[8, 9]
 },
-"7":{
+7:{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -140,7 +140,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"8":{
+8:{
 "class":"Street",
 "name":"Vermont Avenue",
 "monopoly":"Light Blue",
@@ -156,7 +156,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[6, 9]
 },
-"9":{
+9:{
 "class":"Street",
 "name":"Connecticut Avenue",
 "monopoly":"Light Blue",
@@ -172,7 +172,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[6, 8]
 },
-"10":{
+10:{
 "class":"Idle",
 "name":"Jail",
 "monopoly":"None",
@@ -187,7 +187,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"11":{
+11:{
 "class":"Street",
 "name":"St. Charles Place",
 "monopoly":"Pink",
@@ -203,7 +203,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[13, 14]
 },
-"12":{
+12:{
 "class":"Utility",
 "name":"Electric Company",
 "monopoly":"Utility",
@@ -219,7 +219,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[28]
 },
-"13":{
+13:{
 "class":"Street",
 "name":"States Avenue",
 "monopoly":"Pink",
@@ -235,7 +235,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[11, 14]
 },
-"14":{
+14:{
 "class":"Street",
 "name":"Virginia Avenue",
 "monopoly":"Pink",
@@ -251,7 +251,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[11, 13]
 },
-"15":{
+15:{
 "class":"Railroad",
 "name":"Pennsylvania Railroad",
 "monopoly":"Railroad",
@@ -267,7 +267,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 25, 35]
 },
-"16":{
+16:{
 "class":"Street",
 "name":"St. James Place",
 "monopoly":"Orange",
@@ -283,7 +283,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[18, 19]
 },
-"17":{
+17:{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -298,7 +298,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"18":{
+18:{
 "class":"Street",
 "name":"Tennessee Avenue",
 "monopoly":"Orange",
@@ -314,7 +314,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[16, 19]
 },
-"19":{
+19:{
 "class":"Street",
 "name":"New York Avenue",
 "monopoly":"Orange",
@@ -330,7 +330,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[16, 18]
 },
-"20":{
+20:{
 "class":"Idle",
 "name":"Free Parking",
 "monopoly":"None",
@@ -345,7 +345,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"21":{
+21:{
 "class":"Street",
 "name":"Kentucky Avenue",
 "monopoly":"Red",
@@ -361,7 +361,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[23, 24]
 },
-"22":{
+22:{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -376,7 +376,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"23":{
+23:{
 "class":"Street",
 "name":"Indiana Avenue",
 "monopoly":"Red",
@@ -392,7 +392,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[21, 24]
 },
-"24":{
+24:{
 "class":"Street",
 "name":"Illinois Avenue",
 "monopoly":"Red",
@@ -408,7 +408,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[21, 23]
 },
-"25":{
+25:{
 "class":"Railroad",
 "name":"B. & O. Railroad",
 "monopoly":"Railroad",
@@ -424,7 +424,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 15, 35]
 },
-"26":{
+26:{
 "class":"Street",
 "name":"Atlantic Avenue",
 "monopoly":"Yellow",
@@ -440,7 +440,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[27, 29]
 },
-"27":{
+27:{
 "class":"Street",
 "name":"Ventnor Avenue",
 "monopoly":"Yellow",
@@ -456,7 +456,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[26, 29]
 },
-"28":{
+28:{
 "class":"Utility",
 "name":"Water Works",
 "monopoly":"Utility",
@@ -472,7 +472,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[12]
 },
-"29":{
+29:{
 "class":"Street",
 "name":"Marvin Gardens",
 "monopoly":"Yellow",
@@ -488,7 +488,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[26, 27]
 },
-"30":{
+30:{
 "class":"GoToJail",
 "name":"Go To Jail",
 "monopoly":"None",
@@ -503,7 +503,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"31":{
+31:{
 "class":"Street",
 "name":"Pacific Avenue",
 "monopoly":"Green",
@@ -519,7 +519,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[32, 34]
 },
-"32":{
+32:{
 "class":"Street",
 "name":"North Carolina Avenue",
 "monopoly":"Green",
@@ -535,7 +535,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[31, 34]
 },
-"33":{
+33:{
 "class":"Chest",
 "name":"Community Chest",
 "monopoly":"None",
@@ -550,7 +550,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"34":{
+34:{
 "class":"Street",
 "name":"Pennsylvania Avenue",
 "monopoly":"Green",
@@ -566,7 +566,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[31, 32]
 },
-"35":{
+35:{
 "class":"Railroad",
 "name":"Short Line",
 "monopoly":"Railroad",
@@ -582,7 +582,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[5, 15, 25]
 },
-"36":{
+36:{
 "class":"Chance",
 "name":"Chance",
 "monopoly":"None",
@@ -597,7 +597,7 @@ board = {
 "rent_hotel":0,
 "tax":0
 },
-"37":{
+37:{
 "class":"Street",
 "name":"Park Place",
 "monopoly":"Dark Blue",
@@ -613,7 +613,7 @@ board = {
 "tax":0,
 "monopoly_group_elements":[39]
 },
-"38":{
+38:{
 "class":"Tax",
 "name":"Luxury Tax",
 "monopoly":"None",
@@ -628,7 +628,7 @@ board = {
 "rent_hotel":0,
 "tax":100
 },
-"39":{
+39:{
 "class":"Street",
 "name":"Boardwalk",
 "monopoly":"Dark Blue",
@@ -646,7 +646,7 @@ board = {
 }
 }
 
-property_to_space_map = {
+space_to_property_map = {
 1:0,
 3:1,
 5:2,

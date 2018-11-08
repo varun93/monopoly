@@ -3,7 +3,8 @@ import dice
 import constants
 from cards import Cards
 from agent import Agent
-from utils import combineStates
+import numpy as np
+#from utils import combineStates
 
 
 class BMST:
@@ -157,7 +158,7 @@ class Adjudicator:
 			
 	def update_state(self,state):
 		current_player = state[0]%2
-		isProperty = (state[2][current_player] in constants.property_to_space_map)
+		isProperty = (state[2][current_player] in constants.space_to_property_map)
 		
 		state[5] = {} # Should this be done? Clearing of phase payload/properties?
 			
@@ -182,8 +183,8 @@ class Adjudicator:
 			elif constants.board[state[2][current_player]]['class'] == 'Tax':
 				#Tax
 				#First ask for BSTM
-				state[5].cash = constants.board[state[2][current_player]]['tax']
-				state[5].source = "bank"
+				state[5]['cash'] = constants.board[state[2][current_player]]['tax']
+				state[5]['source'] = "bank"
 			
 			elif constants.board[state[2][current_player]]['class'] == 'Idle':
 				pass
@@ -193,14 +194,14 @@ class Adjudicator:
 	"""
 	def handle_property(self,state):
 		current_player = state[0]%2
-		prop_value = state[1][ constants.property_to_space_map[state[2][current_player]] ]
+		prop_value = state[1][ constants.space_to_property_map[state[2][current_player]] ]
 		output = {}
 		if prop_value == 0:
 			#Unowned
 			output['phase'] = 3
 			output['phase_properties'] = {}
-			output['phase_properties'].cash = constants.board[state[2][current_player]]['price']
-			output['phase_properties'].source = "bank"
+			output['phase_properties']['cash'] = constants.board[state[2][current_player]]['price']
+			output['phase_properties']['source'] = "bank"
 		else:
 			#Check if owned by opponent
 			if current_player == 0:
@@ -217,18 +218,19 @@ class Adjudicator:
 					monopolies = constants.board[state[2][current_player]]['monopoly_group_elements']
 					sign = prop_value/abs_prop_value
 					
-					counter = 0
+					counter = 1
 					for monopoly in monopolies:
-						if constants.property_to_space_map[monopoly]/abs(constants.property_to_space_map[monopoly]) == sign:
+						monopoly_sign = state[1][constants.space_to_property_map[monopoly]]
+						if monopoly_sign!=0 and monopoly_sign/abs(monopoly_sign) == sign:
 							counter += 1
 					
 					if (constants.board[state[2][current_player]]['class'] == 'Street'):
-						if (counter==len(monopolies)):
+						if (counter==len(monopolies)+1):
 							rent = rent * 2
 					elif (constants.board[state[2][current_player]]['class'] == 'Railroad'):
 						rent = rent * counter
 					elif (constants.board[state[2][current_player]]['class'] == 'Utility'):
-						if (counter==len(monopolies)):
+						if (counter==len(monopolies)+1):
 							rent = 10
 						rent = rent * self.dice.roll_sum
 				
@@ -244,8 +246,8 @@ class Adjudicator:
 					rent = constants.board[state[2][current_player]]['rent_hotel']
 				
 				output['phase_properties'] = {}
-				output['phase_properties'].cash = rent
-				output['phase_properties'].source = "opponent"
+				output['phase_properties']['cash'] = rent
+				output['phase_properties']['source'] = "opponent"
 			
 			else:
 				#When the property is owned by us
@@ -261,12 +263,12 @@ class Adjudicator:
 		current_player = state[0]%2
 		if card.type == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
-			state[5].cash = card.money
-			state[5].source = "bank"
+			state[5]['cash'] = card.money
+			state[5]['source'] = "bank"
 
 		elif card.type == 2:
-			state[5].cash = card.money
-			state[5].source = "opponent"
+			state[5]['cash'] = card.money
+			state[5]['source'] = "opponent"
 			
 		elif card.type == 3:
 			if card.position == -1:
@@ -312,8 +314,8 @@ class Adjudicator:
 						n_houses+= (abs(i)-1)
 					if prop == -6:
 						n_hotels+= 1
-			state[5].cash = card.money*n_houses + card.money2*n_hotels
-			state[5].source = "bank"
+			state[5]['cash'] = card.money*n_houses + card.money2*n_hotels
+			state[5]['source'] = "bank"
 		
 		elif card.type == 6:
 			#Advance to nearest railroad. Pay 2x amount if owned
@@ -337,8 +339,8 @@ class Adjudicator:
 				state[5] = output['phase_properties']
 			
 			#We need to double rent if the player landed on opponent's property.
-			if state[5].source == 'opponent':
-				state[5].cash *= 2
+			if state[5]['source'] == 'opponent':
+				state[5]['cash'] *= 2
 		
 		elif card.type == 7:
 			#Advance to nearest utility. Pay 10x dice roll if owned
@@ -351,12 +353,12 @@ class Adjudicator:
 			elif (state[2][current_player] < 28) and (state[2][current_player]>=12):
 				state[2][current_player] = 28
 			
-				prop_value = state[1][ constants.property_to_space_map[state[2][current_player]] ]
+				prop_value = state[1][ constants.space_to_property_map[state[2][current_player]] ]
 				if prop_value == 0:
 					#Unowned
 					state[4] = 3
-					state[5].cash = constants.board[state[2][current_player]]['price']
-					state[5].source = "bank"
+					state[5]['cash'] = constants.board[state[2][current_player]]['price']
+					state[5]['source'] = "bank"
 				else:
 					#Check if owned by opponent
 					if current_player == 0:
@@ -371,8 +373,8 @@ class Adjudicator:
 						#But, not considering that as it doesn't seem to be in the spirit of the game.
 						if abs_prop_value == 1:
 							self.dice.roll(True)
-							state[5].cash = 10 * self.dice.roll_sum
-							state[5].source = "opponent"
+							state[5]['cash'] = 10 * self.dice.roll_sum
+							state[5]['source'] = "opponent"
 		
 		elif card.type == 8:
 			#Go back 3 spaces
