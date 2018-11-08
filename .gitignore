@@ -15,6 +15,7 @@ develop-eggs
 __pycache__
 *.ipynb
 *.log
+board.csv
 
 # Installer logs
 pip-log.txt
