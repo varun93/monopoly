@@ -14,6 +14,7 @@ develop-eggs
 .installed.cfg
 __pycache__
 *.ipynb
+*.log
 
 # Installer logs
 pip-log.txt
