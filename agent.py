@@ -25,7 +25,9 @@ class Agent:
 			
 			# retrieve the property
 			handleBMSTDecison(state)
-
+	
+	def jailDecision(self,state):
+		pass
 		
 	def run(self,state):
 		return {}

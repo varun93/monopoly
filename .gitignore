@@ -16,6 +16,10 @@ __pycache__
 *.ipynb
 *.log
 board.csv
+*.txt
+.project
+.pydevproject
+tools.py
 
 # Installer logs
 pip-log.txt

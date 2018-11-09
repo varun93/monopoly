@@ -75,6 +75,16 @@ class Test_Adjudicator:
                           {'phase_properties': {'cash': 50, 'source': 'opponent'}}]
         
         self.unit_test("handle_property method",self.adjudicator.handle_property,input_states,output_states)
+        
+    def test_update_state(self):
+        input_state =  [
+            2, #player turn; 0
+            [0,0,1,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], #player properties; 1
+            [2,9],#player's position; 2
+            [1300,1380], #player's cash; 3
+            0, #phase number; 4
+            {} #phase payload; 5
+        ]
     
     def test_handle_cards_pre_turn(self):
         input_states =  [[
@@ -116,5 +126,6 @@ class Test_Adjudicator:
 test_adjudicator = Test_Adjudicator()
 test_adjudicator.test_handle_property()
 test_adjudicator.test_handle_cards_pre_turn()
+test_adjudicator.test_update_state()
 
     

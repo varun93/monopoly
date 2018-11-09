@@ -132,7 +132,6 @@ class Adjudicator:
 	"""Phase 2: Dice Roll"""
 	def dice_roll(self,state=[]):
 
-		# 
 		self.pass_dice()
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
@@ -141,6 +140,7 @@ class Adjudicator:
 		#Jail
 		if playerPosition == -1:
 			#Do special handling and return here
+			self.agentOne.jailDecision(state)
 			return
 	
 		self.dice.roll()
