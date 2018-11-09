@@ -154,6 +154,7 @@ class Adjudicator:
 			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 			if playerCash >= 50:
 				playerCash -= 50
+				state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 				return True
 		
 		elif action[0] == 'C':
@@ -166,7 +167,6 @@ class Adjudicator:
 				
 				if owned:
 					if action[1] == self.COMMUNITY_GET_OUT_OF_JAIL_FREE:
-						
 						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
 						self.chest.append(constants.communityChestCards[4])
 						return True
