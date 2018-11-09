@@ -118,7 +118,7 @@ class Test_Adjudicator:
                 input_modified = copy.deepcopy(input_states[i])
                 self.adjudicator.handle_cards_pre_turn( input_modified ,card,deck_type )
                 flag = True
-                print("Card: "+deck_type+" "+str(card['id'])+", Type: "+str(card['type']))
+                print("Card: "+deck_type+" "+str(card['id'])+", Text: "+str(card['content']))
                 print("State before card effect: "+str(input_states[i]))
                 print("State after card effect: "+str(input_modified))
         

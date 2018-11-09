@@ -72,6 +72,12 @@ class Adjudicator:
 		self.PLAYER_CASH_INDEX = 3
 		self.PHASE_NUMBER_INDEX = 4
 		self.PHASE_PAYLOAD_INDEX = 5
+		
+		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
+		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
+		
+		self.BOARD_SIZE = 40
+		self.PASSING_GO_MONEY = 200
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
@@ -102,6 +108,11 @@ class Adjudicator:
 	def send_player_to_jail(self,state):
 		pass
 	
+	def update_turn(self):
+		self.turn += 1
+	
+	""" ACTION METHODS """
+	
 	"""Scenario where current player is in jail at the start of the turn.
 	Processes the response to the agent.jailDecision function."""
 	"""
@@ -113,12 +124,48 @@ class Adjudicator:
     In general, should always specify the number (either 28 or 29)
 
 	"""
-	def handle_in_jail_state(self,state,decision):
-		pass
-        
-	def update_turn(self):
-		self.turn += 1
-			
+	def handle_in_jail_state(self,state,action):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		if action[0] == 'P':
+			"""
+			Should there be a BSTM here?
+			Assuming player has the money
+			"""
+			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+			if playerCash >= 50:
+				playerCash -= 50
+				return True
+		
+		elif action[0] == 'C':
+			#Check if the player has the mentioned property card.
+			if (len(action)>1) & (action[1] in [28,29]):
+				if current_player == 0:
+					owned = (action[1] < 0)
+				else:
+					owned = (action[1] > 0)
+				
+				if owned:
+					if action[1] == self.COMMUNITY_GET_OUT_OF_JAIL_FREE:
+						
+						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
+						self.chest.append(constants.communityChestCards[4])
+						return True
+					
+					elif action[1] == self.CHANCE_GET_OUT_OF_JAIL_FREE:
+						
+						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
+						self.chance.append(constants.chanceCards[7])
+						return True
+		
+		"""If both the above method fail for some reason, we default to dice roll."""
+		self.dice.roll()
+		if self.dice.double:
+			#Player can go out
+			#Need to ensure that there is no second turn for the player in this turn.
+			self.dice.double = False
+			return True
+		
+		return False		
 			
 	"""
 	Phases
@@ -143,7 +190,12 @@ class Adjudicator:
 	If currently in Jail, 3 ways to get out.
 	"""
 	
-	"""Phase 2: Dice Roll"""
+	"""
+	Dice Roll Function
+	1. Checks if player is currently in Jail and handles separately if that is the case.
+	2. else, rolls the dice, checks for all the dice events.
+	3. Then moves the player to new position and finds out what the effect of the position is.
+	"""
 	def dice_roll(self,state=[]):
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
@@ -152,11 +204,13 @@ class Adjudicator:
 		
 		#Jail
 		if playerPosition == -1:
-			#Do special handling and return here
 			action = self.agentOne.jailDecision(state)
-			return
-	
-		self.dice.roll()
+			#TODO: We get back response True indicating player is out of jail and False if he is to remain in jail.
+			#Need to handle this.
+			if not self.handle_in_jail_state(state,action):
+				return False
+		else:
+			self.dice.roll()
 		
 		if self.dice.double_counter == 3:
 			state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
@@ -169,20 +223,23 @@ class Adjudicator:
 			playerPosition += self.dice.roll_sum
 			
 			#Passing Go
-			if playerPosition>=40:
+			if playerPosition>=self.BOARD_SIZE:
 
-				playerPosition = playerPosition % 40
-				playerCash += 200
+				playerPosition = playerPosition % self.BOARD_SIZE
+				playerCash += self.PASSING_GO_MONEY
+			
 			#Next, perform square effect
 			#Preparation for next phase:
-
 			state[self.PLAYER_POSITION_INDEX[current_player]] = playerPosition
 			state[self.PLAYER_CASH_INDEX[current_player]] = playerCash
 
-			self.update_state(state)
+			self.determine_position_effect(state)
 			
-			
-	def update_state(self,state):
+	"""
+	Performed after dice is rolled and the player is moved to a new position.
+	Determines the effect of the position and action required from the player.
+	"""		
+	def determine_position_effect(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		
@@ -210,11 +267,11 @@ class Adjudicator:
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
 				#Tax
-				#First ask for BSTM
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] = constants.board[playerPosition]['tax']
 				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 			
 			elif constants.board[playerPosition]['class'] == 'Idle':
+				#Represents Go,Jail(Visiting),Free Parking
 				pass
 	
 	"""
@@ -300,10 +357,14 @@ class Adjudicator:
 		
 		if card['type'] == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
-			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
-			state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
+			if card['money']<0:
+				state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
+				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
+			else:
+				playerCash += abs(card['money'])
 
 		elif card['type'] == 2:
+			#-ve represents you get the money
 			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
 			state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 			
@@ -315,22 +376,17 @@ class Adjudicator:
 			else:
 				if (card['position'] - 1) < playerPosition:
 					#Passes Go
-					playerCash += 200
+					playerCash += self.PASSING_GO_MONEY
 				playerPosition = card['position'] - 1
 				updateState = True
 				
 				
 		elif card['type'] == 4:
-			"""
-			Get out of Jail free
-			property_status:
-			28 = Chance
-			29 = Community Chest
-			"""
+			"""Get out of Jail free"""
 			if deck == 'Chest':
-				propertyValue = 29
+				propertyValue = self.COMMUNITY_GET_OUT_OF_JAIL_FREE
 			else:
-				propertyValue = 28
+				propertyValue = self.CHANCE_GET_OUT_OF_JAIL_FREE
 			
 			if current_player == 0:
 				state[self.PROPERTY_STATUS_INDEX][propertyValue] = 1
@@ -365,7 +421,7 @@ class Adjudicator:
 			if (playerPosition < 5) or (playerPosition>=35):
 				if (playerPosition>=35):
 					#Passes Go
-					playerCash += 200
+					playerCash += self.PASSING_GO_MONEY
 				playerPosition = 5
 			elif (playerPosition < 15) and (playerPosition>=5):
 				playerPosition = 15
@@ -393,7 +449,7 @@ class Adjudicator:
 			if (playerPosition < 12) or (playerPosition>=28):
 				if (playerPosition>=28):
 					#Passes Go
-					playerCash += 200
+					playerCash += self.PASSING_GO_MONEY
 				playerPosition = 12
 			elif (playerPosition < 28) and (playerPosition>=12):
 				playerPosition = 28
@@ -427,20 +483,18 @@ class Adjudicator:
 			updateState = True
 			# state[self.PLAYER_POSITION_INDEX][current_player] -= 3
 			# playerPosition = -5
-			# self.update_state(state)
+			# self.determine_position_effect(state)
 		else:
 			logger.info('Invalid card type {type}...'.format(type=card['type']))
 
 
-		# update the player positon and cash and call update_state and property here?
+		# update the player positon and cash and call determine_position_effect and property here?
 		#Countermeasure against card type 8 code right above
 		state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
 		state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 		# make further calls
 		if updateState:
-			self.update_state(state)
-
-
+			self.determine_position_effect(state)
 		
 	
 	def runPlayerOnState(self):
