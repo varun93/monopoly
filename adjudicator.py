@@ -91,12 +91,13 @@ class Adjudicator:
 		"""
 		self.INITIAL_BSTM = 0
 		self.PRETURN_BSTM = 1
-		self.BUYING = 2
-		self.AUCTION = 3
-		self.PAYMENT = 4
-		self.CARDS = 5
-		self.POSTTURN_BSTM = 6
-		self.JAIL = 7
+		self.DICE_ROLL = 2
+		self.BUYING = 3
+		self.AUCTION = 4
+		self.PAYMENT = 5
+		self.CARDS = 6
+		self.POSTTURN_BSTM = 7
+		self.JAIL = 8
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
@@ -690,12 +691,15 @@ class Adjudicator:
 			self.pass_dice()
 			
 			print("Turn "+str(self.turn))
+			print("State at the start of the turn:")
 			print(self.state)
 			
 			"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
 			notInJail = self.dice_roll(self.state)
 			
 			if notInJail:
+				print("")
+				print("State after moving the player position and applying checking the effect:")
 				print(self.state)
 				
 				"""BSTM"""
@@ -704,15 +708,22 @@ class Adjudicator:
 				"""Performing the actual effect of the current position"""
 				self.turn_effect(self.state,player1,player2)
 				
+				print("")
+				print("State at the end of the turn:")
 				print(self.state)
 			
 			"""BSTM"""
 			
 			if (not self.dice.double) or notInJail:
 				break
+			else:
+				print("")
+				print("Rolled Doubles. Play again.")
 		
 		self.update_turn(self.state)
 
 #Testing
 adjudicator = Adjudicator()
-adjudicator.runPlayerOnState(adjudicator.agentOne)
+
+#It is currently agentOne's turn
+adjudicator.runPlayerOnState(adjudicator.agentOne,adjudicator.agentTwo)
