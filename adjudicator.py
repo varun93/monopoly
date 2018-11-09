@@ -187,8 +187,70 @@ class Adjudicator:
 		
 		return False
 	
-	def handle_auction(self,state):
-		pass	
+	"""
+	Method starts a blind auction.
+	First turn in the auction goes to the player who didn't start it. Bidding starts at 1. 
+	Any lower bid/ failure to bid in time would result in the property going to the other player. 
+	NOTE: This function only accepts UNOWNED PROPERTIES. ENSURE THIS IN THE CALLING FUNCTION.
+	"""
+	def start_auction(self,state):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		opponent = abs(current_player - 1)
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		
+		#Unowned
+		state[self.PHASE_NUMBER_INDEX] = self.AUCTION
+		state[self.PHASE_PAYLOAD_INDEX] = {}
+		#Below mentioned property needed if the auction is not blind
+		#state[self.PHASE_PAYLOAD_INDEX]['subphase'] = "start"
+		state[self.PHASE_PAYLOAD_INDEX]['property'] = playerPosition
+	
+	"""
+	Accepts the actions of the blind auction from both players and performs it.
+	NOTE: The expected type of action is int. If the input is float, it will be typecast.
+	If the action is in some other type, following rules will be applied:
+		If opponent got the type of action wrong, current player wins.
+		else Opponent wins. i.e., opponent would win even if his action has incorrect type
+		as long as the current player also made a mistake in the type of his action
+	"""	
+	def handle_auction(self,state,actionOpponent,actionCurrentPlayer):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		opponent = abs(current_player - 1)
+		propertyMapping = constants.space_to_property_map[playerPosition]
+		
+		if isinstance(actionOpponent, float):
+			actionOpponent = int(actionOpponent)
+		if isinstance(actionCurrentPlayer, float):
+			actionCurrentPlayer = int(actionCurrentPlayer)
+			
+		if isinstance(actionOpponent, int) and isinstance(actionCurrentPlayer, int):
+			if actionCurrentPlayer > actionOpponent:
+				#Current Player wins the auction
+				if current_player == 0:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+				else:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+			else:
+				#Opponent wins
+				if current_player == 0:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+				else:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+		else:
+			if isinstance(actionCurrentPlayer, int):
+				#Only current player sent a valid response. He wins.
+				if current_player == 0:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+				else:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+			else:
+				#Opponent wins
+				#NOTE: Opponent would win even if his response is not valid
+				#as long as current player's response is also not valid.
+				if current_player == 0:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+				else:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
 	
 	"""
 	Handle the action response from the Agent for buying an unowned property
@@ -565,18 +627,27 @@ class Adjudicator:
 			self.determine_position_effect(state)
 	
 	"""Function calls the relevant method of the Agent"""
-	def turn_effect(self,state,player):
+	def turn_effect(self,state,current_player,opponent):
 		phase = state[self.PHASE_NUMBER_INDEX]
 		if phase == self.BUYING:
-			action = player.buyProperty(state)
+			action = current_player.buyProperty(state)
 			if action:
 				self.handle_buy_property(state)
 			else:
 				#Auction
-				pass
+				self.start_auction(state)
+				actionOpponent = opponent.auctionProperty(state)
+				actionCurrentPlayer = current_player.auctionProperty(state)
+				self.handle_auction(state,actionOpponent,actionCurrentPlayer)
+			
 		if phase == self.PAYMENT:
 			self.handle_payment(state)
 		
+		if phase == self.AUCTION:
+			self.start_auction(state)
+			actionOpponent = opponent.auctionProperty(state)
+			actionCurrentPlayer = current_player.auctionProperty(state)
+			self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 		
 	def broadcastState(self,state):
 		pass
@@ -602,7 +673,7 @@ class Adjudicator:
 	"""
 	Assuming this represents a single turn
 	"""
-	def runPlayerOnState(self,player):
+	def runPlayerOnState(self,player1,player2):
 		
 		
 		"""BSTM"""
@@ -625,7 +696,7 @@ class Adjudicator:
 				
 				"""State now contain info about the position the player landed on"""
 				"""Performing the actual effect of the current position"""
-				self.turn_effect(self.state,player)
+				self.turn_effect(self.state,player1,player2)
 				
 				print(self.state)
 			
