@@ -224,12 +224,12 @@ class Adjudicator:
 		try:
 			actionOpponent = int(actionOpponent)
 			actionCurrentPlayer = int(actionCurrentPlayer)
-		except Exception, e:
+		except e:
 			# how do you want to handle the exception?
 			pass
 
 			
-		if actionOpponent and actionCurrentPlayer:
+		if actionOpponent is not None and actionCurrentPlayer is not None:
 			if actionCurrentPlayer > actionOpponent:
 				#Current Player wins the auction
 				if current_player == 0:
@@ -243,7 +243,7 @@ class Adjudicator:
 				else:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
 		else:
-			if isinstance(actionCurrentPlayer, int):
+			if actionCurrentPlayer is not None:
 				#Only current player sent a valid response. He wins.
 				if current_player == 0:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
