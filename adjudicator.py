@@ -59,9 +59,9 @@ class Adjudicator:
 	def __init__(self):
 		self.state =  [
 			0, #player turn; 0
-			np.zeros(30), #player properties; 1
+			np.zeros(30,dtype='int'), #player properties; 1
 			[0,0],#player's position; 2
-			[0,0], #player's cash; 3
+			[1500,1500], #player's cash; 3
 			0, #phase number; 4
 			{}, #phase payload; 5
 		]
@@ -78,6 +78,24 @@ class Adjudicator:
 		
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
+		
+		"""
+		Phases
+		1 = Initial BSTM
+		2 = BSTM Before applying turn effect
+		3 = Unowned Property, Buying
+		4 = Unowned Property, Auction
+		5 = rent and other payments to either bank or opponent
+		6 = Cards (Will there need to be nesting here?)
+		7 = Post turn BSTM
+		"""
+		self.INITIAL_BSTM = 0
+		self.PRETURN_BSTM = 1
+		self.BUYING = 2
+		self.AUCTION = 3
+		self.PAYMENT = 4
+		self.CARDS = 5
+		self.POSTTURN_BSTM = 6
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
@@ -108,8 +126,9 @@ class Adjudicator:
 	def send_player_to_jail(self,state):
 		pass
 	
-	def update_turn(self):
+	def update_turn(self,state):
 		self.turn += 1
+		state[self.PLAYER_TURN_INDEX] = self.turn
 	
 	""" ACTION METHODS """
 	
@@ -166,21 +185,53 @@ class Adjudicator:
 			return True
 		
 		return False		
-			
-	"""
-	Phases
-	1 = Initial BSTM
-	2 = BSTM Before applying turn effect
-	3 = Unowned Property, Buying
-	4 = Unowned Property, Auction
-	5 = rent and other payments to either bank or opponent
-	6 = Cards (Will there need to be nesting here?)
-	7 = Post turn BSTM
 	
+	"""
+	Handle the action response from the Agent for buying an unowned property
+	"""	
+	def handle_buy_property(self,state):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+		propertyPrice = constants.board[playerPosition]['price']
+		propertyMapping = constants.space_to_property_map[playerPosition]
+		
+		if state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] == 0:
+			#Unowned
+			if playerCash >= propertyPrice:
+				state[self.PLAYER_CASH_INDEX][current_player] -= propertyPrice
+				if current_player == 0:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+				else:
+					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+				return True
+		
+		#This would indicate going to Auction?
+		return False
+	
+	"""
+	Handling payments the player has to make to the bank/opponent
+	"""
+	def handle_payment(self,state):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		opponent = abs(current_player - 1)
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+		
+		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
+		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
+		
+		if playerCash >= debt:
+			state[self.PLAYER_CASH_INDEX][current_player] -= debt
+			if receiver == 'opponent':
+				state[self.PLAYER_CASH_INDEX][opponent] += debt
+			return True
+		
+		#What would this indicate?
+		return False
+	
+	"""
 	(Q: Will there need to be a BSTM if the player receives money?)
-	"""
-	
-	"""
 	Phase Properties:
 	Is the property owned?
 	If unowned, there are 3 sequential sub-phases: BSTM,Buying,Auction. Which one are you in?
@@ -230,8 +281,8 @@ class Adjudicator:
 			
 			#Next, perform square effect
 			#Preparation for next phase:
-			state[self.PLAYER_POSITION_INDEX[current_player]] = playerPosition
-			state[self.PLAYER_CASH_INDEX[current_player]] = playerCash
+			state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
+			state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 
 			self.determine_position_effect(state)
 			
@@ -267,6 +318,7 @@ class Adjudicator:
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
 				#Tax
+				state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] = constants.board[playerPosition]['tax']
 				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 			
@@ -286,10 +338,11 @@ class Adjudicator:
 		output = {}
 		if propertyValue == 0:
 			#Unowned
-			output['phase'] = 3
+			output['phase'] = self.BUYING
 			output['phase_properties'] = {}
 			output['phase_properties']['cash'] = constants.board[playerPosition]['price']
 			output['phase_properties']['source'] = "bank"
+			output['phase_properties']['property'] = playerPosition
 		else:
 			#Check if owned by opponent
 			if current_player == 0:
@@ -333,6 +386,7 @@ class Adjudicator:
 				elif absPropertyValue == 6:
 					rent = constants.board[playerPosition]['rent_hotel']
 				
+				output['phase'] = self.PAYMENT
 				output['phase_properties'] = {}
 				output['phase_properties']['cash'] = rent
 				output['phase_properties']['source'] = "opponent"
@@ -357,7 +411,8 @@ class Adjudicator:
 		
 		if card['type'] == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
-			if card['money']<0:
+			if card['money']>0:
+				state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
 				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 			else:
@@ -365,6 +420,7 @@ class Adjudicator:
 
 		elif card['type'] == 2:
 			#-ve represents you get the money
+			state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
 			state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 			
@@ -412,6 +468,7 @@ class Adjudicator:
 						n_hotels+= 1
 			rent = card['money']*n_houses + card['money2']*n_hotels
 			if rent > 0:
+				state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] = rent
 				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 		
@@ -457,7 +514,7 @@ class Adjudicator:
 				propertyValue = state[self.PROPERTY_STATUS_INDEX][ constants.space_to_property_map[playerPosition] ]
 				if propertyValue == 0:
 					#Unowned
-					state[self.PHASE_NUMBER_INDEX] = 3
+					state[self.PHASE_NUMBER_INDEX] = self.BUYING
 					state[self.PHASE_PAYLOAD_INDEX]['cash'] = constants.board[playerPosition]['price']
 					state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 				else:
@@ -474,6 +531,7 @@ class Adjudicator:
 						#But, not considering that as it doesn't seem to be in the spirit of the game.
 						if absPropertyValue == 1:
 							self.dice.roll(True)
+							state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * self.dice.roll_sum
 							state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 		
@@ -495,27 +553,69 @@ class Adjudicator:
 		# make further calls
 		if updateState:
 			self.determine_position_effect(state)
+	
+	"""Function calls the relevant method of the Agent"""
+	def turn_effect(self,state,player):
+		phase = state[self.PHASE_NUMBER_INDEX]
+		if phase == self.BUYING:
+			action = player.buyProperty(state)
+			if action:
+				self.handle_buy_property(state)
+			else:
+				#Auction
+				pass
+		if phase == self.PAYMENT:
+			self.handle_payment(state)
 		
+		
+	def broadcastState(self,state):
+		pass
 	
-	def runPlayerOnState(self):
 	
+	#Temporarily moved all code from runPlayerOnState to runGame
+	def runGame(self):
 		# conduct a BMST phase
 		nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
 		(b,s,m,t) = agent.run(state)
 		actionTaken = None
 	
-		# upadate the state
+		# update the state
 		state[self.PLAYER_TURN_INDEX] = nextPlayer
-
-		"""Resets dice roll before each turn"""
-		self.pass_dice()
 		
-		"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
-		self.dice_roll(state)
-
 		if nextPlayer == 0:
 			actionTaken = agent.run(state)
 		else:
 			actionTaken = agent.run(state)
 
 		parseAction(actionTaken,state)
+	
+	"""
+	Assuming this represents a single turn
+	"""
+	def runPlayerOnState(self,player):
+		"""BSTM"""
+		
+		"""Resets dice roll before each turn"""
+		self.pass_dice()
+		
+		print("Turn "+str(self.turn))
+		print(self.state)
+		
+		"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
+		self.dice_roll(self.state)
+		
+		print(self.state)
+		
+		"""BSTM"""
+		
+		"""State now contain info about the position the player landed on"""
+		"""Performing the actual effect of the current position"""
+		self.turn_effect(self.state,player)
+		
+		print(self.state)
+
+		self.update_turn(self.state)
+
+#Testing
+adjudicator = Adjudicator()
+adjudicator.runPlayerOnState(adjudicator.agentOne)
