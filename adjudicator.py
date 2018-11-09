@@ -284,6 +284,7 @@ class Adjudicator:
 		current_player = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+		updateState = False
 
 		state[self.PHASE_PAYLOAD_INDEX] = {}
 		
@@ -306,10 +307,8 @@ class Adjudicator:
 					#Passes Go
 					playerCash += 200
 				playerPosition = card['position'] - 1
-
-				state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
-				state[self.PLAYER_CASH_INDEX][current_player] = playerCash
-				self.update_state(state)
+				updateState = True
+				
 				
 		elif card['type'] == 4:
 			"""
@@ -414,19 +413,24 @@ class Adjudicator:
 		
 		elif card['type'] == 8:
 			#Go back 3 spaces
-			state[self.PLAYER_POSITION_INDEX][current_player] -= 3
-			playerPosition = -5
-			self.update_state(state)
+			playerPosition -= 3 
+			updateState = True
+			# state[self.PLAYER_POSITION_INDEX][current_player] -= 3
+			# playerPosition = -5
+			# self.update_state(state)
 		else:
 			logger.info('Invalid card type {type}...'.format(type=card['type']))
 
 
 		# update the player positon and cash and call update_state and property here?
 		#Countermeasure against card type 8 code right above
-		if playerPosition > -2:
-			state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
+		state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
 		state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 		# make further calls
+		if updateState:
+			self.update_state(state)
+
+
 		
 	
 	def runPlayerOnState(self):
