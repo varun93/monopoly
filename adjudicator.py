@@ -96,6 +96,7 @@ class Adjudicator:
 		self.PAYMENT = 4
 		self.CARDS = 5
 		self.POSTTURN_BSTM = 6
+		self.JAIL = 7
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
@@ -124,7 +125,7 @@ class Adjudicator:
 		self.dice = dice.Dice()
 
 	def send_player_to_jail(self,state):
-		pass
+		state[self.PHASE_NUMBER_INDEX] = self.JAIL
 	
 	def update_turn(self,state):
 		self.turn += 1
@@ -184,7 +185,10 @@ class Adjudicator:
 			self.dice.double = False
 			return True
 		
-		return False		
+		return False
+	
+	def handle_auction(self,state):
+		pass	
 	
 	"""
 	Handle the action response from the Agent for buying an unowned property
@@ -266,6 +270,7 @@ class Adjudicator:
 		if self.dice.double_counter == 3:
 			state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
 			self.send_player_to_jail(state)
+			return False
 			#End current player's turn here
 			#Should there be a GoToJail state to let the player know?
 		else:
@@ -285,6 +290,11 @@ class Adjudicator:
 			state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 
 			self.determine_position_effect(state)
+			
+			if state[self.PHASE_NUMBER_INDEX] == self.JAIL:
+				return False
+			else:
+				return True
 			
 	"""
 	Performed after dice is rolled and the player is moved to a new position.
@@ -593,27 +603,37 @@ class Adjudicator:
 	Assuming this represents a single turn
 	"""
 	def runPlayerOnState(self,player):
-		"""BSTM"""
 		
-		"""Resets dice roll before each turn"""
-		self.pass_dice()
-		
-		print("Turn "+str(self.turn))
-		print(self.state)
-		
-		"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
-		self.dice_roll(self.state)
-		
-		print(self.state)
 		
 		"""BSTM"""
 		
-		"""State now contain info about the position the player landed on"""
-		"""Performing the actual effect of the current position"""
-		self.turn_effect(self.state,player)
+		while True:
 		
-		print(self.state)
-
+			"""Resets dice roll before each turn"""
+			self.pass_dice()
+			
+			print("Turn "+str(self.turn))
+			print(self.state)
+			
+			"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
+			notInJail = self.dice_roll(self.state)
+			
+			if notInJail:
+				print(self.state)
+				
+				"""BSTM"""
+				
+				"""State now contain info about the position the player landed on"""
+				"""Performing the actual effect of the current position"""
+				self.turn_effect(self.state,player)
+				
+				print(self.state)
+			
+			"""BSTM"""
+			
+			if (not self.dice.double) or notInJail:
+				break
+		
 		self.update_turn(self.state)
 
 #Testing
