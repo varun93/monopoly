@@ -218,12 +218,18 @@ class Adjudicator:
 		opponent = abs(current_player - 1)
 		propertyMapping = constants.space_to_property_map[playerPosition]
 		
-		if isinstance(actionOpponent, float):
+		actionOpponent = None
+		actionCurrentPlayer = None
+
+		try:
 			actionOpponent = int(actionOpponent)
-		if isinstance(actionCurrentPlayer, float):
 			actionCurrentPlayer = int(actionCurrentPlayer)
+		except Exception, e:
+			# how do you want to handle the exception?
+			pass
+
 			
-		if isinstance(actionOpponent, int) and isinstance(actionCurrentPlayer, int):
+		if actionOpponent and actionCurrentPlayer:
 			if actionCurrentPlayer > actionOpponent:
 				#Current Player wins the auction
 				if current_player == 0:
