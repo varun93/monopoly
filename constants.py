@@ -679,264 +679,262 @@ space_to_property_map = {
 
 communityChestCards = [
   {
-    "Id": 0,
-    "Content": "Advance to Go (Collect $200)",
-    "Type": 3,
-    "Position": 1,
-    "Money": 0,
-    "Money2": 0
+    "id": 0,
+    "content": "Advance to Go (Collect $200)",
+    "type": 3,
+    "position": 1,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 1,
-    "Content": "Bank error in your favor, collect $200",
-    "Type": 1,
-    "Position": 0,
-    "Money": 200,
-    "Money2": 0
+    "id": 1,
+    "content": "Bank error in your favor, collect $200",
+    "type": 1,
+    "position": 0,
+    "money": 200,
+    "money2": 0
   },
   {
-    "Id": 2,
-    "Content": "Doctor's fees, Pay $50",
-    "Type": 1,
-    "Position": 0,
-    "Money": -50,
-    "Money2": 0
+    "id": 2,
+    "content": "Doctor's fees, Pay $50",
+    "type": 1,
+    "position": 0,
+    "money": -50,
+    "money2": 0
   },
   {
-    "Id": 3,
-    "Content": "From sale of stock you get $50",
-    "Type": 1,
-    "Position": 0,
-    "Money": 50,
-    "Money2": 0
+    "id": 3,
+    "content": "From sale of stock you get $50",
+    "type": 1,
+    "position": 0,
+    "money": 50,
+    "money2": 0
   },
   {
-    "Id": 4,
-    "Content": "Get out of jail free, this card may be kept until needed",
-    "Type": 4,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 4,
+    "content": "Get out of jail free, this card may be kept until needed",
+    "type": 4,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 5,
-    "Content": "Go to jail, go directly to jail – Do not pass Go, do not collect $200",
-    "Type": 3,
-    "Position": -1,
-    "Money": 0,
-    "Money2": 0
+    "id": 5,
+    "content": "Go to jail, go directly to jail – Do not pass Go, do not collect $200",
+    "type": 3,
+    "position": -1,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 6,
-    "Content": "Grand Opera Night. Collect $50 from every player for opening night seats.",
-    "Type": 2,
-    "Position": 0,
-    "Money": 50,
-    "Money2": 0
+    "id": 6,
+    "content": "Grand Opera Night. Collect $50 from every player for opening night seats.",
+    "type": 2,
+    "position": 0,
+    "money": 50,
+    "money2": 0
   },
   {
-    "Id": 7,
-    "Content": "Holiday Fund matures - Receive $100",
-    "Type": 1,
-    "Position": 0,
-    "Money": 100,
-    "Money2": 0
+    "id": 7,
+    "content": "Holiday Fund matures - Receive $100",
+    "type": 1,
+    "position": 0,
+    "money": 100,
+    "money2": 0
   },
   {
-    "Id": 8,
-    "Content": "Income Tax refund. Collect $20",
-    "Type": 1,
-    "Position": 0,
-    "Money": 20,
-    "Money2": 0
+    "id": 8,
+    "content": "Income Tax refund. Collect $20",
+    "type": 1,
+    "position": 0,
+    "money": 20,
+    "money2": 0
   },
   {
-    "Id": 9,
-    "Content": "Life Insurance Matures - Collect $100",
-    "Type": 1,
-    "Position": 0,
-    "Money": 100,
-    "Money2": 0
+    "id": 9,
+    "content": "Life Insurance Matures - Collect $100",
+    "type": 1,
+    "position": 0,
+    "money": 100,
+    "money2": 0
   },
   {
-    "Id": 10,
-    "Content": "Pay Hospital Fees of $50",
-    "Type": 1,
-    "Position": 0,
-    "Money": -50,
-    "Money2": 0
+    "id": 10,
+    "content": "Pay Hospital Fees of $50",
+    "type": 1,
+    "position": 0,
+    "money": -50,
+    "money2": 0
   },
   {
-    "Id": 11,
-    "Content": "Pay School Fees of $50",
-    "Type": 1,
-    "Position": 0,
-    "Money": -50,
-    "Money2": 0
+    "id": 11,
+    "content": "Pay School Fees of $50",
+    "type": 1,
+    "position": 0,
+    "money": -50,
+    "money2": 0
   },
   {
-    "Id": 12,
-    "Content": "Receive $25 Consultancy Fee",
-    "Type": 1,
-    "Position": 0,
-    "Money": 25,
-    "Money2": 0
+    "id": 12,
+    "content": "Receive $25 Consultancy Fee",
+    "type": 1,
+    "position": 0,
+    "money": 25,
+    "money2": 0
   },
   {
-    "Id": 13,
-    "Content": "You are assessed for street repairs: Pay $40 per house and $115 per hotel you own.",
-    "Type": 5,
-    "Position": 0,
-    "Money": -40,
-    "Money2": -115
+    "id": 13,
+    "content": "You are assessed for street repairs: Pay $40 per house and $115 per hotel you own.",
+    "type": 5,
+    "position": 0,
+    "money": -40,
+    "money2": -115
   },
   {
-    "Id": 14,
-    "Content": "You have won second prize in a beauty contest– collect $10",
-    "Type": 1,
-    "Position": 0,
-    "Money": 10,
-    "Money2": 0
+    "id": 14,
+    "content": "You have won second prize in a beauty contest– collect $10",
+    "type": 1,
+    "position": 0,
+    "money": 10,
+    "money2": 0
   },
   {
-    "Id": 15,
-    "Content": "You inherit $100",
-    "Type": 1,
-    "Position": 0,
-    "Money": 100,
-    "Money2": 0
+    "id": 15,
+    "content": "You inherit $100",
+    "type": 1,
+    "position": 0,
+    "money": 100,
+    "money2": 0
   }
 ]
 
 chanceCards = [
   {
-    "Id": 0,
-    "Content": "Advance to Go (Collect $200)",
-    "Type": 3,
-    "Position": 1,
-    "Money": 0,
-    "Money2": 0
+    "id": 0,
+    "content": "Advance to Go (Collect $200)",
+    "type": 3,
+    "position": 1,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 1,
-    "Content": "Advance to Illinois Ave. If you pass Go, collect $200.",
-    "Type": 3,
-    "Position": 25,
-    "Money": 0,
-    "Money2": 0
+    "id": 1,
+    "content": "Advance to Illinois Ave. If you pass Go, collect $200.",
+    "type": 3,
+    "position": 25,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 2,
-    "Content": "Advance to St. Charles Place. If you pass Go, collect $200",
-    "Type": 3,
-    "Position": 12,
-    "Money": 0,
-    "Money2": 0
+    "id": 2,
+    "content": "Advance to St. Charles Place. If you pass Go, collect $200",
+    "type": 3,
+    "position": 12,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 3,
-    "Content": "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total 10 times the amount thrown.",
-    "Type": 7,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 3,
+    "content": "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total 10 times the amount thrown.",
+    "type": 7,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 4,
-    "Content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
-    "Type": 6,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 4,
+    "content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
+    "type": 6,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 5,
-    "Content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
-    "Type": 6,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 5,
+    "content": "Advance token to the nearest Railroad and pay owner twice the rental to which he/she {he} is otherwise entitled. If Railroad is unowned, you may buy it from the Bank",
+    "type": 6,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 6,
-    "Content": "Bank pays you dividend of $50",
-    "Type": 1,
-    "Position": 0,
-    "Money": 50,
-    "Money2": 0
+    "id": 6,
+    "content": "Bank pays you dividend of $50",
+    "type": 1,
+    "position": 0,
+    "money": 50,
+    "money2": 0
   },
   {
-    "Id": 7,
-    "Content": "Get out of Jail free, this card may be kept until needed, or traded",
-    "Type": 4,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 7,
+    "content": "Get out of Jail free, this card may be kept until needed, or traded",
+    "type": 4,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 8,
-    "Content": "Go Back 3 Spaces",
-    "Type": 8,
-    "Position": 0,
-    "Money": 0,
-    "Money2": 0
+    "id": 8,
+    "content": "Go Back 3 Spaces",
+    "type": 8,
+    "position": 0,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 9,
-    "Content": "Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200.",
-    "Type": 3,
-    "Position": -1,
-    "Money": 0,
-    "Money2": 0
+    "id": 9,
+    "content": "Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200.",
+    "type": 3,
+    "position": -1,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 10,
-    "Content": "Make general repairs on all your property: For each house pay $25, For each hotel {pay} $100.",
-    "Type": 5,
-    "Position": 0,
-    "Money": -25,
-    "Money2": -100
+    "id": 10,
+    "content": "Make general repairs on all your property: For each house pay $25, For each hotel {pay} $100.",
+    "type": 5,
+    "position": 0,
+    "money": -25,
+    "money2": -100
   },
   {
-    "Id": 11,
-    "Content": "Pay poor tax of $15",
-    "Type": 1,
-    "Position": 0,
-    "Money": 15,
-    "Money2": 0
+    "id": 11,
+    "content": "Pay poor tax of $15",
+    "type": 1,
+    "position": 0,
+    "money": 15,
+    "money2": 0
   },
   {
-    "Id": 12,
-    "Content": "Take a trip to Reading Railroad.",
-    "Type": 3,
-    "Position": 6,
-    "Money": 0,
-    "Money2": 0
+    "id": 12,
+    "content": "Take a trip to Reading Railroad.",
+    "type": 3,
+    "position": 6,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 13,
-    "Content": "Advance to Boardwalk",
-    "Type": 3,
-    "Position": 40,
-    "Money": 0,
-    "Money2": 0
+    "id": 13,
+    "content": "Advance to Boardwalk",
+    "type": 3,
+    "position": 40,
+    "money": 0,
+    "money2": 0
   },
   {
-    "Id": 14,
-    "Content": "You have been elected chairman of the board, pay each player $50",
-    "Type": 2,
-    "Position": 0,
-    "Money": -50,
-    "Money2": 0
+    "id": 14,
+    "content": "You have been elected chairman of the board, pay each player $50",
+    "type": 2,
+    "position": 0,
+    "money": -50,
+    "money2": 0
   },
   {
-    "Id": 15,
-    "Content": "Your building loan matures, collect $150",
-    "Type": 1,
-    "Position": 0,
-    "Money": 150,
-    "Money2": 0
+    "id": 15,
+    "content": "Your building loan matures, collect $150",
+    "type": 1,
+    "position": 0,
+    "money": 150,
+    "money2": 0
   }
 ]
-
-print([board[i]['name'] for i in board if board[i]['class'] == 'Idle' ])

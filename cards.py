@@ -16,12 +16,12 @@ class Cards:
         #6 = Advance to nearest Railroad
         #7 = Advance to nearest Utility
         #8 = Go back 3 spaces
-        card['id'] = item['Id']
-        card['content'] = item['Content']
-        card['type'] = item['Type']
-        card['position'] = item['Position']
-        card['money'] = item['Money']
-        card['money2'] = item['Money2']
+        card['id'] = item['id']
+        card['content'] = item['content']
+        card['type'] = item['type']
+        card['position'] = item['position']
+        card['money'] = item['money']
+        card['money2'] = item['money2']
 
         return card
         
@@ -29,7 +29,7 @@ class Cards:
     def draw_card(self):
         drawn_card = self.deck.pop()
 
-        if drawn_card.type is not 4:
+        if drawn_card['type'] is not 4:
             self.deck.append(drawn_card)
         
         return drawn_card
