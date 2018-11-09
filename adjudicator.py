@@ -86,9 +86,9 @@ class Adjudicator:
 
 		state[self.PHASE_NUMBER_INDEX] = 0
 
-		(b,m,s,t) = agentOne.run(state)
+		(b,m,s,t) = agentOne.getBMSTDecision(state)
 		# handleBMST
-		(b,m,s,t) = agentTwo.run(state)
+		(b,m,s,t) = agentTwo.getBMSTDecision(state)
 		# handleBMST
 
 
