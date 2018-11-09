@@ -63,7 +63,7 @@ class Adjudicator:
 			[0,0],#player's position; 2
 			[0,0], #player's cash; 3
 			0, #phase number; 4
-			None, #phase payload; 5
+			{}, #phase payload; 5
 		]
 
 		self.PLAYER_TURN_INDEX = 0
@@ -101,6 +101,20 @@ class Adjudicator:
 
 	def send_player_to_jail(self,state):
 		pass
+	
+	"""Scenario where current player is in jail at the start of the turn.
+	Processes the response to the agent.jailDecision function."""
+	"""
+	Incoming action format:
+	("R") : represents rolling to get out
+    ("P") : represents paying $50 to get out (BSMT should follow)
+    ("C", propertyNumber) : represents using a get out of jail card, 
+    but in case someone has both, needs to specify which one they are using. 
+    In general, should always specify the number (either 28 or 29)
+
+	"""
+	def handle_in_jail_state(self,state,decision):
+		pass
         
 	def update_turn(self):
 		self.turn += 1
@@ -112,9 +126,9 @@ class Adjudicator:
 	2 = BSTM Before applying turn effect
 	3 = Unowned Property, Buying
 	4 = Unowned Property, Auction
-	5 = Cards (Will there need to be nesting here?)
-	
-	6 = Post turn BSTM
+	5 = rent and other payments to either bank or opponent
+	6 = Cards (Will there need to be nesting here?)
+	7 = Post turn BSTM
 	
 	(Q: Will there need to be a BSTM if the player receives money?)
 	"""
@@ -131,16 +145,15 @@ class Adjudicator:
 	
 	"""Phase 2: Dice Roll"""
 	def dice_roll(self,state=[]):
-
-		self.pass_dice()
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+		
 		#Jail
 		if playerPosition == -1:
 			#Do special handling and return here
-			self.agentOne.jailDecision(state)
+			action = self.agentOne.jailDecision(state)
 			return
 	
 		self.dice.roll()
@@ -167,9 +180,6 @@ class Adjudicator:
 			state[self.PLAYER_CASH_INDEX[current_player]] = playerCash
 
 			self.update_state(state)
-			
-	def handle_in_jail_state(self,state):
-		pass
 			
 			
 	def update_state(self,state):
@@ -443,11 +453,11 @@ class Adjudicator:
 		# upadate the state
 		state[self.PLAYER_TURN_INDEX] = nextPlayer
 
-		self.rollDice()
-
-		# diceValue = rollDice()
-		# state[4] = 3
-		# state[self.PHASE_PAYLOAD_INDEX] = diceValue
+		"""Resets dice roll before each turn"""
+		self.pass_dice()
+		
+		"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
+		self.dice_roll(state)
 
 		if nextPlayer == 0:
 			actionTaken = agent.run(state)
