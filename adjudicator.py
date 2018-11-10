@@ -88,10 +88,10 @@ class Adjudicator:
 		currentPlayer = getCurrentPlayer(state)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 			
-		def rightOwner(propertyStatus):
-			if currentPlayer == 1 and propertyStatus <= 0:
+		def rightOwner(propertyStatus, player):
+			if player == 1 and propertyStatus <= 0:
 				return False
-			if currentPlayer == 2 and propertyStatus  >= 0:
+			if player == 2 and propertyStatus  >= 0:
 				return False
 
 			return True
@@ -110,8 +110,12 @@ class Adjudicator:
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 
-				if not rightOwner(propertyStatus):
-					return False
+
+				if constructions < 0 or constructions > 5:
+					return
+
+				if not rightOwner(propertyStatus, currentPlayer):
+					return
 
 				if constructions and constructions > 0:
 					# does the agent own the all spaces in the group?
@@ -126,6 +130,7 @@ class Adjudicator:
 					if constructions > 1:
 						for groupElement in groupElements:
 							propertyStatus = getPropertyStatus(state,groupElement)
+							
 							if currentPlayer == 1 and (propertyStatus == 1 or propertyStatus == 7):
 								return
 
@@ -135,7 +140,13 @@ class Adjudicator:
 					playerCash -= space['build_cost']*constructions
 
 					if playerCash >= 0:
-						state[self.PROPERTY_STATUS_INDEX][propertyId] = constructions + 1
+
+						propertyValue = constructions + 1
+			
+						if currentPlayer == 2:
+							propertyValue *= -1
+
+						state[self.PROPERTY_STATUS_INDEX][propertyId] = propertyValue
 						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 					else:
 						return
@@ -145,7 +156,6 @@ class Adjudicator:
 		# ayer
 		def handleSell(properties):
 
-			# ordering of this tuple becomes important  
 			for propertyObject in properties:
 
 				(propertyId,constructions) = propertyObject
@@ -159,14 +169,25 @@ class Adjudicator:
 				if not rightOwner(propertyStatus,currentPlayer):
 					continue
 
-				houseCount = propertyStatus - 1
+				houseCount = 0
+
+				if currentPlayer == 1: 
+					houseCount = propertyStatus - 1
+				else:
+					houseCount = -1*(propertyStatus + 1)
 
 				if houseCount < 1 or constructions > houseCount:
 					continue
 
 				houseCount -= constructions 
 				playerCash += space['build_cost']*constructions
-				state[self.PROPERTY_STATUS_INDEX][propertyId] = houseCount + 1
+
+				propertyValue = houseCount + 1
+
+				if currentPlayer == 2:
+					propertyValue *= -1
+
+				state[self.PROPERTY_STATUS_INDEX][propertyId] = propertyValue
 				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 	
 		# agent mortages a particular property
@@ -193,21 +214,33 @@ class Adjudicator:
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			
-			# checking if the agent owns what it offers
+			cashRequest = cashRequest or 0
+			cashOffer = cashOffer or 0
+			
+			otherPlayer = (currentPlayer + 1) % 2
+				
+			if cashOffer > getPlayerCash(state,currentPlayer):
+				return False
+
+			if cashRequest > getPlayerCash(state,otherPlayer):
+				return False
+
+			propertyStatus = getPropertyStatus(state)
+				
 			for propertyOffer in propertiesOffer:
-				propertyStatus = getPropertyStatus(state)
 				if not rightOwner(propertyStatus,currentPlayer):
 					return False
 
-			playerCash = getPlayerCash(state,currentPlayer)
 
-			if cashOffer > playerCash:
-				return False
+			# check if the other agent actually cash and properties to offer
+			for propertyRequest in propertiesRequest:
+				if not rightOwner(propertyStatus,otherPlayer):
+					return False
 
 			# update the values in the payload index 
 			state[self.PHASE_NUMBER_INDEX] = self.TRADE_OFFER
-
 			phasePayload = state[self.PHASE_PAYLOAD_INDEX]
+			
 			if not phasePayload:
 				phasePayload = {}
 
@@ -220,7 +253,7 @@ class Adjudicator:
 
 			tradeResponse = False
 
-			if currentPlayer == 0:
+			if currentPlayer == 1:
 				tradeResponse = self.agentTwo.tradeOffer(state)
 			else:
 				tradeResponse = self.agentTwo.tradeOffer(state)
@@ -229,7 +262,7 @@ class Adjudicator:
 			if tradeResponse:
 				
 				state[self.PLAYER_CASH_INDEX][currentPlayer] -= (cashRequest - cashOffer)
-				state[self.PLAYER_CASH_INDEX][(currentPlayer + 1) % 2] -= (cashOffer - cashRequest)
+				state[self.PLAYER_CASH_INDEX][otherPlayer] -= (cashOffer - cashRequest)
 
 				properties = state[self.PROPERTY_STATUS_INDEX]
 
@@ -238,6 +271,9 @@ class Adjudicator:
 
 				for propertyRequest in propertiesRequest:
 					properties[propertyRequest] *= -1
+
+				state[self.PROPERTY_STATUS_INDEX] = properties
+				
 
 		def takeBMSTAction(action):
 
@@ -1054,7 +1090,7 @@ class Adjudicator:
 #Testing
 adjudicator = Adjudicator()
 
-# adjudicator.conductBMST(None)
+adjudicator.conductBMST(None)
 
 #It is currently agentOne's turn
-adjudicator.runGame()
+# adjudicator.runGame()
