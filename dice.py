@@ -10,7 +10,8 @@ class Dice:
 
     def __init__(self):
 
-        self.roll_sum = None
+        self.die_1 = None
+        self.die_2 = None
         self.double = False
         self.double_counter = 0
 
@@ -20,7 +21,8 @@ class Dice:
 
         roll = np.random.choice(np.arange(1, 7), 2)
 
-        self.roll_sum = roll.sum()
+        self.die_1 = roll[0]
+        self.die_2 = roll[1]
         self.double = roll[0] == roll[1]
         if not ignore:
             self.double_counter += self.double

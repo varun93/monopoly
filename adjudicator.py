@@ -90,14 +90,17 @@ class Adjudicator:
 		7 = Post turn BSTM
 		"""
 		self.INITIAL_BSTM = 0
-		self.PRETURN_BSTM = 1
-		self.DICE_ROLL = 2
-		self.BUYING = 3
-		self.AUCTION = 4
-		self.PAYMENT = 5
-		self.CARDS = 6
-		self.POSTTURN_BSTM = 7
-		self.JAIL = 8
+		self.TRADE_OFFER = 1
+		self.PRETURN_BSTM = 2
+		self.DICE_ROLL = 3
+		self.BUYING = 4
+		self.AUCTION = 5
+		self.PAYMENT = 6
+		self.JAIL = 7
+		self.CHANCE_CARD = 8
+		self.COMMUNITY_CHEST_CARD = 9 
+		self.POSTTURN_BSTM = 10
+		
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
@@ -143,7 +146,10 @@ class Adjudicator:
     ("C", propertyNumber) : represents using a get out of jail card, 
     but in case someone has both, needs to specify which one they are using. 
     In general, should always specify the number (either 28 or 29)
-
+	Return values:
+	List of 2 boolean values:
+	1. Whether the player is out of jail.
+	2. Whether there was a dice throw while handling jail state.
 	"""
 	def handle_in_jail_state(self,state,action):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
@@ -156,7 +162,7 @@ class Adjudicator:
 			if playerCash >= 50:
 				playerCash -= 50
 				state[self.PLAYER_CASH_INDEX][current_player] = playerCash
-				return True
+				return [True,False]
 		
 		elif action[0] == 'C':
 			#Check if the player has the mentioned property card.
@@ -170,13 +176,13 @@ class Adjudicator:
 					if action[1] == self.COMMUNITY_GET_OUT_OF_JAIL_FREE:
 						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
 						self.chest.append(constants.communityChestCards[4])
-						return True
+						return [True,False]
 					
 					elif action[1] == self.CHANCE_GET_OUT_OF_JAIL_FREE:
 						
 						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
 						self.chance.append(constants.chanceCards[7])
-						return True
+						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
 		self.dice.roll()
@@ -184,9 +190,9 @@ class Adjudicator:
 			#Player can go out
 			#Need to ensure that there is no second turn for the player in this turn.
 			self.dice.double = False
-			return True
+			return [True,True]
 		
-		return False
+		return [False,True]
 	
 	"""
 	Method starts a blind auction.
@@ -320,21 +326,45 @@ class Adjudicator:
 	2. else, rolls the dice, checks for all the dice events.
 	3. Then moves the player to new position and finds out what the effect of the position is.
 	"""
-	def dice_roll(self,state=[]):
+	def dice_roll(self,state=[],player):
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 		
+		outOfJail = True #If the player is currently not in jail
+		diceThrown = False # Represents if the dice has already been thrown for the turn.
+		
 		#Jail
 		if playerPosition == -1:
-			action = self.agentOne.jailDecision(state)
-			#TODO: We get back response True indicating player is out of jail and False if he is to remain in jail.
-			#Need to handle this.
-			if not self.handle_in_jail_state(state,action):
-				return False
-		else:
+			state[self.PHASE_NUMBER_INDEX] = self.JAIL
+			state[self.PHASE_PAYLOAD_INDEX] = {}
+			action = player.jailDecision(state)
+			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
+		
+		if not diceThrown:
 			self.dice.roll()
+			
+		"""
+		We need to call agent.receiveState and pass on the dice roll for the turn.
+		There could be a couple of scenarios:
+		1. Player rolls non-doubles
+		2. Player rolls doubles.
+		3. Player rolls doubles while in Jail.
+		4. Player rolls non-doubles while in Jail.
+		5. Player rolls doubles for 3 third time in a row in a single turn.
+		"""
+		state[self.PHASE_NUMBER_INDEX] = self.DICE_ROLL
+		state[self.PHASE_PAYLOAD_INDEX] = {}
+		state[self.PHASE_PAYLOAD_INDEX]['dice_1'] = self.dice.die_1
+		state[self.PHASE_PAYLOAD_INDEX]['dice_2'] = self.dice.die_2
+		state[self.PHASE_PAYLOAD_INDEX]['inJail'] = outOfJail #Implies player will not move this turn.
+		state[self.PHASE_PAYLOAD_INDEX]['anotherChance'] = self.dice.double #Implies player gets another round in the same turn.
+		player.receiveState(state)
+		
+		"""If the player is still in Jail, end turn immediately."""
+		if not outOfJail:
+			return False
 		
 		if self.dice.double_counter == 3:
 			state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
@@ -388,11 +418,23 @@ class Adjudicator:
 			if constants.board[playerPosition]['class'] == 'Chance':
 				#Chance
 				card = self.chance.draw_card()
+				
+				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
+				state[self.PHASE_PAYLOAD_INDEX] = {}
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
+				player.receiveState(state)
+				
 				self.handle_cards_pre_turn(state,card,'Chance')
-			
+				
 			elif constants.board[playerPosition]['class'] == 'Chest':
 				#Community
 				card = self.chest.draw_card()
+				
+				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
+				state[self.PHASE_PAYLOAD_INDEX] = {}
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
+				player.receiveState(state)
+				
 				self.handle_cards_pre_turn(state,card,'Chest')
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
@@ -680,7 +722,7 @@ class Adjudicator:
 	"""
 	Assuming this represents a single turn
 	"""
-	def runPlayerOnState(self,player1,player2):
+	def runPlayerOnState(self,current_player,opponent):
 		
 		
 		"""BSTM"""
@@ -695,7 +737,7 @@ class Adjudicator:
 			print(self.state)
 			
 			"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
-			notInJail = self.dice_roll(self.state)
+			notInJail = self.dice_roll(self.state,current_player)
 			
 			if notInJail:
 				print("")
