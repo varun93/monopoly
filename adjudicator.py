@@ -76,7 +76,7 @@ class Adjudicator:
 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
 		
-		self.TOTAL_NO_OF_TURNS = 100
+		self.TOTAL_NO_OF_TURNS = 5
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
 		
@@ -327,7 +327,7 @@ class Adjudicator:
 	2. else, rolls the dice, checks for all the dice events.
 	3. Then moves the player to new position and finds out what the effect of the position is.
 	"""
-	def dice_roll(self,state=[],player):
+	def dice_roll(self,state,player):
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
@@ -376,7 +376,7 @@ class Adjudicator:
 		else:
 			#Update player position
 			
-			playerPosition += self.dice.roll_sum
+			playerPosition += (self.dice.die_1 + self.dice.die_2)
 			
 			#Passing Go
 			if playerPosition>=self.BOARD_SIZE:
@@ -422,7 +422,7 @@ class Adjudicator:
 				
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
-				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card.id
 				self.runPlayerOnState(current_player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chance')
@@ -433,7 +433,7 @@ class Adjudicator:
 				
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
-				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card.id
 				self.runPlayerOnState(current_player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chest')
@@ -495,7 +495,7 @@ class Adjudicator:
 					elif (constants.board[playerPosition]['class'] == 'Utility'):
 						if (counter==len(monopolies)+1):
 							rent = 10
-						rent = rent * self.dice.roll_sum
+						rent = rent * (self.dice.die_1 + self.dice.die_2)
 				
 				elif absPropertyValue == 2:
 					rent = constants.board[playerPosition]['rent_house_1']
@@ -654,7 +654,7 @@ class Adjudicator:
 						if absPropertyValue == 1:
 							self.dice.roll(True)
 							state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
-							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * self.dice.roll_sum
+							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * (self.dice.die_1 + self.dice.die_2)
 							state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
 		
 		elif card['type'] == 8:
@@ -712,35 +712,50 @@ class Adjudicator:
 		
 		while self.turn < self.TOTAL_NO_OF_TURNS:
 			"""BSTM"""
+			# conduct a BMST phase
+			#nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
+			#(b,s,m,t) = agent.run(state)
+			#actionTaken = None
 		
-			while True:
-				
-				current_player = self.agentOne
-				opponent = self.agentTwo
-				if (state[self.PLAYER_TURN_INDEX] % 2) == 1:
-					current_player = self.agentTwo
-					opponent = self.agentOne
+			# update the state
+			#state[self.PLAYER_TURN_INDEX] = nextPlayer
 			
-				"""Resets dice roll before each turn"""
-				self.pass_dice()
-				
-				print("Turn "+str(self.turn))
-				print("State at the start of the turn:")
-				print(self.state)
+			#if nextPlayer == 0:
+			#	actionTaken = agent.run(state)
+			#else:
+			#	actionTaken = agent.run(state)
+	
+			#parseAction(actionTaken,state)
+			
+			"""Determining whose turn it is"""
+			current_player = self.agentOne
+			opponent = self.agentTwo
+			if (self.state[self.PLAYER_TURN_INDEX] % 2) == 1:
+				current_player = self.agentTwo
+				opponent = self.agentOne
+		
+			"""Resets dice roll before each turn"""
+			self.pass_dice()
+			
+			print("Turn "+str(self.turn))
+			print("State at the start of the turn:")
+			print(self.state)
+			
+			while True:
 				
 				"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
 				notInJail = self.dice_roll(self.state,current_player)
 				
 				if notInJail:
 					print("")
-					print("State after moving the player position and applying checking the effect:")
+					print("State after moving the player position and updating state with effect of the position:")
 					print(self.state)
 					
 					"""BSTM"""
 					
 					"""State now contain info about the position the player landed on"""
 					"""Performing the actual effect of the current position"""
-					self.turn_effect(self.state,player1,player2)
+					self.turn_effect(self.state,current_player,opponent)
 					
 					print("")
 					print("State at the end of the turn:")
@@ -754,23 +769,8 @@ class Adjudicator:
 					print("")
 					print("Rolled Doubles. Play again.")
 			
+			"""Update the turn counter"""
 			self.update_turn(self.state)
-		
-		
-		# conduct a BMST phase
-		nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
-		(b,s,m,t) = agent.run(state)
-		actionTaken = None
-	
-		# update the state
-		state[self.PLAYER_TURN_INDEX] = nextPlayer
-		
-		if nextPlayer == 0:
-			actionTaken = agent.run(state)
-		else:
-			actionTaken = agent.run(state)
-
-		parseAction(actionTaken,state)
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent
@@ -788,7 +788,7 @@ class Adjudicator:
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		
 		if current_phase == self.BUYING:
-			action = current_player.buyProperty(state)
+			action = player.buyProperty(state)
 		elif current_phase == self.AUCTION:
 			action = player.auctionProperty(state)
 		elif current_phase == self.PAYMENT:
@@ -804,4 +804,4 @@ class Adjudicator:
 adjudicator = Adjudicator()
 
 #It is currently agentOne's turn
-adjudicator.runPlayerOnState(adjudicator.agentOne,adjudicator.agentTwo)
+adjudicator.runGame()
