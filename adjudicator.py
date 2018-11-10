@@ -6,54 +6,6 @@ from agent import Agent
 import numpy as np
 import copy
 
-class BMST:
-	
-	def __init__(self,state,player):
-		self.state = state
-		self.player = player
-		
-	def setState(self,state):
-		self.state = state
-
-	def setPlayer(self, player):
-		self.player = player
-
-	# change the property to a key value pair 
-	# house can be built only if you own a monopoly of colours 
-	# double house can be built only if I have built one house in each colour 
-	def handleBuy(self,player,b):
-		
-		properties = b[1]
-
-		for propertyId in properties:
-			propertyPrice = getPropertyValue(propertyId)
-			propertyStatus = state[2][propertyId]
-			playerCash = state[3][player]
-			
-			if playerPrice >= propertyPrice:
-				state[2][propertyId] = calculatePropertyStatus(player,propertyId)
-				state[3][player] = playerCash - propertyPrice
-			else:
-				# how do you want to handle the exception?
-				# how to handle
-				raise ValueError("Not Enough Cash")
-
-	def handleSell(self, player, s):
-		sale_payload = s[1]
-		pass
-
-	# buying/2
-	def handleMortgage(self, player, m):
-		mortage_payload = m[1]
-		pass
-	# 
-	def handleTrade(self, player, t):
-		trade_payload = t[1]
-		pass
-
-	def handle():
-		pass
-
 # make sure the state is not mutated
 class Adjudicator:
 	
@@ -111,25 +63,195 @@ class Adjudicator:
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)		  
 		
+	def getPropertyStatus(self,state,position):
+		propertyObject = constants.space_to_property_map
+		return state[self.PROPERTY_STATUS_INDEX][propertyObject[position]]
+		
 	
+	def getCurrentPlayer(self,state):
+		return state[self.PLAYER_TURN_INDEX] % 2
+	
+	def getPlayerCash(self,state,player):
+		return state[self.PLAYER_CASH_INDEX][player]
+		
+	def handleBMST(self,state,action):
 
-	def conductBMST(state):
-
-		state[self.PHASE_NUMBER_INDEX] = 0
-
-		(b,m,s,t) = agentOne.getBMSTDecision(state)
 		# handleBMST
-		(b,m,s,t) = agentTwo.getBMSTDecision(state)
-		# handleBMST
+		currentPlayer = self.getCurrentPlayer(state)
+		playerPosition = state[self.PLAYER_POSITION_INDEX][self.player]
+			
+		def rightOwner(propertyStatus):
+			if currentPlayer == 0 and propertyStatus <= 0:
+				return False
+			if currentPlayer == 1 and propertyStatus  >= 0:
+				return False
 
+			return True
 
-	def parseAction(self):
-		pass
+		# house can be built only if you own a monopoly of colours 
+		# double house can be built only if I have built one house in each colour 
+		# order of the tuples to be taken into account
+		def handleBuy(properties):
+			
+			# ordering of this tuple becomes important  
+			for propertyObject in properties:
 
-	"""To reset dice for a new turn"""
-	def pass_dice(self):
-		self.dice = dice.Dice()
+				(propertyId,constructions) = propertyObject
+				space = constants.board[propertyId]
+				groupElements = space['monopoly_group_elements']
+				playerCash = getPlayerCash(state, currentPlayer)
+				propertyStatus = getPropertyStatus(state,propertyId)
 
+				if not rightOwner(propertyStatus,player):
+					return False
+
+				if constructions and constructions > 0:
+					# does the agent own the monopoly of a colour group
+					for groupElement in groupElements:
+					 	if currentPlayer == 0 and propertyStatus[groupElement] < 0:
+					 		return
+					 	if currentPlayer == 1 and propertyStatus[groupElement] > 0:
+					 		return
+
+					if constructions > 1:
+						for groupElement in groupElements:
+							propertyStatus = getPropertyStatus(state,groupElement)
+							if propertyStatus == 1 or propertyStatus == 7:
+								return
+
+					playerCash -= space['build_cost']*constructions
+
+					if playerCash >= 0:
+						state[self.PROPERTY_STATUS_INDEX][propertyId] = constructions + 1
+						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+					else:
+						return
+
+		# make sure the agent owns what it sells
+		# update the cash of the pl
+		# ayer
+		def handleSell(properties):
+
+			# ordering of this tuple becomes important  
+			for propertyObject in properties:
+
+				(propertyId,constructions) = propertyObject
+				space = constants.board[propertyId]
+				playerCash = getPlayerCash(state, currentPlayer)
+				propertyStatus = getPropertyStatus(state,propertyId)
+				
+				if constructions == 0:
+					continue
+				
+				if not rightOwner(propertyStatus,player):
+					continue
+
+				houseCount = propertyStatus - 1
+
+				if houseCount < 1 or constructions > houseCount:
+					continue
+
+				houseCount -= constructions 
+				playerCash += space['build_cost']*constructions
+				state[self.PROPERTY_STATUS_INDEX][propertyId] = houseCount + 1
+				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+	
+		# agent mortages a particular property
+		# agent gets 50% of original money of the property 
+		# penalizing the agent by selling the property with constructions too;
+		# its a negligence on the part of the agent 
+		def handleMortgage(properties):
+
+			for propertyId in properties:
+				space = constants.board[propertyId]
+				playerCash = getPlayerCash(state, currentPlayer)
+				propertyStatus = getPropertyStatus(state,propertyId)
+				
+				if not rightOwner(propertyStatus,player):
+					continue
+
+				propertyPrice =  space['price']
+				playerCash += propertyPrice/2
+				state[self.PROPERTY_STATUS_INDEX][propertyId] = houseCount + 1
+				if current_player == 0:
+					state[self.PLAYER_CASH_INDEX][currentPlayer] = 7
+				else:
+					state[self.PLAYER_CASH_INDEX][currentPlayer] = -7
+
+		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
+			
+			# check if he actually owns the properties and has so much cash before making a move
+
+			for propertyOffer in propertiesOffer:
+				propertyStatus = getPropertyStatus(state)
+				if not rightOwner(propertyStatus,currentPlayer):
+					return False
+
+			playerCash = getPlayerCash(state,currentPlayer)
+
+			if cashOffer > playerCash:
+				return False
+
+			# update the values in the payload index 
+			state[self.PHASE_NUMBER_INDEX] = self.TRADE_OFFER
+
+			phasePayload = state[self.PHASE_PAYLOAD_INDEX]
+			if not phasePayload:
+				phasePayload = {}
+
+			phasePayload['cashOffer'] = cashOffer 
+			phasePayload['propertiesOffer'] = propertiesOffer 
+			phasePayload['cashRequest'] = cashRequest 
+			phasePayload['propertiesRequest'] = propertiesRequest
+
+			state[self.PHASE_PAYLOAD_INDEX] = phasePayload
+
+			tradeResponse = False
+
+			if currentPlayer == 0:
+				tradeResponse = self.agentTwo.tradeOffer(state)
+			else:
+				tradeResponse = self.agentTwo.tradeOffer(state)
+
+			# if the trade was successful update the cash and property status
+			if tradeResponse:
+				
+				state[self.PLAYER_CASH_INDEX][currentPlayer] -= (cashRequest - cashOffer)
+				state[self.PLAYER_CASH_INDEX][(currentPlayer + 1) % 2] -= (cashOffer - cashRequest)
+
+				properties = state[self.PROPERTY_STATUS_INDEX]
+
+				for propertyOffer in propertiesOffer:
+					properties[propertyOffer] *= -1
+
+				for propertyRequest in propertiesRequest:
+					properties[propertyRequest] *= -1
+
+		def takeBMSTAction(action):
+
+			state[self.PHASE_NUMBER_INDEX] = 0
+
+			intent = action[0]
+			
+			if intent == "B":
+				handleBuy(action[1])
+
+			if intent == "S":
+				handleSell(action[1])
+			
+			if intent == "M":
+				handleMortgage(action[1])
+
+			if intent == "T":
+				handleTrade(intent,action[1],action[2],action[3],action[4])
+
+		action = self.agentOne.getBMSTDecision(state)
+		takeBMSTAction(action)
+		
+		action = agentTwo.getBMSTDecision(state)
+		takeBMSTAction(action)
+		
+		
 	def send_player_to_jail(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		
@@ -199,6 +321,77 @@ class Adjudicator:
 			return [True,True]
 		
 		return [False,True]
+
+	def parseAction(self):
+			pass
+
+	"""To reset dice for a new turn"""
+	def pass_dice(self):
+		self.dice = dice.Dice()
+
+	def send_player_to_jail(self,state):
+		state[self.PHASE_NUMBER_INDEX] = self.JAIL
+	
+	def update_turn(self,state):
+		self.turn += 1
+		state[self.PLAYER_TURN_INDEX] = self.turn
+	
+	""" ACTION METHODS """
+	
+	"""Scenario where current player is in jail at the start of the turn.
+	Processes the response to the agent.jailDecision function."""
+	"""
+	Incoming action format:
+	("R") : represents rolling to get out
+    ("P") : represents paying $50 to get out (BSMT should follow)
+    ("C", propertyNumber) : represents using a get out of jail card, 
+    but in case someone has both, needs to specify which one they are using. 
+    In general, should always specify the number (either 28 or 29)
+
+	"""
+	def handle_in_jail_state(self,state,action):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		if action[0] == 'P':
+			"""
+			Should there be a BSTM here?
+			Assuming player has the money
+			"""
+			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+			if playerCash >= 50:
+				playerCash -= 50
+				state[self.PLAYER_CASH_INDEX][current_player] = playerCash
+				return True
+		
+		elif action[0] == 'C':
+			#Check if the player has the mentioned property card.
+			if (len(action)>1) & (action[1] in [28,29]):
+				if current_player == 0:
+					owned = (action[1] < 0)
+				else:
+					owned = (action[1] > 0)
+				
+				if owned:
+					if action[1] == self.COMMUNITY_GET_OUT_OF_JAIL_FREE:
+						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
+						self.chest.append(constants.communityChestCards[4])
+						return True
+					
+					elif action[1] == self.CHANCE_GET_OUT_OF_JAIL_FREE:
+						
+						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
+						self.chance.append(constants.chanceCards[7])
+						return True
+		
+		"""If both the above method fail for some reason, we default to dice roll."""
+		self.dice.roll()
+		if self.dice.double:
+			#Player can go out
+			#Need to ensure that there is no second turn for the player in this turn.
+			self.dice.double = False
+			return True
+		
+		return False
+
 	
 	"""
 	Method starts a blind auction.
