@@ -76,7 +76,7 @@ class Adjudicator:
 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
 		
-		self.TOTAL_NO_OF_TURNS = 5
+		self.TOTAL_NO_OF_TURNS = 20
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
 		
@@ -130,6 +130,10 @@ class Adjudicator:
 		self.dice = dice.Dice()
 
 	def send_player_to_jail(self,state):
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		
+		print("Player "+str(current_player)+"is starting an Auction")
+		
 		state[self.PHASE_NUMBER_INDEX] = self.JAIL
 	
 	def update_turn(self,state):
@@ -203,6 +207,9 @@ class Adjudicator:
 	"""
 	def start_auction(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		
+		print("Player "+str(current_player)+"is starting an Auction")
+		
 		opponent = abs(current_player - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		
@@ -224,6 +231,7 @@ class Adjudicator:
 	def handle_auction(self,state,actionOpponent,actionCurrentPlayer):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		opponent = abs(current_player - 1)
+		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		propertyMapping = constants.space_to_property_map[playerPosition]
 		
 		actionOpponent = None
@@ -389,7 +397,7 @@ class Adjudicator:
 			state[self.PLAYER_POSITION_INDEX][current_player] = playerPosition
 			state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 
-			self.determine_position_effect(state)
+			self.determine_position_effect(state,player)
 			
 			if state[self.PHASE_NUMBER_INDEX] == self.JAIL:
 				return False
@@ -400,7 +408,7 @@ class Adjudicator:
 	Performed after dice is rolled and the player is moved to a new position.
 	Determines the effect of the position and action required from the player.
 	"""		
-	def determine_position_effect(self,state):
+	def determine_position_effect(self,state,player):
 		current_player = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		
@@ -422,8 +430,8 @@ class Adjudicator:
 				
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
-				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card.id
-				self.runPlayerOnState(current_player,state)
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
+				self.runPlayerOnState(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chance')
 				
@@ -433,8 +441,8 @@ class Adjudicator:
 				
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
-				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card.id
-				self.runPlayerOnState(current_player,state)
+				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
+				self.runPlayerOnState(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chest')
 			   
@@ -663,7 +671,7 @@ class Adjudicator:
 			updateState = True
 			# state[self.PLAYER_POSITION_INDEX][current_player] -= 3
 			# playerPosition = -5
-			# self.determine_position_effect(state)
+			# self.determine_position_effect(state,player)
 		else:
 			logger.info('Invalid card type {type}...'.format(type=card['type']))
 
@@ -674,7 +682,7 @@ class Adjudicator:
 		state[self.PLAYER_CASH_INDEX][current_player] = playerCash
 		# make further calls
 		if updateState:
-			self.determine_position_effect(state)
+			self.determine_position_effect(state,player)
 	
 	"""Function calls the relevant method of the Agent"""
 	def turn_effect(self,state,current_player,opponent):

@@ -32,7 +32,7 @@ class Agent:
 		
 
 	def auctionProperty(self, state):
-		pass
+		return 0
 
 	def receiveState(self, state):
 		pass
@@ -56,7 +56,14 @@ class Agent:
 			handleBMSTDecison(state)
 
 	def jailDecision(self, state):
-		pass
+		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+		
+		if playerCash >= debt:
+			return ("P")
+		else:
+			return ("R")
+		
 
 	def run(self, state):
 		return {}
