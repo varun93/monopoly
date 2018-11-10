@@ -63,7 +63,7 @@ class Adjudicator:
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)		  
 		
-	def conductBMST(self,state=[]):
+	def conductBSTM(self,state=[]):
 
 		state = state or self.state
 
@@ -116,11 +116,21 @@ class Adjudicator:
 				# the mapping was required
 				propertyStatus = getPropertyStatus(state, propertyId)
 
+				if propertyStatus == 7 or propertyStatus == -7 or propertyStatus == 0:
+					return
 
 				if constructions < 0 or constructions > 5:
 					return
 
 				if not rightOwner(propertyStatus, currentPlayer):
+					return
+
+				currentConstructionsOnProperty = propertyStatus - 1 
+
+				if currentPlayer == 2:
+					currentConstructionsOnProperty = propertyStatus + 1
+
+				if (currentConstructionsOnProperty + constructions) > 5:
 					return
 
 				if constructions and constructions > 0:
@@ -147,11 +157,12 @@ class Adjudicator:
 
 					if playerCash >= 0:
 
-						propertyStatus = constructions + 1
+						propertyStatus = constructions + currentConstructionsOnProperty + 1
 			
 						if currentPlayer == 2:
 							propertyStatus *= -1
 
+						# the logic to update the status has to change
 						updatePropertyStatus(state,propertyId,propertyStatus)
 						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 					else:
@@ -292,29 +303,29 @@ class Adjudicator:
 			if intent == "B":
 				handleBuy(action[1])
 
-			if intent == "S":
+			elif intent == "S":
 				handleSell(action[1])
 			
-			if intent == "M":
+			elif intent == "M":
 				handleMortgage(action[1])
 
-			if intent == "T":
+			elif intent == "T":
 				handleTrade(intent,action[1],action[2],action[3],action[4])
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		while True:
 			
-			bsmtActionAgentOne = self.agentOne.getBMSTDecision(state)
+			bstmActionAgentOne = self.agentOne.getBMSTDecision(state)
 			
-			if bsmtActionAgentOne is not None:
-				takeBMSTAction(bsmtActionAgentOne)
+			if bstmActionAgentOne is not None:
+				takeBMSTAction(bstmActionAgentOne)
 			
-			bsmtActionAgentTwo = self.agentTwo.getBMSTDecision(state)
+			bstmActionAgentTwo = self.agentTwo.getBMSTDecision(state)
 
-			if bsmtActionAgentTwo is not None:
-				takeBMSTAction(bsmtActionAgentTwo)
+			if bstmActionAgentTwo is not None:
+				takeBMSTAction(bstmActionAgentTwo)
 
-			if bsmtActionAgentOne is None or bsmtActionAgentTwo is None:
+			if bstmActionAgentOne is None or bstmActionAgentTwo is None:
 				break
 		
 		
@@ -934,21 +945,8 @@ class Adjudicator:
 			constants.state_history.append(copy.deepcopy(self.state))
 			
 			"""BSTM"""
-			# conduct a BMST phase
-			#nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
-			#(b,s,m,t) = agent.run(state)
-			#actionTaken = None
-		
-			# update the state
-			#state[self.PLAYER_TURN_INDEX] = nextPlayer
-			
-			#if nextPlayer == 0:
-			#	actionTaken = agent.run(state)
-			#else:
-			#	actionTaken = agent.run(state)
-	
-			#parseAction(actionTaken,state)
-			
+			# self.conductBSTM(state) 
+
 			"""Determining whose turn it is"""
 			current_player = self.agentOne
 			opponent = self.agentTwo
@@ -1034,7 +1032,7 @@ class Adjudicator:
 #Testing
 adjudicator = Adjudicator()
 
-adjudicator.conductBMST(None)
+adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
 adjudicator.runGame()
