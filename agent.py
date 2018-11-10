@@ -12,8 +12,8 @@ class Agent:
 	
 	
 	def getBMSTDecision(self, state):
-		# TODO:fill the template
-		pass
+		return None
+
 	def respondTrade(self, state):
 		pass
 

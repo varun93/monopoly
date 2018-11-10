@@ -74,11 +74,12 @@ class Adjudicator:
 	def getPlayerCash(self,state,player):
 		return state[self.PLAYER_CASH_INDEX][player]
 		
-	def handleBMST(self,state,action):
+	def conductBMST(self,state=[]):
 
+		state = state or self.state
 		# handleBMST
 		currentPlayer = self.getCurrentPlayer(state)
-		playerPosition = state[self.PLAYER_POSITION_INDEX][self.player]
+		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 			
 		def rightOwner(propertyStatus):
 			if currentPlayer == 0 and propertyStatus <= 0:
@@ -102,7 +103,7 @@ class Adjudicator:
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 
-				if not rightOwner(propertyStatus,player):
+				if not rightOwner(propertyStatus,currentPlayer):
 					return False
 
 				if constructions and constructions > 0:
@@ -143,7 +144,7 @@ class Adjudicator:
 				if constructions == 0:
 					continue
 				
-				if not rightOwner(propertyStatus,player):
+				if not rightOwner(propertyStatus,currentPlayer):
 					continue
 
 				houseCount = propertyStatus - 1
@@ -167,7 +168,7 @@ class Adjudicator:
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 				
-				if not rightOwner(propertyStatus,player):
+				if not rightOwner(propertyStatus,currentPlayer):
 					continue
 
 				propertyPrice =  space['price']
@@ -180,8 +181,7 @@ class Adjudicator:
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			
-			# check if he actually owns the properties and has so much cash before making a move
-
+			# checking if the agent owns what it offers
 			for propertyOffer in propertiesOffer:
 				propertyStatus = getPropertyStatus(state)
 				if not rightOwner(propertyStatus,currentPlayer):
@@ -245,11 +245,21 @@ class Adjudicator:
 			if intent == "T":
 				handleTrade(intent,action[1],action[2],action[3],action[4])
 
-		action = self.agentOne.getBMSTDecision(state)
-		takeBMSTAction(action)
-		
-		action = agentTwo.getBMSTDecision(state)
-		takeBMSTAction(action)
+		# TODO:merging of states; and hiding the bmst decison of first agent to the second
+		while True:
+			
+			bsmtActionAgentOne = self.agentOne.getBMSTDecision(state)
+			
+			if bsmtActionAgentOne is not None:
+				takeBMSTAction(bsmtActionAgentOne)
+			
+			bsmtActionAgentTwo = self.agentTwo.getBMSTDecision(state)
+
+			if bsmtActionAgentTwo is not None:
+				takeBMSTAction(bsmtActionAgentTwo)
+
+			if bsmtActionAgentOne is None or bsmtActionAgentTwo is None:
+				break
 		
 		
 	def send_player_to_jail(self,state):
@@ -1011,6 +1021,7 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 	def runPlayerOnState(self,player,state):
+
 		action = None
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
@@ -1030,6 +1041,8 @@ class Adjudicator:
 
 #Testing
 adjudicator = Adjudicator()
+
+# adjudicator.conductBMST(None)
 
 #It is currently agentOne's turn
 adjudicator.runGame()
