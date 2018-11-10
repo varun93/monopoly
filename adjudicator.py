@@ -208,7 +208,7 @@ class Adjudicator:
 	def start_auction(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		
-		print("Player "+str(current_player)+"is starting an Auction")
+		print("Player "+str(current_player)+" is starting an Auction")
 		
 		opponent = abs(current_player - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
@@ -238,22 +238,26 @@ class Adjudicator:
 		actionCurrentPlayer = None
 
 		try:
-			actionOpponent = int(actionOpponent)
 			actionCurrentPlayer = int(actionCurrentPlayer)
-		except e:
-			# how do you want to handle the exception?
+			actionOpponent = int(actionOpponent)
+		except:
+			#We will check if the current player's action is parsable.
+			#If it is, we give him the property.
+			#Else, even if opponent's action is not parsable, he will win the property.
 			pass
 
 			
 		if actionOpponent is not None and actionCurrentPlayer is not None:
 			if actionCurrentPlayer > actionOpponent:
 				#Current Player wins the auction
+				print("Player "+str(current_player)+" won the Auction")
 				if current_player == 0:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
 				else:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
 			else:
 				#Opponent wins
+				print("Player "+str(opponent)+" won the Auction")
 				if current_player == 0:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
 				else:
@@ -261,6 +265,7 @@ class Adjudicator:
 		else:
 			if actionCurrentPlayer is not None:
 				#Only current player sent a valid response. He wins.
+				print("Player "+str(current_player)+" won the Auction")
 				if current_player == 0:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
 				else:
@@ -269,6 +274,7 @@ class Adjudicator:
 				#Opponent wins
 				#NOTE: Opponent would win even if his response is not valid
 				#as long as current player's response is also not valid.
+				print("Player "+str(opponent)+" won the Auction")
 				if current_player == 0:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
 				else:
@@ -308,6 +314,8 @@ class Adjudicator:
 		
 		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
+		
+		print("Player"+str(current_player)+" has to make a payment to "+receiver)
 		
 		if playerCash >= debt:
 			state[self.PLAYER_CASH_INDEX][current_player] -= debt
@@ -427,24 +435,26 @@ class Adjudicator:
 			if constants.board[playerPosition]['class'] == 'Chance':
 				#Chance
 				card = self.chance.draw_card()
+				print("Chance card "+str(card['id'])+" has been drawn")
 				
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
 				self.runPlayerOnState(player,state)
 				
-				self.handle_cards_pre_turn(state,card,'Chance')
+				self.handle_cards_pre_turn(state,card,'Chance',player)
 				
 			elif constants.board[playerPosition]['class'] == 'Chest':
 				#Community
 				card = self.chest.draw_card()
+				print("Community Chest card "+str(card['id'])+" has been drawn")
 				
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
 				self.runPlayerOnState(player,state)
 				
-				self.handle_cards_pre_turn(state,card,'Chest')
+				self.handle_cards_pre_turn(state,card,'Chest',player)
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
 				#Tax
@@ -531,7 +541,7 @@ class Adjudicator:
 	"""
 	Method handles various events for Chance and Community cards
 	"""
-	def handle_cards_pre_turn(self,state,card,deck):
+	def handle_cards_pre_turn(self,state,card,deck,player):
 		current_player = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
@@ -541,15 +551,15 @@ class Adjudicator:
 		
 		if card['type'] == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
-			if card['money']>0:
+			if card['money']<0:
 				state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
-				state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
+				state[self.PHASE_PAYLOAD_INDEX]['cash'] = abs(card['money'])
 				state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
 			else:
 				playerCash += abs(card['money'])
 
 		elif card['type'] == 2:
-			#-ve represents you get the money
+			#-ve represents you need to pay
 			state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 			state[self.PHASE_PAYLOAD_INDEX]['cash'] = card['money']
 			state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
@@ -596,7 +606,7 @@ class Adjudicator:
 						n_houses+= (abs(i)-1)
 					if prop == -6:
 						n_hotels+= 1
-			rent = card['money']*n_houses + card['money2']*n_hotels
+			rent = abs(card['money'])*n_houses + abs(card['money2'])*n_hotels
 			if rent > 0:
 				state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] = rent
@@ -719,6 +729,9 @@ class Adjudicator:
 	def runGame(self):
 		
 		while self.turn < self.TOTAL_NO_OF_TURNS:
+			#Temporary measure to clear phase payload
+			self.state[self.PHASE_PAYLOAD_INDEX] = {}
+			
 			"""BSTM"""
 			# conduct a BMST phase
 			#nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
