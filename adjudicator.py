@@ -76,6 +76,7 @@ class Adjudicator:
 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
 		
+		self.TOTAL_NO_OF_TURNS = 100
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
 		
@@ -339,7 +340,7 @@ class Adjudicator:
 		if playerPosition == -1:
 			state[self.PHASE_NUMBER_INDEX] = self.JAIL
 			state[self.PHASE_PAYLOAD_INDEX] = {}
-			action = player.jailDecision(state)
+			action = self.runPlayerOnState(player,state)
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
 		
 		if not diceThrown:
@@ -360,7 +361,7 @@ class Adjudicator:
 		state[self.PHASE_PAYLOAD_INDEX]['dice_2'] = self.dice.die_2
 		state[self.PHASE_PAYLOAD_INDEX]['inJail'] = outOfJail #Implies player will not move this turn.
 		state[self.PHASE_PAYLOAD_INDEX]['anotherChance'] = self.dice.double #Implies player gets another round in the same turn.
-		player.receiveState(state)
+		self.runPlayerOnState(player,state)
 		
 		"""If the player is still in Jail, end turn immediately."""
 		if not outOfJail:
@@ -422,7 +423,7 @@ class Adjudicator:
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
-				player.receiveState(state)
+				self.runPlayerOnState(current_player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chance')
 				
@@ -433,7 +434,7 @@ class Adjudicator:
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = self.id
-				player.receiveState(state)
+				self.runPlayerOnState(current_player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chest')
 			   
@@ -679,14 +680,14 @@ class Adjudicator:
 	def turn_effect(self,state,current_player,opponent):
 		phase = state[self.PHASE_NUMBER_INDEX]
 		if phase == self.BUYING:
-			action = current_player.buyProperty(state)
+			action = self.runPlayerOnState(current_player,state)
 			if action:
 				self.handle_buy_property(state)
 			else:
 				#Auction
 				self.start_auction(state)
-				actionOpponent = opponent.auctionProperty(state)
-				actionCurrentPlayer = current_player.auctionProperty(state)
+				actionOpponent = self.runPlayerOnState(opponent,state)
+				actionCurrentPlayer = self.runPlayerOnState(current_player,state)
 				self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 			
 		if phase == self.PAYMENT:
@@ -694,16 +695,68 @@ class Adjudicator:
 		
 		if phase == self.AUCTION:
 			self.start_auction(state)
-			actionOpponent = opponent.auctionProperty(state)
-			actionCurrentPlayer = current_player.auctionProperty(state)
+			actionOpponent = self.runPlayerOnState(opponent,state)
+			actionCurrentPlayer = self.runPlayerOnState(current_player,state)
 			self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 		
 	def broadcastState(self,state):
 		pass
 	
 	
-	#Temporarily moved all code from runPlayerOnState to runGame
+	"""
+	Function to be called to start the game.
+	First turn ot Turn 0 goes to AgentOne.
+	NOTE: INCOMPLETE
+	"""
 	def runGame(self):
+		
+		while self.turn < self.TOTAL_NO_OF_TURNS:
+			"""BSTM"""
+		
+			while True:
+				
+				current_player = self.agentOne
+				opponent = self.agentTwo
+				if (state[self.PLAYER_TURN_INDEX] % 2) == 1:
+					current_player = self.agentTwo
+					opponent = self.agentOne
+			
+				"""Resets dice roll before each turn"""
+				self.pass_dice()
+				
+				print("Turn "+str(self.turn))
+				print("State at the start of the turn:")
+				print(self.state)
+				
+				"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
+				notInJail = self.dice_roll(self.state,current_player)
+				
+				if notInJail:
+					print("")
+					print("State after moving the player position and applying checking the effect:")
+					print(self.state)
+					
+					"""BSTM"""
+					
+					"""State now contain info about the position the player landed on"""
+					"""Performing the actual effect of the current position"""
+					self.turn_effect(self.state,player1,player2)
+					
+					print("")
+					print("State at the end of the turn:")
+					print(self.state)
+				
+				"""BSTM"""
+				
+				if (not self.dice.double) or notInJail:
+					break
+				else:
+					print("")
+					print("Rolled Doubles. Play again.")
+			
+			self.update_turn(self.state)
+		
+		
 		# conduct a BMST phase
 		nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
 		(b,s,m,t) = agent.run(state)
@@ -720,49 +773,32 @@ class Adjudicator:
 		parseAction(actionTaken,state)
 	
 	"""
-	Assuming this represents a single turn
+	This function is called whenever adjudicator needs to communicate with the agent
+	The function to called on the agent is determined by reading the state.
+	All threading and signal based logic must go in here
+	self.INITIAL_BSTM = 0
+	self.TRADE_OFFER = 1
+	self.PRETURN_BSTM = 2
+	self.PAYMENT = 6
+	self.POSTTURN_BSTM = 10
 	"""
-	def runPlayerOnState(self,current_player,opponent):
+	def runPlayerOnState(self,player,state):
+		action = None
 		
+		current_phase = state[self.PHASE_NUMBER_INDEX]
 		
-		"""BSTM"""
-		
-		while True:
-		
-			"""Resets dice roll before each turn"""
-			self.pass_dice()
-			
-			print("Turn "+str(self.turn))
-			print("State at the start of the turn:")
-			print(self.state)
-			
-			"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
-			notInJail = self.dice_roll(self.state,current_player)
-			
-			if notInJail:
-				print("")
-				print("State after moving the player position and applying checking the effect:")
-				print(self.state)
-				
-				"""BSTM"""
-				
-				"""State now contain info about the position the player landed on"""
-				"""Performing the actual effect of the current position"""
-				self.turn_effect(self.state,player1,player2)
-				
-				print("")
-				print("State at the end of the turn:")
-				print(self.state)
-			
-			"""BSTM"""
-			
-			if (not self.dice.double) or notInJail:
-				break
-			else:
-				print("")
-				print("Rolled Doubles. Play again.")
-		
-		self.update_turn(self.state)
+		if current_phase == self.BUYING:
+			action = current_player.buyProperty(state)
+		elif current_phase == self.AUCTION:
+			action = player.auctionProperty(state)
+		elif current_phase == self.PAYMENT:
+			pass
+		elif current_phase == self.JAIL:
+			action = player.jailDecision(state)
+		elif ( current_phase == self.DICE_ROLL ) or ( current_phase == self.CHANCE_CARD ) or ( current_phase == self.COMMUNITY_CHEST_CARD ):
+			action = player.receiveState(state)
+			 
+		return action
 
 #Testing
 adjudicator = Adjudicator()
