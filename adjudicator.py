@@ -58,10 +58,20 @@ class Adjudicator:
 
 		self.agentOne = Agent(self.state)
 		self.agentTwo = Agent(self.state)
-		self.turn = 0
 		self.dice = None
 		self.chest = Cards(constants.communityChestCards)
-		self.chance = Cards(constants.chanceCards)		  
+		self.chance = Cards(constants.chanceCards)
+		
+		self.debug_dice = None
+		self.debug_actions = None
+	
+	"""Used by test cases"""
+	def enable_debug_mode(self,dice,n_turns,input_state,actions):
+		self.debug_dice = dice
+		self.debug_actions = actions
+		
+		self.state = input_state
+		self.TOTAL_NO_OF_TURNS = n_turns   
 		
 	def conductBMST(self,state=[]):
 
@@ -326,8 +336,7 @@ class Adjudicator:
 		state[self.PHASE_NUMBER_INDEX] = self.JAIL
 	
 	def update_turn(self,state):
-		self.turn += 1
-		state[self.PLAYER_TURN_INDEX] = self.turn
+		state[self.PLAYER_TURN_INDEX] += 1
 	
 	""" ACTION METHODS """
 	
@@ -379,7 +388,7 @@ class Adjudicator:
 						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
-		self.dice.roll()
+		self.dice.roll(dice=self.debug_dice)
 		if self.dice.double:
 			#Player can go out
 			#Need to ensure that there is no second turn for the player in this turn.
@@ -557,7 +566,7 @@ class Adjudicator:
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
 		
 		if not diceThrown:
-			self.dice.roll()
+			self.dice.roll(dice=self.debug_dice)
 			
 		"""
 		We need to call agent.receiveState and pass on the dice roll for the turn.
@@ -868,7 +877,7 @@ class Adjudicator:
 						#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
 						#But, not considering that as it doesn't seem to be in the spirit of the game.
 						if absPropertyValue == 1:
-							self.dice.roll(True)
+							self.dice.roll(ignore=True,dice=self.debug_dice)
 							state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * (self.dice.die_1 + self.dice.die_2)
 							state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
@@ -925,8 +934,8 @@ class Adjudicator:
 	NOTE: INCOMPLETE
 	"""
 	def runGame(self):
-		
-		while self.turn < self.TOTAL_NO_OF_TURNS:
+				
+		while self.state[self.PLAYER_TURN_INDEX] < self.TOTAL_NO_OF_TURNS:
 			#Temporary measure to clear phase payload
 			self.state[self.PHASE_PAYLOAD_INDEX] = {}
 			
@@ -959,7 +968,7 @@ class Adjudicator:
 			"""Resets dice roll before each turn"""
 			self.pass_dice()
 			
-			print("Turn "+str(self.turn))
+			print("Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
 			print("State at the start of the turn:")
 			print(self.state)
 			
@@ -1013,7 +1022,10 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 	def runPlayerOnState(self,player,state):
-
+		
+		if (self.debug_actions is not None) and len(self.debug_actions)!=0:
+			return self.debug_actions.pop()
+		
 		action = None
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
@@ -1028,13 +1040,13 @@ class Adjudicator:
 			action = player.jailDecision(state)
 		elif ( current_phase == self.DICE_ROLL ) or ( current_phase == self.CHANCE_CARD ) or ( current_phase == self.COMMUNITY_CHEST_CARD ):
 			action = player.receiveState(state)
-			 
+		 
 		return action
 
 #Testing
 adjudicator = Adjudicator()
 
-adjudicator.conductBMST(None)
+#adjudicator.conductBMST(None)
 
 #It is currently agentOne's turn
 adjudicator.runGame()
