@@ -68,10 +68,15 @@ class Adjudicator:
 		state = state or self.state
 
 
-		# might move these to the class at a later point
+		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
-			return state[self.PROPERTY_STATUS_INDEX][propertyId]
+			mappingId = constants.space_to_property_map[propertyId]
+			return state[self.PROPERTY_STATUS_INDEX][mappingId]
 		
+		def updatePropertyStatus(state,propertyId,propertyStatus):
+			mappingId = constants.space_to_property_map[propertyId]
+			state[self.PROPERTY_STATUS_INDEX][mappingId] = propertyStatus
+
 	
 		def getCurrentPlayer(state):
 			turn = state[self.PLAYER_TURN_INDEX] % 2
@@ -108,7 +113,8 @@ class Adjudicator:
 				space = constants.board[propertyId]
 				groupElements = space['monopoly_group_elements']
 				playerCash = getPlayerCash(state, currentPlayer)
-				propertyStatus = getPropertyStatus(state,propertyId)
+				# the mapping was required
+				propertyStatus = getPropertyStatus(state, propertyId)
 
 
 				if constructions < 0 or constructions > 5:
@@ -120,33 +126,33 @@ class Adjudicator:
 				if constructions and constructions > 0:
 					# does the agent own the all spaces in the group?
 					for groupElement in groupElements:
-					 	if currentPlayer == 1 and propertyStatus[groupElement] < 1:
+						groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
+						if currentPlayer == 1 and groupElementPropertyStatus < 1:
 					 		return
-					 	if currentPlayer == 2 and propertyStatus[groupElement] > -1:
+						if currentPlayer == 2 and groupElementPropertyStatus > -1:
 					 		return
 
-					# if the number of construction > 1; check if
-					# I have built a house in other properties
+					# if the player wishes to construct more than a single house 
 					if constructions > 1:
+
 						for groupElement in groupElements:
-							propertyStatus = getPropertyStatus(state,groupElement)
-							
-							if currentPlayer == 1 and (propertyStatus == 1 or propertyStatus == 7):
+							groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
+							if currentPlayer == 1 and (groupElementPropertyStatus == 1 or groupElementPropertyStatus == 7):
 								return
 
-							if currentPlayer == 2 and (propertyStatus == -1 or propertyStatus == -7):
+							if currentPlayer == 2 and (groupElementPropertyStatus == -1 or groupElementPropertyStatus == -7):
 								return
 
 					playerCash -= space['build_cost']*constructions
 
 					if playerCash >= 0:
 
-						propertyValue = constructions + 1
+						propertyStatus = constructions + 1
 			
 						if currentPlayer == 2:
-							propertyValue *= -1
+							propertyStatus *= -1
 
-						state[self.PROPERTY_STATUS_INDEX][propertyId] = propertyValue
+						updatePropertyStatus(state,propertyId,propertyStatus)
 						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 					else:
 						return
@@ -182,12 +188,12 @@ class Adjudicator:
 				houseCount -= constructions 
 				playerCash += space['build_cost']*constructions
 
-				propertyValue = houseCount + 1
+				propertyStatus = houseCount + 1
 
 				if currentPlayer == 2:
-					propertyValue *= -1
+					propertyStatus *= -1
 
-				state[self.PROPERTY_STATUS_INDEX][propertyId] = propertyValue
+				updatePropertyStatus(state,propertyId,propertyStatus)
 				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 	
 		# agent mortages a particular property
@@ -206,17 +212,20 @@ class Adjudicator:
 
 				propertyPrice =  space['price']
 				playerCash += propertyPrice/2
-				state[self.PROPERTY_STATUS_INDEX][propertyId] = houseCount + 1
-				if current_player == 0:
-					state[self.PLAYER_CASH_INDEX][currentPlayer] = 7
-				else:
-					state[self.PLAYER_CASH_INDEX][currentPlayer] = -7
+				propertyStatus = 7
+
+				if currentPlayer == 2:
+					propertyStatus *= -1
+			
+				updatePropertyStatus(state,propertyId,propertyStatus)
+				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			
 			cashRequest = cashRequest or 0
 			cashOffer = cashOffer or 0
-			
+
 			otherPlayer = (currentPlayer + 1) % 2
 				
 			if cashOffer > getPlayerCash(state,currentPlayer):
@@ -225,15 +234,15 @@ class Adjudicator:
 			if cashRequest > getPlayerCash(state,otherPlayer):
 				return False
 
-			propertyStatus = getPropertyStatus(state)
-				
 			for propertyOffer in propertiesOffer:
+				propertyStatus = getPropertyStatus(state,propertyOffer)
 				if not rightOwner(propertyStatus,currentPlayer):
 					return False
 
 
 			# check if the other agent actually cash and properties to offer
 			for propertyRequest in propertiesRequest:
+				propertyStatus = getPropertyStatus(state,propertyRequest)
 				if not rightOwner(propertyStatus,otherPlayer):
 					return False
 
@@ -264,16 +273,15 @@ class Adjudicator:
 				state[self.PLAYER_CASH_INDEX][currentPlayer] -= (cashRequest - cashOffer)
 				state[self.PLAYER_CASH_INDEX][otherPlayer] -= (cashOffer - cashRequest)
 
-				properties = state[self.PROPERTY_STATUS_INDEX]
-
 				for propertyOffer in propertiesOffer:
-					properties[propertyOffer] *= -1
+					propertyStatus = getPropertyStatus(state,propertyOffer) 
+					updatePropertyStatus(state,propertyOffer,propertyStatus*-1)
+
 
 				for propertyRequest in propertiesRequest:
-					properties[propertyRequest] *= -1
+					propertyStatus = getPropertyStatus(state,propertyRequest)
+					updatePropertyStatus(state,propertyRequest,propertyStatus*-1)
 
-				state[self.PROPERTY_STATUS_INDEX] = properties
-				
 
 		def takeBMSTAction(action):
 
@@ -1093,4 +1101,4 @@ adjudicator = Adjudicator()
 adjudicator.conductBMST(None)
 
 #It is currently agentOne's turn
-# adjudicator.runGame()
+adjudicator.runGame()
