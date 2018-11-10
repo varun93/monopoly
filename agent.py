@@ -58,9 +58,8 @@ class Agent:
 	def jailDecision(self, state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
-		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		
-		if playerCash >= debt:
+		if playerCash >= 50:
 			return ("P")
 		else:
 			return ("R")

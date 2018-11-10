@@ -4,6 +4,7 @@ import constants
 from cards import Cards
 from agent import Agent
 import numpy as np
+import copy
 
 class BMST:
 	
@@ -324,6 +325,7 @@ class Adjudicator:
 			return True
 		
 		#What would this indicate?
+		#Bankruptcy code should come in here
 		return False
 	
 	"""
@@ -657,6 +659,7 @@ class Adjudicator:
 					state[self.PHASE_NUMBER_INDEX] = self.BUYING
 					state[self.PHASE_PAYLOAD_INDEX]['cash'] = constants.board[playerPosition]['price']
 					state[self.PHASE_PAYLOAD_INDEX]['source'] = "bank"
+					state[self.PHASE_PAYLOAD_INDEX]['property'] = playerPosition
 				else:
 					#Check if owned by opponent
 					if current_player == 0:
@@ -732,6 +735,9 @@ class Adjudicator:
 			#Temporary measure to clear phase payload
 			self.state[self.PHASE_PAYLOAD_INDEX] = {}
 			
+			#Storing the state at the start of the turn
+			constants.state_history.append(copy.deepcopy(self.state))
+			
 			"""BSTM"""
 			# conduct a BMST phase
 			#nextPlayer = (state[self.PLAYER_TURN_INDEX] + 1)%2 
@@ -790,8 +796,16 @@ class Adjudicator:
 					print("")
 					print("Rolled Doubles. Play again.")
 			
+			#Storing the state at the end of the turn
+			constants.state_history.append(copy.deepcopy(self.state))
+			
 			"""Update the turn counter"""
 			self.update_turn(self.state)
+		
+		#Storing the state_history to log file
+		f = open("state_history.log", "w")
+		for history in constants.state_history:
+			f.write(str(history)+",\n")
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent

@@ -938,3 +938,5 @@ chanceCards = [
     "money2": 0
   }
 ]
+
+state_history = []
