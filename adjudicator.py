@@ -63,28 +63,35 @@ class Adjudicator:
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)		  
 		
-	def getPropertyStatus(self,state,position):
-		propertyObject = constants.space_to_property_map
-		return state[self.PROPERTY_STATUS_INDEX][propertyObject[position]]
-		
-	
-	def getCurrentPlayer(self,state):
-		return state[self.PLAYER_TURN_INDEX] % 2
-	
-	def getPlayerCash(self,state,player):
-		return state[self.PLAYER_CASH_INDEX][player]
-		
 	def conductBMST(self,state=[]):
 
 		state = state or self.state
+
+
+		# might move these to the class at a later point
+		def getPropertyStatus(state,propertyId):
+			return state[self.PROPERTY_STATUS_INDEX][propertyId]
+		
+	
+		def getCurrentPlayer(state):
+			turn = state[self.PLAYER_TURN_INDEX] % 2
+			if turn == 0:
+				return 1
+			else:
+				return 2
+	
+		def getPlayerCash(state,player):
+			return state[self.PLAYER_CASH_INDEX][player]
+	
+
 		# handleBMST
-		currentPlayer = self.getCurrentPlayer(state)
+		currentPlayer = getCurrentPlayer(state)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 			
 		def rightOwner(propertyStatus):
-			if currentPlayer == 0 and propertyStatus <= 0:
+			if currentPlayer == 1 and propertyStatus <= 0:
 				return False
-			if currentPlayer == 1 and propertyStatus  >= 0:
+			if currentPlayer == 2 and propertyStatus  >= 0:
 				return False
 
 			return True
@@ -103,21 +110,26 @@ class Adjudicator:
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 
-				if not rightOwner(propertyStatus,currentPlayer):
+				if not rightOwner(propertyStatus):
 					return False
 
 				if constructions and constructions > 0:
-					# does the agent own the monopoly of a colour group
+					# does the agent own the all spaces in the group?
 					for groupElement in groupElements:
-					 	if currentPlayer == 0 and propertyStatus[groupElement] < 0:
+					 	if currentPlayer == 1 and propertyStatus[groupElement] < 1:
 					 		return
-					 	if currentPlayer == 1 and propertyStatus[groupElement] > 0:
+					 	if currentPlayer == 2 and propertyStatus[groupElement] > -1:
 					 		return
 
+					# if the number of construction > 1; check if
+					# I have built a house in other properties
 					if constructions > 1:
 						for groupElement in groupElements:
 							propertyStatus = getPropertyStatus(state,groupElement)
-							if propertyStatus == 1 or propertyStatus == 7:
+							if currentPlayer == 1 and (propertyStatus == 1 or propertyStatus == 7):
+								return
+
+							if currentPlayer == 2 and (propertyStatus == -1 or propertyStatus == -7):
 								return
 
 					playerCash -= space['build_cost']*constructions
