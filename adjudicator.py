@@ -111,6 +111,20 @@ class Adjudicator:
 
 			return True
 
+		def hasBuyingCapability(currentPlayer, properties):
+			
+			playerCash = getPlayerCash(state, currentPlayer)
+				
+			for propertyObject in properties:
+				(propertyId,constructions) = propertyObject
+				space = constants.board[propertyId]
+				playerCash -= space['build_cost']*constructions
+				if playerCash < 0:
+					break
+
+			return playerCash >= 0
+				
+
 		# house can be built only if you own a monopoly of colours 
 		# double house can be built only if I have built one house in each colour 
 		# order of the tuples to be taken into account
@@ -118,6 +132,11 @@ class Adjudicator:
 			
 			# assumign 
 			propertyConstructionSites = map(lambda x : x[0],filter(lambda x : x[1] > 0, properties))
+
+			# determine if the agent actually has the cash to buy all this?
+			# only then proceed; important for a future sceanrio
+			if not hasBuyingCapability(currentPlayer, properties):
+				return
 
 			# ordering of this tuple becomes important  
 			for propertyObject in properties:
@@ -195,10 +214,10 @@ class Adjudicator:
 				propertyStatus = getPropertyStatus(state,propertyId)
 				
 				if constructions == 0:
-					continue
+					return
 				
 				if not rightOwner(propertyStatus,currentPlayer):
-					continue
+					return
 
 				houseCount = 0
 
@@ -208,7 +227,7 @@ class Adjudicator:
 					houseCount = -1*(propertyStatus + 1)
 
 				if houseCount < 1 or constructions > houseCount:
-					continue
+					return
 
 				houseCount -= constructions 
 				playerCash += space['build_cost']*constructions
