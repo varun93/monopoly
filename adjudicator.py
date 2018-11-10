@@ -106,6 +106,9 @@ class Adjudicator:
 		# order of the tuples to be taken into account
 		def handleBuy(properties):
 			
+			# assumign 
+			propertyConstructionSites = map(lambda x : x[0],filter(lambda x : x[1] > 0, properties))
+
 			# ordering of this tuple becomes important  
 			for propertyObject in properties:
 
@@ -128,7 +131,7 @@ class Adjudicator:
 				currentConstructionsOnProperty = propertyStatus - 1 
 
 				if currentPlayer == 2:
-					currentConstructionsOnProperty = propertyStatus + 1
+					currentConstructionsOnProperty = -1*(propertyStatus + 1)
 
 				if (currentConstructionsOnProperty + constructions) > 5:
 					return
@@ -147,8 +150,13 @@ class Adjudicator:
 
 						for groupElement in groupElements:
 							groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
+
 							if currentPlayer == 1 and (groupElementPropertyStatus == 1 or groupElementPropertyStatus == 7):
-								return
+								# not a convincing logic but the best I could think of
+								# examine the tuples if he wants to buy 
+								for groupElement in groupElements:
+									if groupElement not in propertyConstructionSites:
+										return
 
 							if currentPlayer == 2 and (groupElementPropertyStatus == -1 or groupElementPropertyStatus == -7):
 								return
@@ -162,15 +170,11 @@ class Adjudicator:
 						if currentPlayer == 2:
 							propertyStatus *= -1
 
-						# the logic to update the status has to change
 						updatePropertyStatus(state,propertyId,propertyStatus)
 						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
 					else:
 						return
 
-		# make sure the agent owns what it sells
-		# update the cash of the pl
-		# ayer
 		def handleSell(properties):
 
 			for propertyObject in properties:
