@@ -1,0 +1,353 @@
+diff --git a/adjudicator.py b/adjudicator.py
+index 17c89c5..3ffae7d 100644
+--- a/adjudicator.py
++++ b/adjudicator.py
+@@ -10,29 +10,15 @@ import timeout_decorator
+ # make sure the state is not mutated
+ class Adjudicator:
+ 	
+-	def __init__(self,AgentOne,AgentTwo,state=None,Dice=None,n_turns=None):
+-		
+-		if isinstance(state,list) and len(state)==6:
+-			self.state = state
+-		else:
+-			self.state =  [
+-				0, #player turn; 0
+-				np.zeros(30,dtype='int'), #player properties; 1
+-				[0,0],#player's position; 2
+-				[1500,1500], #player's cash; 3
+-				0, #phase number; 4
+-				{}, #phase payload; 5
+-			]
+-		
+-		try:
+-			self.TOTAL_NO_OF_TURNS = int(n_turns)
+-		except:
+-			self.TOTAL_NO_OF_TURNS = 20
+-			
+-		if Dice!=None:
+-			self.DiceClass = Dice
+-		else:
+-			self.DiceClass = dice.Dice
++	def __init__(self):
++		self.state =  [
++			0, #player turn; 0
++			np.zeros(30,dtype='int'), #player properties; 1
++			[0,0],#player's position; 2
++			[1500,1500], #player's cash; 3
++			0, #phase number; 4
++			{}, #phase payload; 5
++		]
+ 
+ 		self.PLAYER_TURN_INDEX = 0
+ 		self.PROPERTY_STATUS_INDEX = 1
+@@ -44,6 +30,7 @@ class Adjudicator:
+ 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
+ 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
+ 		
++		self.TOTAL_NO_OF_TURNS = 20
+ 		self.BOARD_SIZE = 40
+ 		self.PASSING_GO_MONEY = 200
+ 		
+@@ -70,12 +57,23 @@ class Adjudicator:
+ 		self.POSTTURN_BSTM = 10
+ 		
+ 
+-		self.agentOne = AgentOne(self.state)
+-		self.agentTwo = AgentTwo(self.state)
++		self.agentOne = Agent(self.state)
++		self.agentTwo = Agent(self.state)
+ 		self.dice = None
+ 		self.chest = Cards(constants.communityChestCards)
+ 		self.chance = Cards(constants.chanceCards)
+ 		
++		self.debug_dice = None
++		self.debug_actions = None
++	
++	"""Used by test cases"""
++	def enable_debug_mode(self,dice,n_turns,input_state,actions):
++		self.debug_dice = dice
++		self.debug_actions = actions
++		
++		self.state = input_state
++		self.TOTAL_NO_OF_TURNS = n_turns   
++		
+ 	def conductBSTM(self,state=[]):
+ 
+ 		state = state or self.state
+@@ -427,7 +425,7 @@ class Adjudicator:
+ 						return [True,False]
+ 		
+ 		"""If both the above method fail for some reason, we default to dice roll."""
+-		self.dice.roll()
++		self.dice.roll(dice=self.debug_dice)
+ 		if self.dice.double:
+ 			#Player can go out
+ 			#Need to ensure that there is no second turn for the player in this turn.
+@@ -441,7 +439,7 @@ class Adjudicator:
+ 
+ 	"""To reset dice for a new turn"""
+ 	def pass_dice(self):
+-		self.dice = self.DiceClass()
++		self.dice = dice.Dice()
+ 
+ 	"""
+ 	Method starts a blind auction.
+@@ -477,26 +475,24 @@ class Adjudicator:
+ 		opponent = abs(current_player - 1)
+ 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
+ 		propertyMapping = constants.space_to_property_map[playerPosition]
++		
++		actionOpponent = None
++		actionCurrentPlayer = None
+ 
+ 		try:
+ 			actionCurrentPlayer = int(actionCurrentPlayer)
+ 			actionOpponent = int(actionOpponent)
+-			print("Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))
+ 		except:
+-			print("Exception caught while trying to parse Auction Responses")
+ 			#We will check if the current player's action is parsable.
+ 			#If it is, we give him the property.
+ 			#Else, even if opponent's action is not parsable, he will win the property.
+-			actionOpponent = None
+-			actionCurrentPlayer = None
++			pass
+ 
+ 			
+ 		if actionOpponent is not None and actionCurrentPlayer is not None:
+ 			if actionCurrentPlayer > actionOpponent:
+ 				#Current Player wins the auction
+ 				print("Player "+str(current_player)+" won the Auction")
+-				
+-				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
+ 				if current_player == 0:
+ 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+ 				else:
+@@ -504,8 +500,6 @@ class Adjudicator:
+ 			else:
+ 				#Opponent wins
+ 				print("Player "+str(opponent)+" won the Auction")
+-				
+-				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
+ 				if current_player == 0:
+ 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+ 				else:
+@@ -514,8 +508,6 @@ class Adjudicator:
+ 			if actionCurrentPlayer is not None:
+ 				#Only current player sent a valid response. He wins.
+ 				print("Player "+str(current_player)+" won the Auction")
+-				
+-				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
+ 				if current_player == 0:
+ 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+ 				else:
+@@ -525,8 +517,6 @@ class Adjudicator:
+ 				#NOTE: Opponent would win even if his response is not valid
+ 				#as long as current player's response is also not valid.
+ 				print("Player "+str(opponent)+" won the Auction")
+-				
+-				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
+ 				if current_player == 0:
+ 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+ 				else:
+@@ -613,7 +603,7 @@ class Adjudicator:
+ 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
+ 		
+ 		if not diceThrown:
+-			self.dice.roll()
++			self.dice.roll(dice=self.debug_dice)
+ 			
+ 		"""
+ 		We need to call agent.receiveState and pass on the dice roll for the turn.
+@@ -924,7 +914,7 @@ class Adjudicator:
+ 						#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
+ 						#But, not considering that as it doesn't seem to be in the spirit of the game.
+ 						if absPropertyValue == 1:
+-							self.dice.roll(ignore=True)
++							self.dice.roll(ignore=True,dice=self.debug_dice)
+ 							state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
+ 							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * (self.dice.die_1 + self.dice.die_2)
+ 							state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
+@@ -1068,6 +1058,9 @@ class Adjudicator:
+ 
+ 	def runPlayerOnState(self,player,state):
+ 		
++		if (self.debug_actions is not None) and len(self.debug_actions)!=0:
++			return self.debug_actions.pop()
++		
+ 		action = None
+ 		
+ 		current_phase = state[self.PHASE_NUMBER_INDEX]
+@@ -1086,9 +1079,7 @@ class Adjudicator:
+ 		return action
+ 
+ #Testing
+-adjudicator = Adjudicator(Agent,Agent)
+-
+-adjudicator.conductBSTM(None)
++adjudicator = Adjudicator()
+ 
+ #It is currently agentOne's turn
+ adjudicator.runGame()
+\ No newline at end of file
+diff --git a/test_adjudicator.py b/test_adjudicator.py
+index b4c8800..fd67a53 100644
+--- a/test_adjudicator.py
++++ b/test_adjudicator.py
+@@ -1,9 +1,6 @@
+ import adjudicator
+ import constants
+ import copy
+-import logging
+-import numpy as np
+-import config
+ 
+ class Test_Adjudicator:
+     
+@@ -123,10 +120,22 @@ class Test_Adjudicator:
+                 flag = True
+                 print("Card: "+deck_type+" "+str(card['id'])+", Text: "+str(card['content']))
+                 print("State before card effect: "+str(input_states[i]))
+-                print("State after card effect: "+str(input_modified))    
++                print("State after card effect: "+str(input_modified))
++        
++    def test_case_1(self):
++        input_state = [19, array([ 0,  0,  0, -1,  0,  0,  1,  0,  0,  1, -1,  0, -1,  0,  1, -1,  0,
++        0,  0,  0,  1,  0,  0,  1,  0,  1,  0, -1,  0,  0]), [21, 6], [240, 540], 4, {}]
++        actions = [True]
++        no_of_turns = 1
++        dice = [[2,5]]
++        output_state = [19, array([ 0,  0,  0, -1,  0,  0,  1,  0,  0,  1, -1,  0, -1,  0,  1, -1,  0,
++        0,  0,  0,  1,  0,  0,  1,  0,  1,  0, -1,  0,  0]), [21, 6], [240, 540], 4, {}]
++        
++	
+ 	
+ test_adjudicator = Test_Adjudicator()
+ test_adjudicator.test_handle_property()
+ test_adjudicator.test_handle_cards_pre_turn()
+ test_adjudicator.test_update_state()
++
+     
+\ No newline at end of file
+diff --git a/testcase_1.py b/testcase_1.py
+deleted file mode 100644
+index 28c5163..0000000
+--- a/testcase_1.py
++++ /dev/null
+@@ -1,114 +0,0 @@
+-import adjudicator
+-from sqlalchemy.sql.expression import false
+-
+-class Debug_Dice:
+-	def __init__(self):
+-		
+-		self.value_list = [[2,5]]
+-		
+-		self.die_1 = None
+-		self.die_2 = None
+-		self.double = False
+-		self.double_counter = 0
+-
+-	def roll(self,ignore=False):
+-		
+-		if len(self.value_list)!=0:
+-			[self.die_1,self.die_2] = self.value_list.pop()
+-		
+-			self.double = self.die_1 == self.die_2
+-			if not ignore:
+-				self.double_counter += self.double
+-			
+-			print('Roll a {die_1} and a {die_2}'.format(die_1=self.die_1, die_2=self.die_2))
+-			
+-class AuctionAgent_1:
+-	def __init__(self, id):
+-		self.id = id
+-
+-	def buyProperty(self, state):
+-		return False
+-	
+-	def auctionProperty(self, state):
+-		return 180
+-	
+-	def receiveState(self, state):
+-		pass
+-	
+-class AuctionAgent_2:
+-	def __init__(self, id):
+-		self.id = id
+-		
+-	def buyProperty(self, state):
+-		return False
+-
+-	def auctionProperty(self, state):
+-		return 200
+-	
+-	def receiveState(self, state):
+-		pass
+-
+-def compare_states(state1,state2):
+-	
+-	if not isinstance(state1,type(state2)) or (len(state1)!=len(state2)):
+-		print("Inconsistent type or length detected for First argument")
+-		return false
+-	else:
+-		count = 0
+-		
+-		if (state1[0] == state2[0]): count+=1
+-		
+-		flag = True
+-		for property,property2 in zip(state1[1],state2[1]):
+-			if property != property2:
+-				flag = False
+-		if flag: count+=1
+-		
+-		if (state1[2][0] == state2[2][0]) and (state1[2][1] == state2[2][1]): count+=1
+-		if (state1[3][0] == state2[3][0]) and (state1[3][1] == state2[3][1]): count+=1
+-		if (state1[4] == state2[4]): count+=1
+-		
+-		flag = True
+-		for key,key2 in zip(state1[5],state2[5]):
+-			if state1[5][key] != state2[5][key]:
+-				 flag = False
+-		if flag: count+=1
+-		
+-		if count == 6:
+-			return True
+-		else:
+-			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
+-			return False
+-	
+-def testcase_1(Adjudicator,AgentOne,AgentTwo):
+-	"""
+-	Test Description:
+-	AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.
+-	The auction would be won by AgentTwo
+-	"""
+-	
+-	input_state =  [19, [ 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1, 
+-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 540], 4, {}]
+-	
+-	output_state = [20, [0, 0, 0, -1, 0, 0, 1, 0, -1, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1,
+-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 13], [240, 340], 5, {'property': 13}]
+-
+-	
+-	no_of_turns = 20
+-	
+-	adjudicator = Adjudicator(AgentOne,AgentTwo,input_state,Debug_Dice,no_of_turns)
+-	adjudicator.runGame()
+-	
+-	final_state = adjudicator.state
+-	
+-	#print(final_state)
+-	result = compare_states(final_state,output_state)
+-	
+-	if result: print("Pass")
+-	else: print("Fail")
+-	
+-	return result
+-	
+-
+-#Execution
+-testcase_1(adjudicator.Adjudicator,AuctionAgent_1,AuctionAgent_2)
+\ No newline at end of file
