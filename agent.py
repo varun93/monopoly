@@ -1,5 +1,4 @@
 import constants
-import copy
 
 class Agent:
 	def __init__(self, id):
@@ -10,7 +9,6 @@ class Agent:
 		self.PLAYER_CASH_INDEX = 3
 		self.PHASE_NUMBER_INDEX = 4
 		self.PHASE_PAYLOAD_INDEX = 5
-		self.done_bmst = False
 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
 	
@@ -18,20 +16,20 @@ class Agent:
 	def getBMSTDecision(self, state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		debt = 0
-
 		if 'cash' in state[self.PHASE_PAYLOAD_INDEX]:
 			debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		money = state[self.PLAYER_CASH_INDEX][current_player]
 
 		if debt > 0 and debt >= money:
 			#Sell or Mortgage
-			(remaining_debt, return_sell_list) = self.selling_strategy(state,current_player,debt)
-			if remaining_debt > 0:
-				return self.mortgage_strategy(state,current_player,debt)
+			actual_debt = debt - money
+			(remaining_debt, return_sell_list) = self.selling_strategy(state,current_player,actual_debt)
+			if remaining_debt > 0 and len(return_sell_list) == 0:
+				return self.mortgage_strategy(state,current_player,remaining_debt)
 			else:
 				return ("S", return_sell_list)
 		elif debt == 0:
-			self.buying_strategy(state, current_player)
+			return self.buying_strategy(state, current_player)
 		else:
 			return None
 
@@ -45,7 +43,7 @@ class Agent:
 		actual_properties_ids = []
 
 		for id in owned_properties:
-			actual_properties_ids.append(constants.property_to_space_map(id))
+			actual_properties_ids.append(constants.property_to_space_map[id])
 
 		sorted_owned_properties = sorted(actual_properties_ids, key = self.sort_based_on_price)
 		list_mortgage_properties = []
@@ -53,7 +51,7 @@ class Agent:
 			debt -= constants.board[property]["price"] * 0.5
 			list_mortgage_properties.append(property)
 			if debt <= 0:
-				break;
+				break
 		if len(list_mortgage_properties) == 0:
 			return None
 		else:
@@ -92,9 +90,10 @@ class Agent:
 
 	def create_sell_list(self, total_houses_sold_per_group, groups, return_sell_list):
 		i = 0
-		for property in groups:
-			number_of_houses_sold = total_houses_sold_per_group[i]
-			return_sell_list.append(property, number_of_houses_sold)
+		for group in groups:
+			for property in group:
+				number_of_houses_sold = total_houses_sold_per_group[i]
+				return_sell_list.append((property, number_of_houses_sold))
 			i = i + 1
 
 	def clear_debt(self, groups, number_of_houses, debt):
@@ -105,8 +104,9 @@ class Agent:
 			while number_of_houses > 0 or debt > 0:
 				for property in group:
 					debt -= constants.board[property]['build_cost'] * 0.5
-				number_of_houses = number_of_houses - 1
 				total_houses_sold = total_houses_sold + 1
+				number_of_houses = number_of_houses - 1
+
 			total_houses_sold_per_group[i] = total_houses_sold
 			i = i + 1
 		return (debt, total_houses_sold_per_group)
@@ -116,18 +116,18 @@ class Agent:
 		if len(monopoly_groups) == 0:
 			return None
 		number_of_houses = 0
-		group = None
-		while number_of_houses > 4:
+		group = []
+		while number_of_houses < 4:
 			group = self.find_group_investment(monopoly_groups, number_of_houses, current_player, state)
-			if group != None: break
+			if len(group) != 0: break
 			number_of_houses = number_of_houses + 1
 
-		if len(group) == None:
+		if len(group) == 0:
 			return None
 		buy_list = []
 
 		for property in group:
-			buy_list.append((property, number_of_houses))
+			buy_list.append((property, number_of_houses + 1))
 		return ("B", buy_list)
 
 
@@ -151,15 +151,11 @@ class Agent:
 			for property_id in group:
 				state_property_id = constants.space_to_property_map[property_id]
 				if status[current_player][number_houses] == state[self.PROPERTY_STATUS_INDEX][state_property_id]:
-					investment -= constants.board[property_id]['build_cost']
-			if investment >= 0:
+					if constants.board[property_id]['build_cost'] != 0:
+						investment -= constants.board[property_id]['build_cost']
+			if investment >= 0 and investment != state[self.PLAYER_CASH_INDEX][current_player] * 0.5:
 				return group
-		return None
-
-
-
-
-
+		return []
 
 	def findMonopolyGroups(self, state, current_player):
 		monopoly_groups = []
@@ -173,17 +169,29 @@ class Agent:
 				have_monopoly = True
 				for element in groupElements:
 					state_property_id = constants.space_to_property_map[element]
-					status_element = state[self.PROPERTY_STATUS_INDEX]['state_property_id']
-					if status_element <= 0:
+					status_element = state[self.PROPERTY_STATUS_INDEX][state_property_id]
+					if status_element >= range_status[current_player][0] and status_element <= range_status[current_player][1]:
+						have_monopoly = True
+					else:
 						have_monopoly = False
 						break
 				if have_monopoly == True:
 					group = []
-					group.append(property_id)
-					for element in groupElements:
-						group.append(element)
-					monopoly_groups.append(group)
-		return monopoly_groups
+					if constants.board[property_id]['build_cost'] != 0:
+						group.append(property_id)
+						for element in groupElements:
+							group.append(element)
+						monopoly_groups.append(group)
+			i = i + 1
+		d = {}
+		unique_monopoly_groups = []
+		for group in monopoly_groups:
+			for property in group:
+				if property not in d:
+					unique_monopoly_groups.append(group)
+					for p in group:
+						d[p] = 1
+		return unique_monopoly_groups
 
 	def respondTrade(self, state):
 		return False
@@ -219,6 +227,7 @@ class Agent:
 	def receiveState(self, state):
 		pass
 
+	"""
 	def parsePhase(self, state):
 		phaseNumber = state["phase"]
 		phasePayload = state["phase_payload"]
@@ -236,6 +245,7 @@ class Agent:
 
 			# retrieve the property
 			handleBMSTDecison(state)
+	"""
 
 	def jailDecision(self, state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
