@@ -77,7 +77,6 @@ class Adjudicator:
 
 		state = state or self.state
 
-
 		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
 			mappingId = constants.space_to_property_map[propertyId]
@@ -87,21 +86,19 @@ class Adjudicator:
 			mappingId = constants.space_to_property_map[propertyId]
 			state[self.PROPERTY_STATUS_INDEX][mappingId] = propertyStatus
 
-	
 		def getCurrentPlayer(state):
 			turn = state[self.PLAYER_TURN_INDEX] % 2
+			
 			if turn == 0:
 				return 1
 			else:
 				return 2
 	
 		def getPlayerCash(state,player):
-			return state[self.PLAYER_CASH_INDEX][player]
+			return state[self.PLAYER_CASH_INDEX][player-1]
 	
-
 		# handleBMST
 		currentPlayer = getCurrentPlayer(state)
-		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 			
 		def rightOwner(propertyStatus, player):
 			if player == 1 and propertyStatus <= 0:
@@ -112,9 +109,7 @@ class Adjudicator:
 			return True
 
 		def hasBuyingCapability(currentPlayer, properties):
-			
 			playerCash = getPlayerCash(state, currentPlayer)
-				
 			for propertyObject in properties:
 				(propertyId,constructions) = propertyObject
 				space = constants.board[propertyId]
@@ -124,18 +119,42 @@ class Adjudicator:
 
 			return playerCash >= 0
 				
+		def validBuyingSequence(currentPlayer, properties):
+
+			for propertyObject in properties:
+
+				(propertyId,constructions) = propertyObject
+				propertyStatus = getPropertyStatus(state, propertyId)
+
+				if propertyStatus == 7 or propertyStatus == -7 or propertyStatus == 0:
+					return False
+
+				if constructions < 0 or constructions > 5:
+					return False
+
+				if not rightOwner(propertyStatus, currentPlayer):
+					return False
+
+				currentConstructionsOnProperty = abs(propertyStatus) - 1 
+
+				if (currentConstructionsOnProperty + constructions) > 5:
+					return False
+
+			return True
 
 		# house can be built only if you own a monopoly of colours 
 		# double house can be built only if I have built one house in each colour 
 		# order of the tuples to be taken into account
 		def handleBuy(properties):
 			
-			# assumign 
-			propertyConstructionSites = map(lambda x : x[0],filter(lambda x : x[1] > 0, properties))
+			propertyConstructionSites = list(map(lambda x : x[0],filter(lambda x : x[1] > 0, properties)))
 
 			# determine if the agent actually has the cash to buy all this?
 			# only then proceed; important for a future sceanrio
 			if not hasBuyingCapability(currentPlayer, properties):
+				return
+
+			if not validBuyingSequence(currentPlayer,properties):
 				return
 
 			# ordering of this tuple becomes important  
@@ -145,25 +164,8 @@ class Adjudicator:
 				space = constants.board[propertyId]
 				groupElements = space['monopoly_group_elements']
 				playerCash = getPlayerCash(state, currentPlayer)
-				# the mapping was required
 				propertyStatus = getPropertyStatus(state, propertyId)
-
-				if propertyStatus == 7 or propertyStatus == -7 or propertyStatus == 0:
-					return
-
-				if constructions < 0 or constructions > 5:
-					return
-
-				if not rightOwner(propertyStatus, currentPlayer):
-					return
-
-				currentConstructionsOnProperty = propertyStatus - 1 
-
-				if currentPlayer == 2:
-					currentConstructionsOnProperty = -1*(propertyStatus + 1)
-
-				if (currentConstructionsOnProperty + constructions) > 5:
-					return
+				currentConstructionsOnProperty = abs(propertyStatus) - 1 
 
 				if constructions and constructions > 0:
 					# does the agent own the all spaces in the group?
@@ -175,32 +177,37 @@ class Adjudicator:
 					 		return
 
 					# if the player wishes to construct more than a single house 
-					if constructions > 1:
+					if constructions > 1 and currentConstructionsOnProperty < 2:
 
+						missingElementsInGroup = []
+							
 						for groupElement in groupElements:
 							groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
-
 							if currentPlayer == 1 and (groupElementPropertyStatus == 1 or groupElementPropertyStatus == 7):
-								# not a convincing logic but the best I could think of
-								# examine the tuples if he wants to buy 
-								for groupElement in groupElements:
-									if groupElement not in propertyConstructionSites:
-										return
-
+								missingElementsInGroup.append(groupElement)
+							
 							if currentPlayer == 2 and (groupElementPropertyStatus == -1 or groupElementPropertyStatus == -7):
+								missingElementsInGroup.append(groupElement)
+
+						# not a convincing logic but the best I could think of
+						# examine the tuples if he wants to buy 
+						for groupElement in missingElementsInGroup:
+							if groupElement not in propertyConstructionSites:
 								return
 
-					playerCash -= space['build_cost']*constructions
 
+					playerCash -= space['build_cost']*constructions
+					
 					if playerCash >= 0:
 
 						propertyStatus = constructions + currentConstructionsOnProperty + 1
-			
+						
 						if currentPlayer == 2:
 							propertyStatus *= -1
 
 						updatePropertyStatus(state,propertyId,propertyStatus)
-						state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+						state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
+
 					else:
 						return
 
@@ -219,18 +226,13 @@ class Adjudicator:
 				if not rightOwner(propertyStatus,currentPlayer):
 					return
 
-				houseCount = 0
-
-				if currentPlayer == 1: 
-					houseCount = propertyStatus - 1
-				else:
-					houseCount = -1*(propertyStatus + 1)
-
+				houseCount = abs(propertyStatus) - 1
+				
 				if houseCount < 1 or constructions > houseCount:
 					return
 
 				houseCount -= constructions 
-				playerCash += space['build_cost']*constructions
+				playerCash += (space['build_cost']*constructions)
 
 				propertyStatus = houseCount + 1
 
@@ -238,7 +240,7 @@ class Adjudicator:
 					propertyStatus *= -1
 
 				updatePropertyStatus(state,propertyId,propertyStatus)
-				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
 	
 		# agent mortages a particular property
 		# agent gets 50% of original money of the property 
@@ -262,7 +264,7 @@ class Adjudicator:
 					propertyStatus *= -1
 			
 				updatePropertyStatus(state,propertyId,propertyStatus)
-				state[self.PLAYER_CASH_INDEX][currentPlayer] = playerCash
+				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
 
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
@@ -270,7 +272,8 @@ class Adjudicator:
 			cashRequest = cashRequest or 0
 			cashOffer = cashOffer or 0
 
-			otherPlayer = (currentPlayer + 1) % 2
+			# very clumsy; we understand
+			otherPlayer = list(set([1,2]) - set([1]))[0]
 				
 			if cashOffer > getPlayerCash(state,currentPlayer):
 				return False
@@ -314,13 +317,12 @@ class Adjudicator:
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
 				
-				state[self.PLAYER_CASH_INDEX][currentPlayer] -= (cashRequest - cashOffer)
-				state[self.PLAYER_CASH_INDEX][otherPlayer] -= (cashOffer - cashRequest)
+				state[self.PLAYER_CASH_INDEX][currentPlayer-1] -= (cashRequest - cashOffer)
+				state[self.PLAYER_CASH_INDEX][otherPlayer-1] -= (cashOffer - cashRequest)
 
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
 					updatePropertyStatus(state,propertyOffer,propertyStatus*-1)
-
 
 				for propertyRequest in propertiesRequest:
 					propertyStatus = getPropertyStatus(state,propertyRequest)
@@ -349,7 +351,7 @@ class Adjudicator:
 		while True:
 			
 			bstmActionAgentOne = self.agentOne.getBMSTDecision(state)
-			
+		
 			if bstmActionAgentOne is not None:
 				takeBMSTAction(bstmActionAgentOne)
 			
@@ -1066,8 +1068,6 @@ class Adjudicator:
 
 #Testing
 adjudicator = Adjudicator()
-
-adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
 adjudicator.runGame()
