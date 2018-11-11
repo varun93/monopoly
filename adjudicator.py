@@ -333,9 +333,9 @@ class Adjudicator:
 			tradeResponse = False
 
 			if currentPlayer == 1:
-				tradeResponse = self.agentTwo.respondTrade(state)
+				tradeResponse = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 			else:
-				tradeResponse = self.agentOne.respondTrade(state)
+				tradeResponse = self.runPlayerOnStateWithTimeout(self.agentOne,state)
 
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
@@ -369,7 +369,7 @@ class Adjudicator:
 				handleMortgage(action[1])
 
 			elif intent == "T":
-				handleTrade(intent,action[1],action[2],action[3],action[4])
+				handleTrade(action[1],action[2],action[3],action[4])
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		while True:
@@ -1181,6 +1181,8 @@ class Adjudicator:
 		
 		if current_phase == self.BSTM:
 			action = player.getBMSTDecision(state)
+		elif current_phase == self.TRADE_OFFER:
+			action = player.respondTrade(state)
 		elif current_phase == self.BUYING:
 			action = player.buyProperty(state)
 		elif current_phase == self.AUCTION:
