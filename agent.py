@@ -1,5 +1,5 @@
 import constants
-import time
+
 class Agent:
 	def __init__(self, id):
 		self.id = id
@@ -18,8 +18,6 @@ class Agent:
 		pass
 
 	def buyProperty(self, state):
-		print("Runned the buy property")
-		time.sleep(2)
 		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
 		property = constants.board[state[self.PHASE_PAYLOAD_INDEX]['property']]
