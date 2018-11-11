@@ -29,6 +29,13 @@ app.py is the controller.
 templates for rendering templates.  
 static has all static assets js, css and images.
 
+adjudicator.py:
+Consist of the actual implementation of the Adjudicator. The game is started by invoking the method: 
+
+runGame(player1, player2)
+
+This method accepts 2 Agents and runs the game. Over the course of the run, it determines which Agent is the winner.
+
 testcase_x.py:
 
 All files of this format represent test cases that can be independently run to simulate individual flows of the Adjudicator. The testcases may be run over a single game turn or over multiple turns.
