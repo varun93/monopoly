@@ -1,6 +1,9 @@
 import adjudicator
 import constants
 import copy
+import logging
+import numpy as np
+import config
 
 class Test_Adjudicator:
     
@@ -121,22 +124,9 @@ class Test_Adjudicator:
                 print("Card: "+deck_type+" "+str(card['id'])+", Text: "+str(card['content']))
                 print("State before card effect: "+str(input_states[i]))
                 print("State after card effect: "+str(input_modified))
-        
-	def test_case_1(self):
-		input_state = [19, array([ 0,  0,  0, -1,  0,  0,  1,  0,  0,  1, -1,  0, -1,  0,  1, -1,  0,
-        0,  0,  0,  1,  0,  0,  1,  0,  1,  0, -1,  0,  0]), [21, 6], [240, 540], 4, {}]
-		actions = [True]
-		no_of_turns = 1
-		dice = [[2,5]]
-		
-		output_state = [19, array([ 0,  0,  0, -1,  0,  0,  1,  0,  0,  1, -1,  0, -1,  0,  1, -1,  0,
-        0,  0,  0,  1,  0,  0,  1,  0,  1,  0, -1,  0,  0]), [21, 6], [240, 540], 4, {}]
-        
-	
 	
 test_adjudicator = Test_Adjudicator()
-test_adjudicator.test_handle_property()
-test_adjudicator.test_handle_cards_pre_turn()
-test_adjudicator.test_update_state()
-
+#test_adjudicator.test_handle_property()
+#test_adjudicator.test_handle_cards_pre_turn()
+#test_adjudicator.test_update_state()
     
