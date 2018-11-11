@@ -998,7 +998,7 @@ class Adjudicator:
 		for i in range(len(state[self.PROPERTY_STATUS_INDEX])-2):
 			#In 0 to 39 board position range
 			propertyValue =  state[self.PROPERTY_STATUS_INDEX][i]
-			propertyPosition = constants.board[ constants.property_to_space_map[ propertyValue ] ]
+			propertyPosition = constants.board[ constants.property_to_space_map[ i ] ]
 			
 			if propertyValue in range(-6,0):
 				agentTwoPropertyWorth += (propertyPosition['price'] + ( (abs(propertyValue)-1)*propertyPosition['build_cost'] ) )
@@ -1110,8 +1110,7 @@ class Adjudicator:
 		
 		"""Determine the winner"""
 		if winner==None:
-			print("called final winning")
-			winner = final_winning_condition(self.state)
+			winner = self.final_winning_condition(self.state)
 		
 		if winner == 0:
 			print("AgentOne won the Game.")
