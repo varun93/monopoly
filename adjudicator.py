@@ -357,8 +357,6 @@ class Adjudicator:
 
 		def takeBMSTAction(action):
 
-			state[self.PHASE_NUMBER_INDEX] = 0
-
 			intent = action[0]
 			
 			if intent == "B":
@@ -375,13 +373,14 @@ class Adjudicator:
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		while True:
+			state[self.PHASE_NUMBER_INDEX] = self.BSTM
 			
-			bstmActionAgentOne = self.agentOne.getBMSTDecision(state)
+			bstmActionAgentOne = self.runPlayerOnStateWithTimeout(self.agentOne,state)
 		
 			if bstmActionAgentOne is not None:
 				takeBMSTAction(bstmActionAgentOne)
 			
-			bstmActionAgentTwo = self.agentTwo.getBMSTDecision(state)
+			bstmActionAgentTwo = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 
 			if bstmActionAgentTwo is not None:
 				takeBMSTAction(bstmActionAgentTwo)
@@ -1079,7 +1078,7 @@ class Adjudicator:
 			constants.state_history.append(copy.deepcopy(self.state))
 			
 			"""BSTM"""
-			#self.conductBSTM(self.state) 
+			self.conductBSTM(self.state)
 
 			"""Determining whose turn it is"""
 			current_player = self.agentOne
@@ -1121,6 +1120,7 @@ class Adjudicator:
 					#print(self.state)
 				
 				"""BSTM"""
+				self.conductBSTM(self.state)
 				
 				if (not self.dice.double) or notInJail:
 					break
@@ -1179,7 +1179,9 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		
-		if current_phase == self.BUYING:
+		if current_phase == self.BSTM:
+			action = player.getBMSTDecision(state)
+		elif current_phase == self.BUYING:
 			action = player.buyProperty(state)
 		elif current_phase == self.AUCTION:
 			action = player.auctionProperty(state)
