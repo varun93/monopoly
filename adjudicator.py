@@ -5,6 +5,7 @@ from cards import Cards
 from agent import Agent
 import numpy as np
 import copy
+import timeout_decorator
 
 # make sure the state is not mutated
 class Adjudicator:
@@ -598,7 +599,7 @@ class Adjudicator:
 		if playerPosition == -1:
 			state[self.PHASE_NUMBER_INDEX] = self.JAIL
 			state[self.PHASE_PAYLOAD_INDEX] = {}
-			action = self.runPlayerOnState(player,state)
+			action = self.runPlayerOnStateWithTimeout(player,state)
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
 		
 		if not diceThrown:
@@ -619,7 +620,7 @@ class Adjudicator:
 		state[self.PHASE_PAYLOAD_INDEX]['dice_2'] = self.dice.die_2
 		state[self.PHASE_PAYLOAD_INDEX]['inJail'] = outOfJail #Implies player will not move this turn.
 		state[self.PHASE_PAYLOAD_INDEX]['anotherChance'] = self.dice.double #Implies player gets another round in the same turn.
-		self.runPlayerOnState(player,state)
+		self.runPlayerOnStateWithTimeout(player,state)
 		
 		"""If the player is still in Jail, end turn immediately."""
 		if not outOfJail:
@@ -682,7 +683,7 @@ class Adjudicator:
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
-				self.runPlayerOnState(player,state)
+				self.runPlayerOnStateWithTimeout(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chance',player)
 				
@@ -694,7 +695,7 @@ class Adjudicator:
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
-				self.runPlayerOnState(player,state)
+				self.runPlayerOnStateWithTimeout(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chest',player)
 			   
@@ -941,14 +942,14 @@ class Adjudicator:
 	def turn_effect(self,state,current_player,opponent):
 		phase = state[self.PHASE_NUMBER_INDEX]
 		if phase == self.BUYING:
-			action = self.runPlayerOnState(current_player,state)
+			action = self.runPlayerOnStateWithTimeout(current_player,state)
 			if action:
 				self.handle_buy_property(state)
 			else:
 				#Auction
 				self.start_auction(state)
-				actionOpponent = self.runPlayerOnState(opponent,state)
-				actionCurrentPlayer = self.runPlayerOnState(current_player,state)
+				actionOpponent = self.runPlayerOnStateWithTimeout(opponent,state)
+				actionCurrentPlayer = self.runPlayerOnStateWithTimeout(current_player,state)
 				self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 			
 		if phase == self.PAYMENT:
@@ -956,8 +957,8 @@ class Adjudicator:
 		
 		if phase == self.AUCTION:
 			self.start_auction(state)
-			actionOpponent = self.runPlayerOnState(opponent,state)
-			actionCurrentPlayer = self.runPlayerOnState(current_player,state)
+			actionOpponent = self.runPlayerOnStateWithTimeout(opponent,state)
+			actionCurrentPlayer = self.runPlayerOnStateWithTimeout(current_player,state)
 			self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 		
 	def broadcastState(self,state):
@@ -1044,6 +1045,17 @@ class Adjudicator:
 	self.PAYMENT = 6
 	self.POSTTURN_BSTM = 10
 	"""
+
+	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
+	def runPlayerOnStateWithTimeout(self, player,state):
+		try:
+			return self.runPlayerOnState(player,state)
+		except TimeoutError:
+			print("Agent Timed Out")
+			"""Change the return value here to ensure agent loose"""
+			return None
+
+
 	def runPlayerOnState(self,player,state):
 		
 		if (self.debug_actions is not None) and len(self.debug_actions)!=0:
