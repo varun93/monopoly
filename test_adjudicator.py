@@ -123,10 +123,10 @@ class Test_Adjudicator:
                 flag = True
                 print("Card: "+deck_type+" "+str(card['id'])+", Text: "+str(card['content']))
                 print("State before card effect: "+str(input_states[i]))
-                print("State after card effect: "+str(input_modified))
+                print("State after card effect: "+str(input_modified))    
 	
 test_adjudicator = Test_Adjudicator()
-#test_adjudicator.test_handle_property()
-#test_adjudicator.test_handle_cards_pre_turn()
-#test_adjudicator.test_update_state()
+test_adjudicator.test_handle_property()
+test_adjudicator.test_handle_cards_pre_turn()
+test_adjudicator.test_update_state()
     
