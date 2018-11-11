@@ -274,7 +274,7 @@ class Adjudicator:
 			cashOffer = cashOffer or 0
 
 			# very clumsy; we understand
-			otherPlayer = list(set([1,2]) - set([1]))[0]
+			otherPlayer = list(set([1,2]) - set([currentPlayer]))[0]
 				
 			if cashOffer > getPlayerCash(state,currentPlayer):
 				return False
