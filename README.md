@@ -14,13 +14,13 @@ pip install -r requirements.txt
 ```
 export FLASK_APP=app.py
 flask run
-```
 
 To run the adjudicator program without the UI implementation, run:
 python adjudicator.py
 
 To run testcases, run:
 python testcases_x.py for x = {1,2,3}
+```
 
 ## App Structure
 The master branch consists of the implementation of the Adjudicator for the monopoly game.
@@ -30,8 +30,10 @@ templates for rendering templates.
 static has all static assets js, css and images.
 
 testcase_x.py:
+
 All files of this format represent test cases that can be independently run to simulate individual flows of the Adjudicator. The testcases may be run over a single game turn or over multiple turns.
 The program accepts an Adjudicator and 2 Agents as arguments and checks whether the testcase passes for the simulation run.
 
 test_adjudicator.py:
+
 Consists of testcases which test the correctness of individual functions. Used to ensure future code changes don't break the expected value from a function.
