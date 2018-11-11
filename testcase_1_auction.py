@@ -1,10 +1,9 @@
 import adjudicator
-import constants
 
 class Debug_Dice:
 	def __init__(self):
 		
-		self.value_list = [[4,5]]
+		self.value_list = [[2,5]]
 		
 		self.die_1 = None
 		self.die_2 = None
@@ -22,7 +21,7 @@ class Debug_Dice:
 			
 			print('Roll a {die_1} and a {die_2}'.format(die_1=self.die_1, die_2=self.die_2))
 			
-class Agent_1:
+class AuctionAgent_1:
 	def __init__(self, id):
 		self.id = id
 	
@@ -38,32 +37,11 @@ class Agent_1:
 	def receiveState(self, state):
 		pass
 	
-class Agent_2:
+class AuctionAgent_2:
 	def __init__(self, id):
 		self.id = id
-		self.PLAYER_TURN_INDEX = 0
-		self.PROPERTY_STATUS_INDEX = 1
-		self.PLAYER_POSITION_INDEX = 2
-		self.PLAYER_CASH_INDEX = 3
-		self.PHASE_NUMBER_INDEX = 4
-		self.PHASE_PAYLOAD_INDEX = 5
-		
-		self.ST_CHARLES = 11
-		self.STATES_AVENUE = 13
 		
 	def getBMSTDecision(self, state):
-		
-		stcharles = constants.space_to_property_map[self.ST_CHARLES]
-		states_avenue = constants.space_to_property_map[self.STATES_AVENUE]
-		
-		stcharles_propertyValue = state[self.PROPERTY_STATUS_INDEX][stcharles]
-		states_avenue_propertyValue = state[self.PROPERTY_STATUS_INDEX][states_avenue]
-		
-		payload = state[self.PHASE_PAYLOAD_INDEX]
-		
-		if (stcharles_propertyValue != -2) and (states_avenue_propertyValue != -3):
-			return ("B", [(13,1),(11,1)])
-		
 		return None
 		
 	def buyProperty(self, state):
@@ -108,19 +86,19 @@ def compare_states(state1,state2):
 			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
 			return False
 	
-def testcase_4(Adjudicator,AgentOne,AgentTwo):
-	print("Test Description:")
-	print("AgentTwo will fall on Jail(Just Visting)(Position 10).")
-	print("He wants to buy one house each on St. Charles Place(Position 11) and States Avenue(Position 13).")
+def testcase_1(Adjudicator,AgentOne,AgentTwo):
+	print("Test #1 Description:")
+	print("AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.")
+	print("The auction would be won by AgentTwo")
 	
-	input_state =  [11, [ 0,  1,  0,  1,  0,  0, -1,  0,  -2,  -2,  1,  0,  0,  0, -1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 1], [580, 350], 4, {}]
+	input_state =  [19, [ 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1, 
+	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 540], 3, {}]
 	
-	output_state = [12, [ 0,  1,  0,  1,  0,  0, -2,  0,  -3,  -2,  1,  0,  0,  0, -1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 10], [580, 150], 0, {}]
+	output_state = [20, [0, 0, 0, -1, 0, 0, 1, 0, -1, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1,
+	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 13], [240, 340], 4, {}]
 
 	
-	no_of_turns = 12
+	no_of_turns = 20
 	
 	adjudicator = Adjudicator(AgentOne,AgentTwo,input_state,Debug_Dice,no_of_turns)
 	adjudicator.runGame()
@@ -135,8 +113,10 @@ def testcase_4(Adjudicator,AgentOne,AgentTwo):
 		print("Received Output:")
 		print(final_state)
 	
+	print("")
+	
 	return result
 	
 
 #Execution
-testcase_4(adjudicator.Adjudicator,Agent_1,Agent_2)
+testcase_1(adjudicator.Adjudicator,AuctionAgent_1,AuctionAgent_2)

@@ -40,12 +40,27 @@ class AuctionAgent_1:
 class AuctionAgent_2:
 	def __init__(self, id):
 		self.id = id
+		self.PLAYER_TURN_INDEX = 0
+		self.PROPERTY_STATUS_INDEX = 1
+		self.PLAYER_POSITION_INDEX = 2
+		self.PLAYER_CASH_INDEX = 3
+		self.PHASE_NUMBER_INDEX = 4
+		self.PHASE_PAYLOAD_INDEX = 5
 		
 	def getBMSTDecision(self, state):
+		payload = state[self.PHASE_PAYLOAD_INDEX]
+		
+		if 'cash' in payload:
+			debt = payload['cash']
+			current_player = state[self.PLAYER_TURN_INDEX] % 2
+			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+			
+			if playerCash < debt:
+				return ("M", [6])
 		return None
 		
 	def buyProperty(self, state):
-		return False
+		return True
 
 	def auctionProperty(self, state):
 		return 200
@@ -86,16 +101,17 @@ def compare_states(state1,state2):
 			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
 			return False
 	
-def testcase_1(Adjudicator,AgentOne,AgentTwo):
-	print("Test Description:")
-	print("AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.")
-	print("The auction would be won by AgentTwo")
+def testcase_7(Adjudicator,AgentOne,AgentTwo):
+	print("Test #7 Description:")
+	print("AgentTwo will fall on States Avenue(Position 13) and will decide to buy it at $140.")
+	print("But he only has $100. So, he mortgages Oriental Avenue(Position 6) and gets $50.")
+	print("He would be left with $10.")
 	
 	input_state =  [19, [ 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1, 
-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 540], 3, {}]
+	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 100], 3, {}]
 	
-	output_state = [20, [0, 0, 0, -1, 0, 0, 1, 0, -1, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1,
-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 13], [240, 340], 4, {}]
+	output_state = [20, [0, 0, 0, -7, 0, 0, 1, 0, -1, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1,
+	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 13], [240, 10], 3, {}]
 
 	
 	no_of_turns = 20
@@ -113,8 +129,10 @@ def testcase_1(Adjudicator,AgentOne,AgentTwo):
 		print("Received Output:")
 		print(final_state)
 	
+	print("")
+	
 	return result
 	
 
 #Execution
-testcase_1(adjudicator.Adjudicator,AuctionAgent_1,AuctionAgent_2)
+testcase_7(adjudicator.Adjudicator,AuctionAgent_1,AuctionAgent_2)

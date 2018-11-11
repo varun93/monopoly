@@ -373,6 +373,8 @@ class Adjudicator:
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		while True:
+			previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
+			
 			state[self.PHASE_NUMBER_INDEX] = self.BSTM
 			
 			bstmActionAgentOne = self.runPlayerOnStateWithTimeout(self.agentOne,state)
@@ -389,6 +391,10 @@ class Adjudicator:
 			Both players must be done with their BSTM
 			"""
 			if (bstmActionAgentOne is None) and (bstmActionAgentTwo is None):
+				#Counter against case where we fall on an idle position and do BSTM.
+				#The previous phase would be dice roll. But it doesn't make sense to set that back.
+				if previousPhaseNumber > self.DICE_ROLL:
+					state[self.PHASE_NUMBER_INDEX] = previousPhaseNumber
 				break
 		
 		

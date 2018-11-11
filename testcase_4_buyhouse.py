@@ -28,9 +28,6 @@ class Agent_1:
 	
 	def getBMSTDecision(self, state):
 		return None
-	
-	def respondTrade(self,state):
-		return True
 
 	def buyProperty(self, state):
 		return False
@@ -51,18 +48,21 @@ class Agent_2:
 		self.PHASE_NUMBER_INDEX = 4
 		self.PHASE_PAYLOAD_INDEX = 5
 		
-		self.BALTIC_AVENUE = 3
+		self.ST_CHARLES = 11
+		self.STATES_AVENUE = 13
 		
 	def getBMSTDecision(self, state):
 		
-		baltic = constants.space_to_property_map[self.BALTIC_AVENUE]
+		stcharles = constants.space_to_property_map[self.ST_CHARLES]
+		states_avenue = constants.space_to_property_map[self.STATES_AVENUE]
 		
-		baltic_propertyValue = state[self.PROPERTY_STATUS_INDEX][baltic]
+		stcharles_propertyValue = state[self.PROPERTY_STATUS_INDEX][stcharles]
+		states_avenue_propertyValue = state[self.PROPERTY_STATUS_INDEX][states_avenue]
 		
 		payload = state[self.PHASE_PAYLOAD_INDEX]
 		
-		if (baltic_propertyValue != -1):
-			return ("T",0,[21],200,[self.BALTIC_AVENUE])
+		if (stcharles_propertyValue != -2) and (states_avenue_propertyValue != -3):
+			return ("B", [(13,1),(11,1)])
 		
 		return None
 		
@@ -108,19 +108,16 @@ def compare_states(state1,state2):
 			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
 			return False
 	
-def testcase_6(Adjudicator,AgentOne,AgentTwo):
-	
-	print("Test Description:")
+def testcase_4(Adjudicator,AgentOne,AgentTwo):
+	print("Test #4 Description:")
 	print("AgentTwo will fall on Jail(Just Visting)(Position 10).")
-	print("He wants to trade Kentucky Avenue(Position 21) in exchange for Baltic Avenue(Position 3) and $200.")
-	print("AgentOne accepts.")
-	
+	print("He wants to buy one house each on St. Charles Place(Position 11) and States Avenue(Position 13).")
 	
 	input_state =  [11, [ 0,  1,  0,  1,  0,  0, -1,  0,  -2,  -2,  1,  0,  0,  0, -1,  0,  0,
         0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 1], [580, 350], 4, {}]
 	
-	output_state = [12, [ 0,  -1,  0,  1,  0,  0, -1,  0,  -2,  -2,  1,  0,  0,  0, 1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 10], [380, 550], 0, {}]
+	output_state = [12, [ 0,  1,  0,  1,  0,  0, -2,  0,  -3,  -2,  1,  0,  0,  0, -1,  0,  0,
+        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 10], [580, 150], 0, {}]
 
 	
 	no_of_turns = 12
@@ -138,8 +135,10 @@ def testcase_6(Adjudicator,AgentOne,AgentTwo):
 		print("Received Output:")
 		print(final_state)
 	
+	print("")
+	
 	return result
 	
 
 #Execution
-testcase_6(adjudicator.Adjudicator,Agent_1,Agent_2)
+testcase_4(adjudicator.Adjudicator,Agent_1,Agent_2)

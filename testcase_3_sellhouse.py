@@ -104,7 +104,7 @@ def compare_states(state1,state2):
 			return False
 	
 def testcase_3(Adjudicator,AgentOne,AgentTwo):
-	print("Test Description:")
+	print("Test #3 Description:")
 	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.")
 	print("But, he only has $150. He sells his house on States Avenue(Position 13) and gets $50.")
 	print("Thus, he would clear his debt and would be left with $0.")
@@ -130,6 +130,8 @@ def testcase_3(Adjudicator,AgentOne,AgentTwo):
 		print("Fail")
 		print("Received Output:")
 		print(final_state)
+	
+	print("")
 	
 	return result
 	
