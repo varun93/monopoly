@@ -285,11 +285,14 @@ class Adjudicator:
 
 			# very clumsy; we understand
 			otherPlayer = list(set([1,2]) - set([currentPlayer]))[0]
-				
-			if cashOffer > getPlayerCash(state,currentPlayer):
+			
+			currentPlayerCash = getPlayerCash(state,currentPlayer)
+			otherPlayerCash = getPlayerCash(state,otherPlayer)
+
+			if cashOffer > currentPlayer:
 				return False
 
-			if cashRequest > getPlayerCash(state,otherPlayer):
+			if cashRequest > otherPlayerCash:
 				return False
 
 			for propertyOffer in propertiesOffer:
@@ -321,15 +324,18 @@ class Adjudicator:
 			tradeResponse = False
 
 			if currentPlayer == 1:
-				tradeResponse = self.agentTwo.tradeOffer(state)
+				tradeResponse = self.agentOne.tradeOffer(state)
 			else:
 				tradeResponse = self.agentTwo.tradeOffer(state)
 
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
+
+				currentPlayerCash += (cashRequest - cashOffer)
+				otherPlayerCash += (cashOffer - cashRequest)
 				
-				state[self.PLAYER_CASH_INDEX][currentPlayer-1] -= (cashRequest - cashOffer)
-				state[self.PLAYER_CASH_INDEX][otherPlayer-1] -= (cashOffer - cashRequest)
+				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = currentPlayerCash 
+				state[self.PLAYER_CASH_INDEX][otherPlayer-1] = otherPlayerCash
 
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
