@@ -103,7 +103,7 @@ def compare_states(state1,state2):
 			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
 			return False
 	
-def testcase_3(Adjudicator,AgentOne,AgentTwo):
+def testcase_5(Adjudicator,AgentOne,AgentTwo):
 	"""
 	Test Description:
 	AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.
@@ -137,4 +137,4 @@ def testcase_3(Adjudicator,AgentOne,AgentTwo):
 	
 
 #Execution
-testcase_3(adjudicator.Adjudicator,Agent_1,Agent_2)
+testcase_5(adjudicator.Adjudicator,Agent_1,Agent_2)
