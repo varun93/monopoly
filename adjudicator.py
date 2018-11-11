@@ -282,6 +282,9 @@ class Adjudicator:
 			
 				updatePropertyStatus(state,propertyId,propertyStatus)
 				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
+				
+				#First subtract what you can from the player debt.
+				self.handle_payment(state)
 
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
