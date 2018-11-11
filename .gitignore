@@ -16,7 +16,7 @@ __pycache__
 *.ipynb
 *.log
 board.csv
-*.txt
+#*.txt; why this?
 .project
 .pydevproject
 tools.py
