@@ -28,6 +28,9 @@ class AuctionAgent_1:
 	def buyProperty(self, state):
 		return False
 	
+	def getBMSTDecision(self, state):
+		return None
+	
 	def auctionProperty(self, state):
 		return 180
 	
@@ -40,6 +43,9 @@ class AuctionAgent_2:
 		
 	def buyProperty(self, state):
 		return False
+	
+	def getBMSTDecision(self, state):
+		return None
 
 	def auctionProperty(self, state):
 		return 200
@@ -67,11 +73,12 @@ def compare_states(state1,state2):
 		if (state1[3][0] == state2[3][0]) and (state1[3][1] == state2[3][1]): count+=1
 		if (state1[4] == state2[4]): count+=1
 		
-		flag = True
-		for key,key2 in zip(state1[5],state2[5]):
-			if state1[5][key] != state2[5][key]:
-				 flag = False
-		if flag: count+=1
+		if len(state1[5]) == len(state2[5]):
+			flag = True
+			for key,key2 in zip(state1[5],state2[5]):
+				if state1[5][key] != state2[5][key]:
+					 flag = False
+			if flag: count+=1
 		
 		if count == 6:
 			return True
@@ -86,10 +93,10 @@ def testcase_2(Adjudicator,AgentOne,AgentTwo):
 	"""
 	
 	input_state =  [11, [ 0,  1,  0,  1,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0, -1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 33], [580, 780], 4, {}]
+        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 33], [580, 780], 3, {}]
 	
 	output_state = [12, [ 0,  1,  0,  1,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0, -1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 38], [580, 680], 6, {'source': 'bank', 'cash': 100}]
+        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 38], [580, 680], 5, {}]
 
 	
 	no_of_turns = 12
@@ -99,11 +106,14 @@ def testcase_2(Adjudicator,AgentOne,AgentTwo):
 	
 	final_state = adjudicator.state
 	
-	#print(final_state)
+	#
 	result = compare_states(final_state,output_state)
 	
 	if result: print("Pass")
-	else: print("Fail")
+	else: 
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
 	
 	return result
 	

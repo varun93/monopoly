@@ -24,9 +24,9 @@ class Debug_Dice:
 class Agent_1:
 	def __init__(self, id):
 		self.id = id
-		
+	
 	def getBMSTDecision(self, state):
-		return ("S", [(13,1)])
+		return None
 
 	def buyProperty(self, state):
 		return False
@@ -40,6 +40,26 @@ class Agent_1:
 class Agent_2:
 	def __init__(self, id):
 		self.id = id
+		self.PLAYER_TURN_INDEX = 0
+		self.PROPERTY_STATUS_INDEX = 1
+		self.PLAYER_POSITION_INDEX = 2
+		self.PLAYER_CASH_INDEX = 3
+		self.PHASE_NUMBER_INDEX = 4
+		self.PHASE_PAYLOAD_INDEX = 5
+		
+	def getBMSTDecision(self, state):
+		
+		payload = state[self.PHASE_PAYLOAD_INDEX]
+		
+		if 'cash' in payload:
+			debt = payload['cash']
+			current_player = state[self.PLAYER_TURN_INDEX] % 2
+			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+			
+			if playerCash < debt:
+				return ("S", [(13,1)])
+		
+		return None
 		
 	def buyProperty(self, state):
 		return False
@@ -70,11 +90,12 @@ def compare_states(state1,state2):
 		if (state1[3][0] == state2[3][0]) and (state1[3][1] == state2[3][1]): count+=1
 		if (state1[4] == state2[4]): count+=1
 		
-		flag = True
-		for key,key2 in zip(state1[5],state2[5]):
-			if state1[5][key] != state2[5][key]:
-				 flag = False
-		if flag: count+=1
+		if len(state1[5]) == len(state2[5]):
+			flag = True
+			for key,key2 in zip(state1[5],state2[5]):
+				if state1[5][key] != state2[5][key]:
+					 flag = False
+			if flag: count+=1
 		
 		if count == 6:
 			return True
@@ -94,7 +115,7 @@ def testcase_3(Adjudicator,AgentOne,AgentTwo):
         0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 1], [580, 150], 4, {}]
 	
 	output_state = [12, [ 0,  1,  0,  1,  0,  0, -1,  0,  -1,  -2,  1,  0,  0,  0, -1,  0,  0,
-        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 4], [580, 0], 6, {'source': 'bank', 'cash': 200}]
+        0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 4], [580, 0], 0, {}]
 
 	
 	no_of_turns = 12
@@ -104,7 +125,7 @@ def testcase_3(Adjudicator,AgentOne,AgentTwo):
 	
 	final_state = adjudicator.state
 	
-	#print(final_state)
+	print(final_state)
 	result = compare_states(final_state,output_state)
 	
 	if result: print("Pass")
