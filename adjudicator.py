@@ -324,9 +324,9 @@ class Adjudicator:
 			tradeResponse = False
 
 			if currentPlayer == 1:
-				tradeResponse = self.agentOne.tradeOffer(state)
+				tradeResponse = self.agentTwo.respondTrade(state)
 			else:
-				tradeResponse = self.agentTwo.tradeOffer(state)
+				tradeResponse = self.agentOne.respondTrade(state)
 
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
