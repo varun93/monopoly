@@ -1007,6 +1007,8 @@ class Adjudicator:
 			
 		if phase == self.PAYMENT:
 			return self.handle_payment(state)
+		
+		return True
 	
 	"""
 	On final winner calculation, following are considered:
@@ -1045,13 +1047,15 @@ class Adjudicator:
 		elif state[self.PROPERTY_STATUS_INDEX][29] == 1:
 			agentOnePropertyWorth += 50
 		
-		print("AgentOne Assets: "+str(agentOneCash+agentOnePropertyWorth))
-		print("AgentTwo Assets: "+str(agentTwoCash+agentTwoPropertyWorth))
+		print("AgentOne Cash: "+str(agentOneCash))
+		print("AgentOne Property Value: "+str(agentOnePropertyWorth))
+		print("AgentTwo Cash: "+str(agentTwoCash))
+		print("AgentTwo Property Value: "+str(agentTwoPropertyWorth))
 		
 		if ( (agentOneCash+agentOnePropertyWorth) > (agentTwoCash+agentTwoPropertyWorth) ):
-			return 1
-		elif ( (agentOneCash+agentOnePropertyWorth) < (agentTwoCash+agentTwoPropertyWorth) ):
 			return 0
+		elif ( (agentOneCash+agentOnePropertyWorth) < (agentTwoCash+agentTwoPropertyWorth) ):
+			return 1
 		else:
 			#Tie
 			return 2
