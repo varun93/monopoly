@@ -87,11 +87,9 @@ def compare_states(state1,state2):
 			return False
 	
 def testcase_1(Adjudicator,AgentOne,AgentTwo):
-	"""
-	Test Description:
-	AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.
-	The auction would be won by AgentTwo
-	"""
+	print("Test Description:")
+	print("AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.")
+	print("The auction would be won by AgentTwo")
 	
 	input_state =  [19, [ 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1, 
 	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 540], 3, {}]

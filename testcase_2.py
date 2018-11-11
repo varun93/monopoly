@@ -87,10 +87,8 @@ def compare_states(state1,state2):
 			return False
 	
 def testcase_2(Adjudicator,AgentOne,AgentTwo):
-	"""
-	Test Description:
-	AgentTwo will fall on Luxury Tax(Position 38) and has to pay the bank $100.
-	"""
+	print("Test Description:")
+	print("AgentTwo will fall on Luxury Tax(Position 38) and has to pay the bank $100.")
 	
 	input_state =  [11, [ 0,  1,  0,  1,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0, -1,  0,  0,
         0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 33], [580, 780], 3, {}]

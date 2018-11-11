@@ -104,12 +104,10 @@ def compare_states(state1,state2):
 			return False
 	
 def testcase_5(Adjudicator,AgentOne,AgentTwo):
-	"""
-	Test Description:
-	AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.
-	But, he only has $150. He mortgages Kentucky Avenue(Position 21) and gets $110.
-	Thus, he would clear his debt and would be left with $60.
-	"""
+	print("Test Description:")
+	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.")
+	print("But, he only has $150. He mortgages Kentucky Avenue(Position 21) and gets $110.")
+	print("Thus, he would clear his debt and would be left with $60.")
 	
 	input_state =  [11, [ 0,  1,  0,  1,  0,  0, -1,  0,  -2,  -2,  1,  0,  0,  0, -1,  0,  0,
         0,  1, -1,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0], [3, 1], [580, 150], 4, {}]
