@@ -68,6 +68,14 @@ class Adjudicator:
 		self.CHANCE_CARD = 8
 		self.COMMUNITY_CHEST_CARD = 9 
 		self.POSTTURN_BSTM = 10
+		"""
+		Phase Payload Description:
+		Buying Phase:
+		{'property': 6, 'cash': 100, 'source': 'bank'}
+		BSTM:
+		{'source': 'opponent', 'cash': 4}
+		
+		"""
 		
 
 		self.agentOne = AgentOne(self.state)
@@ -954,34 +962,79 @@ class Adjudicator:
 		if phase == self.BUYING:
 			action = self.runPlayerOnStateWithTimeout(current_player,state)
 			if action:
-				self.handle_buy_property(state)
-			else:
-				#Auction
-				self.start_auction(state)
-				actionOpponent = self.runPlayerOnStateWithTimeout(opponent,state)
-				actionCurrentPlayer = self.runPlayerOnStateWithTimeout(current_player,state)
-				self.handle_auction(state,actionOpponent,actionCurrentPlayer)
+				response = self.handle_buy_property(state)
+				if response:
+					return True
 			
-		if phase == self.PAYMENT:
-			self.handle_payment(state)
-		
-		if phase == self.AUCTION:
+			#Auction
 			self.start_auction(state)
 			actionOpponent = self.runPlayerOnStateWithTimeout(opponent,state)
 			actionCurrentPlayer = self.runPlayerOnStateWithTimeout(current_player,state)
 			self.handle_auction(state,actionOpponent,actionCurrentPlayer)
+			return True
+			
+		if phase == self.PAYMENT:
+			return self.handle_payment(state)
+	
+	"""
+	On final winner calculation, following are considered:
+	Player's cash,
+	Property value as on the title card,
+	House and Hotel purchase value,
+	Mortgaged properties at half price.
+	"""
+	def final_winning_condition(self,state):
+		agentOneCash = state[self.PLAYER_CASH_INDEX][0]
+		agentTwoCash = state[self.PLAYER_CASH_INDEX][1]
+		agentOnePropertyWorth = 0
+		agentTwoPropertyWorth = 0
 		
+		for i in range(len(state[self.PROPERTY_STATUS_INDEX])-2):
+			#In 0 to 39 board position range
+			propertyValue =  state[self.PROPERTY_STATUS_INDEX][i]
+			propertyPosition = constants.board[ constants.property_to_space_map[ propertyValue ] ]
+			
+			if propertyValue in range(-6,0):
+				agentTwoPropertyWorth += (propertyPosition['price'] + ( (abs(propertyValue)-1)*propertyPosition['build_cost'] ) )
+			elif propertyValue == -7:
+				agentTwoPropertyWorth += (propertyPosition['price']/2)
+			elif propertyValue in range(1,7):
+				agentOnePropertyWorth += (propertyPosition['price'] + ( (propertyValue-1)*propertyPosition['build_cost'] ) )
+			elif propertyValue == 7:
+				agentOnePropertyWorth += (propertyPosition['price']/2)
+		
+		if state[self.PROPERTY_STATUS_INDEX][28] == -1:
+			agentTwoPropertyWorth += 50
+		elif state[self.PROPERTY_STATUS_INDEX][28] == 1:
+			agentOnePropertyWorth += 50
+		
+		if state[self.PROPERTY_STATUS_INDEX][29] == -1:
+			agentTwoPropertyWorth += 50
+		elif state[self.PROPERTY_STATUS_INDEX][29] == 1:
+			agentOnePropertyWorth += 50
+		
+		print("AgentOne Assets: "+str(agentOneCash+agentOnePropertyWorth))
+		print("AgentTwo Assets: "+str(agentTwoCash+agentTwoPropertyWorth))
+		
+		if ( (agentOneCash+agentOnePropertyWorth) > (agentTwoCash+agentTwoPropertyWorth) ):
+			return 1
+		elif ( (agentOneCash+agentOnePropertyWorth) < (agentTwoCash+agentTwoPropertyWorth) ):
+			return 0
+		else:
+			#Tie
+			return 2
+		
+			
 	def broadcastState(self,state):
 		pass
 	
-	
 	"""
 	Function to be called to start the game.
-	First turn ot Turn 0 goes to AgentOne.
-	NOTE: INCOMPLETE
+	First turn or Turn 0 goes to AgentOne.
 	"""
 	def runGame(self):
-				
+		winner = None
+			
 		while self.state[self.PLAYER_TURN_INDEX] < self.TOTAL_NO_OF_TURNS:
 			#Temporary measure to clear phase payload
 			self.state[self.PHASE_PAYLOAD_INDEX] = {}
@@ -1020,7 +1073,11 @@ class Adjudicator:
 					
 					"""State now contain info about the position the player landed on"""
 					"""Performing the actual effect of the current position"""
-					self.turn_effect(self.state,current_player,opponent)
+					if not self.turn_effect(self.state,current_player,opponent):
+						current_playerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
+						opponentIndex = abs(current_playerIndex - 1)
+						winner = opponentIndex
+						break
 					
 					print("")
 					print("State at the end of the turn:")
@@ -1044,6 +1101,20 @@ class Adjudicator:
 		f = open("state_history.log", "w")
 		for history in constants.state_history:
 			f.write(str(history)+",\n")
+		
+		"""Determine the winner"""
+		if winner==None:
+			print("called final winning")
+			winner = final_winning_condition(self.state)
+		
+		if winner == 0:
+			print("AgentOne won the Game.")
+		elif winner == 1:
+			print("AgentTwo won the Game.")
+		else:
+			print("It's a Tie!")
+		
+		return winner
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent
