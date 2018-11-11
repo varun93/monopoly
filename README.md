@@ -1,6 +1,7 @@
 # Monopoly
 
 Data Science Project CSE 519
+Monopoly game playing AI Agent
 
 ## Install the Dependencies
 
@@ -15,14 +16,22 @@ export FLASK_APP=app.py
 flask run
 ```
 
+To run the adjudicator program without the UI implementation, run:
+python adjudicator.py
+
+To run testcases, run:
+python testcases_x.py for x = {1,2,3}
+
 ## App Structure
+The master branch consists of the implementation of the Adjudicator for the monopoly game.
 
 app.py is the controller.  
 templates for rendering templates.  
 static has all static assets js, css and images.
 
-test_adjudicator.py contains the unit test cases for the various functions and scenarios for the adjudicator.
-Run this file to see the performance of the adjudicator against each of these test cases.
+testcase_x.py:
+All files of this format represent test cases that can be independently run to simulate individual flows of the Adjudicator. The testcases may be run over a single game turn or over multiple turns.
+The program accepts an Adjudicator and 2 Agents as arguments and checks whether the testcase passes for the simulation run.
 
-testcase_1.py tests an auction flow where both player's bid for a particular property.
-Run command: python testcase_1.py
+test_adjudicator.py:
+Consists of testcases which test the correctness of individual functions. Used to ensure future code changes don't break the expected value from a function.
