@@ -2,7 +2,10 @@
 Data Science Project CSE 519
 
 ## Install the Dependencies
-```pip install flask flask-socketio eventlet```
+```
+pip install flask flask-socketio eventlet
+pip install timeout-decorator
+```
 
 ## Run the code
 ```
