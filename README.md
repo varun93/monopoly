@@ -19,7 +19,11 @@ To run the adjudicator program without the UI implementation, run:
 python adjudicator.py
 
 To run testcases, run:
-python testcases_x.py for x = {1,2,3}
+python testcases_x.py to run individual testcases.
+
+To run the entire suite, run:
+python testsuite.py
+
 ```
 
 ## App Structure
@@ -41,6 +45,9 @@ testcase_x.py:
 All files of this format represent test cases that can be independently run to simulate individual flows of the Adjudicator. The testcases may be run over a single game turn or over multiple turns.
 The program accepts an Adjudicator and 2 Agents as arguments and checks whether the testcase passes for the simulation run.
 
-test_adjudicator.py:
+testsuite.py
+Runs all the testcases as a single suite.
+
+test_functional.py:
 
 Consists of testcases which test the correctness of individual functions. Used to ensure future code changes don't break the expected value from a function.
