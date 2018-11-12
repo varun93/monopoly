@@ -39,7 +39,7 @@ class Agent:
 	def mortgage_strategy(self, state, current_player, debt):
 		#Find properties with lowest value in money start selling them
         #Mortgage value is missing in constants. For now, half the property value
-		owned_properties = self.get_owned_property(state, current_player)
+		owned_properties = self.get_owned_property_not_morgaged(state, current_player)
 		actual_properties_ids = []
 
 		for id in owned_properties:
@@ -58,7 +58,16 @@ class Agent:
 			return ("M", list_mortgage_properties)
 
 
-
+	def get_owned_property_not_morgaged(self, state, current_player):
+		owned_properties = []
+		i = 0
+		for status in state[self.PROPERTY_STATUS_INDEX]:
+			if current_player == 0 and status > 0 and status != 7:
+				owned_properties.append(i)
+			elif current_player == 1 and status < 0 and status != -7:
+				owned_properties.append(i)
+			i = i + 1
+		return owned_properties
 
 	def get_owned_property(self, state, current_player):
 		owned_properties = []
@@ -259,3 +268,6 @@ class Agent:
 			return ("P")
 		else:
 			return ("R")
+
+	def respondMortgage(self, state):
+		return False
