@@ -14,13 +14,13 @@ class Agent:
 	
 	
 	def getBMSTDecision(self, state):
-		current_player = state[self.PLAYER_TURN_INDEX] % 2
+		current_player = state[self.PHASE_PAYLOAD_INDEX]['id']
 		debt = 0
 		if 'cash' in state[self.PHASE_PAYLOAD_INDEX]:
 			debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		money = state[self.PLAYER_CASH_INDEX][current_player]
 
-		if debt > 0 and debt >= money:
+		if debt > 0 and debt > money:
 			#Sell or Mortgage
 			actual_debt = debt - money
 			(remaining_debt, return_sell_list) = self.selling_strategy(state,current_player,actual_debt)
@@ -110,7 +110,7 @@ class Agent:
 		i = 0
 		for group in groups:
 			total_houses_sold = 0
-			while number_of_houses > 0 or debt > 0:
+			while number_of_houses > 0 and debt > 0:
 				for property in group:
 					debt -= constants.board[property]['build_cost'] * 0.5
 				total_houses_sold = total_houses_sold + 1
@@ -136,7 +136,7 @@ class Agent:
 		buy_list = []
 
 		for property in group:
-			buy_list.append((property, number_of_houses + 1))
+			buy_list.append((property, 1))
 		return ("B", buy_list)
 
 
