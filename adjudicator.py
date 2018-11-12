@@ -270,19 +270,33 @@ class Adjudicator:
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 				
+				propertyPrice = space['price']
+				mortagePrice = propertyPrice/2
+				
 				if not rightOwner(propertyStatus,currentPlayer):
-					continue
+					return
 
-				propertyPrice =  space['price']
-				playerCash += propertyPrice/2
-				propertyStatus = 7
+				if propertyStatus in [-7,7]:
+					propertyStatus = 1
 
-				if currentPlayer == 2:
-					propertyStatus *= -1
-			
+					if currentPlayer == 2:
+						propertyStatus *= -1
+
+					unmortgagePrice = mortagePrice + mortagePrice*0.1
+
+					if playerCash >= unmortgagePrice:
+						playerCash -= unmortgagePrice 
+					else:
+						return
+				else:
+					playerCash += mortagePrice
+					propertyStatus = 7
+
+					if currentPlayer == 2:
+						propertyStatus *= -1
+				
 				updatePropertyStatus(state,propertyId,propertyStatus)
 				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
-				
 				#First subtract what you can from the player debt.
 				self.handle_payment(state)
 
@@ -299,22 +313,22 @@ class Adjudicator:
 			otherPlayerCash = getPlayerCash(state,otherPlayer)
 
 			if cashOffer > currentPlayer:
-				return False
+				return
 
 			if cashRequest > otherPlayerCash:
-				return False
+				return
 
 			for propertyOffer in propertiesOffer:
 				propertyStatus = getPropertyStatus(state,propertyOffer)
 				if not rightOwner(propertyStatus,currentPlayer):
-					return False
+					return
 
 
 			# check if the other agent actually cash and properties to offer
 			for propertyRequest in propertiesRequest:
 				propertyStatus = getPropertyStatus(state,propertyRequest)
 				if not rightOwner(propertyStatus,otherPlayer):
-					return False
+					return
 
 			# update the values in the payload index 
 			state[self.PHASE_NUMBER_INDEX] = self.TRADE_OFFER
