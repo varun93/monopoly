@@ -62,9 +62,9 @@ class Agent:
 		owned_properties = []
 		i = 0
 		for status in state[self.PROPERTY_STATUS_INDEX]:
-			if current_player == 0 and status > 0 and status != 7:
+			if current_player == 0 and status > 0 and status != 7 and i in constants.property_to_space_map:
 				owned_properties.append(i)
-			elif current_player == 1 and status < 0 and status != -7:
+			elif current_player == 1 and status < 0 and status != -7 and i in constants.property_to_space_map:
 				owned_properties.append(i)
 			i = i + 1
 		return owned_properties
@@ -73,9 +73,9 @@ class Agent:
 		owned_properties = []
 		i = 0
 		for status in state[self.PROPERTY_STATUS_INDEX]:
-			if current_player == 0 and status > 0:
+			if current_player == 0 and status > 0 and i in constants.property_to_space_map:
 				owned_properties.append(i)
-			elif current_player == 1 and status < 0:
+			elif current_player == 1 and status < 0 and i in constants.property_to_space_map:
 				owned_properties.append(i)
 			i = i + 1
 		return owned_properties
@@ -172,7 +172,7 @@ class Agent:
 		properties_status = state[self.PROPERTY_STATUS_INDEX]
 		i = 0
 		for status in properties_status:
-			if status >= range_status[current_player][0] and status <= range_status[current_player][1]:
+			if status >= range_status[current_player][0] and status <= range_status[current_player][1] and i in constants.property_to_space_map:
 				property_id = constants.property_to_space_map[i]
 				groupElements = constants.board[property_id]["monopoly_group_elements"]
 				have_monopoly = True
