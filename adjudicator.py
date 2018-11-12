@@ -372,8 +372,8 @@ class Adjudicator:
 				handleTrade(action[1],action[2],action[3],action[4])
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
+		previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
 		while True:
-			previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
 			
 			state[self.PHASE_NUMBER_INDEX] = self.BSTM
 			
@@ -572,22 +572,17 @@ class Adjudicator:
 	def handle_buy_property(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
-		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
-		propertyPrice = constants.board[playerPosition]['price']
 		propertyMapping = constants.space_to_property_map[playerPosition]
 		
-		if state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] == 0:
-			#Unowned
-			if playerCash >= propertyPrice:
-				state[self.PLAYER_CASH_INDEX][current_player] -= propertyPrice
-				if current_player == 0:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
-				else:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
-				
-				#Clearing the payload as the buying has been completed
-				state[self.PHASE_PAYLOAD_INDEX] = {}
-				return True
+		if self.handle_payment(state, False):
+			if current_player == 0:
+				state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+			else:
+				state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+
+			#Clearing the payload as the buying has been completed
+			state[self.PHASE_PAYLOAD_INDEX] = {}
+			return True
 		
 		#This would indicate going to Auction?
 		return False
@@ -595,14 +590,19 @@ class Adjudicator:
 	"""
 	Handling payments the player has to make to the bank/opponent
 	"""
-	def handle_payment(self,state):
+	def handle_payment(self,state,take=True):
+		
+		if 'cash' not in state[self.PHASE_PAYLOAD_INDEX]:
+			#No payment to be made
+			return True
+		
+		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
+		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
+		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		opponent = abs(current_player - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
-		
-		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
-		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
 		
 		print("Player"+str(current_player)+" has to make a payment to "+receiver)
 		
@@ -612,9 +612,10 @@ class Adjudicator:
 				state[self.PLAYER_CASH_INDEX][opponent] += debt
 				
 			#All the debt has been paid
-			state[self.PHASE_PAYLOAD_INDEX] = {}
+			state[self.PHASE_PAYLOAD_INDEX].pop('cash',None)
+			state[self.PHASE_PAYLOAD_INDEX].pop('source',None)
 			return True
-		else:
+		elif take:
 			#Take what you can get from the indebted
 			if receiver == 'opponent':
 				state[self.PLAYER_CASH_INDEX][opponent] += playerCash
@@ -622,7 +623,8 @@ class Adjudicator:
 			
 			#Update with only the remaining debt
 			state[self.PHASE_PAYLOAD_INDEX]['cash'] = (debt - playerCash)
-			return False
+		
+		return False
 	
 	"""
 	(Q: Will there need to be a BSTM if the player receives money?)
