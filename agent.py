@@ -206,7 +206,9 @@ class Agent:
 		return False
 
 	def buyProperty(self, state):
-		debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
+		debt = 0
+		if 'cash' in state[self.PHASE_PAYLOAD_INDEX]:
+			debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
 		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
 		property = constants.board[state[self.PHASE_PAYLOAD_INDEX]['property']]
 		
