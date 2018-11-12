@@ -27,7 +27,7 @@ class Adjudicator:
 		try:
 			self.TOTAL_NO_OF_TURNS = int(n_turns)
 		except:
-			self.TOTAL_NO_OF_TURNS = 20
+			self.TOTAL_NO_OF_TURNS = 50
 			
 		if Dice!=None:
 			self.DiceClass = Dice
@@ -101,18 +101,19 @@ class Adjudicator:
 			state[self.PROPERTY_STATUS_INDEX][mappingId] = propertyStatus
 		
 		def getCurrentPlayer(state):
-			turn = state[self.PLAYER_TURN_INDEX] % 2
+			#turn = state[self.PLAYER_TURN_INDEX] % 2
 			
-			if turn == 0:
-				return 1
-			else:
-				return 2
+			#if turn == 0:
+			#	return 1
+			#else:
+			#	return 2
+			return state[self.PHASE_PAYLOAD_INDEX]['id']+1
 	
 		def getPlayerCash(state,player):
 			return state[self.PLAYER_CASH_INDEX][player-1]
 	
 		# handleBMST
-		currentPlayer = getCurrentPlayer(state)
+		#currentPlayer = getCurrentPlayer(state)
 			
 		def rightOwner(propertyStatus, player):
 			if player == 1 and propertyStatus <= 0:
@@ -160,7 +161,7 @@ class Adjudicator:
 		# double house can be built only if I have built one house in each colour 
 		# order of the tuples to be taken into account
 		def handleBuy(properties):
-			
+			currentPlayer = getCurrentPlayer(state)
 			propertyConstructionSites = list(map(lambda x : x[0],filter(lambda x : x[1] > 0, properties)))
 
 			# determine if the agent actually has the cash to buy all this?
@@ -226,7 +227,7 @@ class Adjudicator:
 						return
 
 		def handleSell(properties):
-
+			currentPlayer = getCurrentPlayer(state)
 			for propertyObject in properties:
 
 				(propertyId,constructions) = propertyObject
@@ -257,14 +258,14 @@ class Adjudicator:
 				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
 				
 				#First subtract what you can from the player debt.
-				self.handle_payment(state)
+				#self.handle_payment(state)
 	
 		# agent mortages a particular property
 		# agent gets 50% of original money of the property 
 		# penalizing the agent by selling the property with constructions too;
 		# its a negligence on the part of the agent 
 		def handleMortgage(properties):
-
+			currentPlayer = getCurrentPlayer(state)
 			for propertyId in properties:
 				space = constants.board[propertyId]
 				playerCash = getPlayerCash(state, currentPlayer)
@@ -298,11 +299,11 @@ class Adjudicator:
 				updatePropertyStatus(state,propertyId,propertyStatus)
 				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
 				#First subtract what you can from the player debt.
-				self.handle_payment(state)
+				#self.handle_payment(state)
 
 
 		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
-			
+			currentPlayer = getCurrentPlayer(state)
 			cashRequest = cashRequest or 0
 			cashOffer = cashOffer or 0
 
@@ -390,17 +391,20 @@ class Adjudicator:
 		while True:
 			
 			state[self.PHASE_NUMBER_INDEX] = self.BSTM
+			state[self.PHASE_PAYLOAD_INDEX]['id'] = 0
 			
 			bstmActionAgentOne = self.runPlayerOnStateWithTimeout(self.agentOne,state)
 		
 			if bstmActionAgentOne is not None:
 				takeBMSTAction(bstmActionAgentOne)
 			
+			state[self.PHASE_PAYLOAD_INDEX]['id'] = 1
+			
 			bstmActionAgentTwo = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 
 			if bstmActionAgentTwo is not None:
 				takeBMSTAction(bstmActionAgentTwo)
-
+			
 			"""
 			Both players must be done with their BSTM
 			"""
@@ -951,7 +955,8 @@ class Adjudicator:
 				state[self.PHASE_PAYLOAD_INDEX] = output['phase_properties']
 			
 			#We need to double rent if the player landed on opponent's property.
-			if state[self.PHASE_PAYLOAD_INDEX]['source'] == 'opponent':
+			#We could fall on our own property in which case there is no source payload attribute
+			if ('source'in state[self.PHASE_PAYLOAD_INDEX]) and (state[self.PHASE_PAYLOAD_INDEX]['source'] == 'opponent'):
 				state[self.PHASE_PAYLOAD_INDEX]['cash'] *= 2
 		
 		elif card['type'] == 7:
@@ -1112,9 +1117,9 @@ class Adjudicator:
 			"""Resets dice roll before each turn"""
 			self.pass_dice()
 			
-			#print("Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
-			#print("State at the start of the turn:")
-			#print(self.state)
+			print("Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
+			print("State at the start of the turn:")
+			print(self.state)
 			
 			while True:
 				
@@ -1122,9 +1127,9 @@ class Adjudicator:
 				notInJail = self.dice_roll(self.state,current_player)
 				
 				if notInJail:
-					#print("")
-					#print("State after moving the player position and updating state with effect of the position:")
-					#print(self.state)
+					print("")
+					print("State after moving the player position and updating state with effect of the position:")
+					print(self.state)
 					
 					"""BSTM"""
 					self.conductBSTM(self.state)
@@ -1138,8 +1143,8 @@ class Adjudicator:
 						break
 					
 					#print("")
-					#print("State at the end of the turn:")
-					#print(self.state)
+					print("State at the end of the turn:")
+					print(self.state)
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
@@ -1160,6 +1165,8 @@ class Adjudicator:
 		f = open("state_history.log", "w")
 		for history in constants.state_history:
 			f.write(str(history)+",\n")
+		
+		print("Game Complete")
 		
 		"""Determine the winner"""
 		if winner==None:
@@ -1185,7 +1192,7 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 
-	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
+	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
 	def runPlayerOnStateWithTimeout(self, player,state):
 		try:
 			return self.runPlayerOnState(player,state)
@@ -1219,9 +1226,9 @@ class Adjudicator:
 		return action
 
 #Testing
-#adjudicator = Adjudicator(Agent,Agent)
+adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-#adjudicator.runGame()
+adjudicator.runGame()
