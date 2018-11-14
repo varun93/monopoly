@@ -1,4 +1,4 @@
-import config
+from config import log
 import dice
 import constants
 from cards import Cards
@@ -411,8 +411,9 @@ class Adjudicator:
 	def send_player_to_jail(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		
-		print("Player "+str(current_player)+"is starting an Auction")
+		log("jail","Player "+str(current_player)+" has been sent to jail")
 		
+		state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
 		state[self.PHASE_NUMBER_INDEX] = self.JAIL
 	
 	def update_turn(self,state):
@@ -468,7 +469,10 @@ class Adjudicator:
 						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
-		self.dice.roll()
+		diceThrow = None
+		if (self.diceThrows is not None) and len(self.diceThrows)>0:
+			diceThrow = self.diceThrows.pop(0)
+		self.dice.roll(dice=diceThrow)
 		if self.dice.double:
 			#Player can go out
 			#Need to ensure that there is no second turn for the player in this turn.
@@ -493,7 +497,7 @@ class Adjudicator:
 	def start_auction(self,state):
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		
-		print("Player "+str(current_player)+" is starting an Auction")
+		log("auction","Player "+str(current_player)+" is starting an Auction")
 		
 		opponent = abs(current_player - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
@@ -522,9 +526,9 @@ class Adjudicator:
 		try:
 			actionCurrentPlayer = int(actionCurrentPlayer)
 			actionOpponent = int(actionOpponent)
-			print("Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))
+			log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))
 		except:
-			print("Exception caught while trying to parse Auction Responses")
+			log("auction","Exception caught while trying to parse Auction Responses")
 			#We will check if the current player's action is parsable.
 			#If it is, we give him the property.
 			#Else, even if opponent's action is not parsable, he will win the property.
@@ -535,7 +539,8 @@ class Adjudicator:
 		if actionOpponent is not None and actionCurrentPlayer is not None:
 			if actionCurrentPlayer > actionOpponent:
 				#Current Player wins the auction
-				print("Player "+str(current_player)+" won the Auction")
+				if verbose['auction']:
+					log("auction","Player "+str(current_player)+" won the Auction")
 				
 				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
 				if current_player == 0:
@@ -544,7 +549,7 @@ class Adjudicator:
 					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
 			else:
 				#Opponent wins
-				print("Player "+str(opponent)+" won the Auction")
+				log("auction","Player "+str(opponent)+" won the Auction")
 				
 				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
 				if current_player == 0:
@@ -554,7 +559,7 @@ class Adjudicator:
 		else:
 			if actionCurrentPlayer is not None:
 				#Only current player sent a valid response. He wins.
-				print("Player "+str(current_player)+" won the Auction")
+				log("auction","Player "+str(current_player)+" won the Auction")
 				
 				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
 				if current_player == 0:
@@ -565,7 +570,7 @@ class Adjudicator:
 				#Opponent wins
 				#NOTE: Opponent would win even if his response is not valid
 				#as long as current player's response is also not valid.
-				print("Player "+str(opponent)+" won the Auction")
+				log("auction","Player "+str(opponent)+" won the Auction")
 				
 				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
 				if current_player == 0:
@@ -614,7 +619,7 @@ class Adjudicator:
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 		
-		print("Player"+str(current_player)+" has to make a payment to "+receiver)
+		log('pay',"Player"+str(current_player)+" has to make a payment to "+receiver)
 		
 		if playerCash >= debt:
 			state[self.PLAYER_CASH_INDEX][current_player] -= debt
@@ -670,7 +675,10 @@ class Adjudicator:
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
 		
 		if not diceThrown:
-			self.dice.roll()
+			diceThrow = None
+			if (self.diceThrows is not None) and len(self.diceThrows)>0:
+				diceThrow = self.diceThrows.pop(0)
+			self.dice.roll(dice=diceThrow)
 			
 		"""
 		We need to call agent.receiveState and pass on the dice roll for the turn.
@@ -694,7 +702,6 @@ class Adjudicator:
 			return False
 		
 		if self.dice.double_counter == 3:
-			state[self.PLAYER_POSITION_INDEX][current_player] = -1 #sending the player to jail
 			self.send_player_to_jail(state)
 			return False
 			#End current player's turn here
@@ -745,7 +752,8 @@ class Adjudicator:
 			if constants.board[playerPosition]['class'] == 'Chance':
 				#Chance
 				card = self.chance.draw_card()
-				print("Chance card "+str(card['id'])+" has been drawn")
+				
+				log("cards","Chance card "+str(card['id'])+" has been drawn")
 				
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
@@ -757,7 +765,8 @@ class Adjudicator:
 			elif constants.board[playerPosition]['class'] == 'Chest':
 				#Community
 				card = self.chest.draw_card()
-				print("Community Chest card "+str(card['id'])+" has been drawn")
+				
+				log("cards","Community Chest card "+str(card['id'])+" has been drawn")
 				
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
@@ -982,7 +991,11 @@ class Adjudicator:
 						#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
 						#But, not considering that as it doesn't seem to be in the spirit of the game.
 						if absPropertyValue == 1:
-							self.dice.roll(ignore=True)
+							diceThrow = None
+							if (self.diceThrows is not None) and len(self.diceThrows)>0:
+								diceThrow = self.diceThrows.pop(0)
+							self.dice.roll(ignore=True,dice=diceThrow)
+							
 							state[self.PHASE_NUMBER_INDEX] = self.PAYMENT
 							state[self.PHASE_PAYLOAD_INDEX]['cash'] = 10 * (self.dice.die_1 + self.dice.die_2)
 							state[self.PHASE_PAYLOAD_INDEX]['source'] = "opponent"
@@ -1064,10 +1077,10 @@ class Adjudicator:
 		elif state[self.PROPERTY_STATUS_INDEX][29] == 1:
 			agentOnePropertyWorth += 50
 		
-		print("AgentOne Cash: "+str(agentOneCash))
-		print("AgentOne Property Value: "+str(agentOnePropertyWorth))
-		print("AgentTwo Cash: "+str(agentTwoCash))
-		print("AgentTwo Property Value: "+str(agentTwoPropertyWorth))
+		log("win_condition","AgentOne Cash: "+str(agentOneCash))
+		log("win_condition","AgentOne Property Value: "+str(agentOnePropertyWorth))
+		log("win_condition","AgentTwo Cash: "+str(agentTwoCash))
+		log("win_condition","AgentTwo Property Value: "+str(agentTwoPropertyWorth))
 		
 		if ( (agentOneCash+agentOnePropertyWorth) > (agentTwoCash+agentTwoPropertyWorth) ):
 			return 0
@@ -1076,7 +1089,18 @@ class Adjudicator:
 		else:
 			#Tie
 			return 2
+	
+	def initialize_debug_state(self,diceThrows,chanceCards,communityCards):
+		if isinstance(diceThrows, list) and len(diceThrows)>0:
+			self.diceThrows = diceThrows
+		else:
+			self.diceThrows = diceThrows
+			
+		if isinstance(chanceCards, list) and len(chanceCards)>0:
+			self.chance.reinit(constants.chanceCards,chanceCards)
 		
+		if isinstance(diceThrows, list) and len(diceThrows)>0:
+			self.chest.reinit(constants.communityChestCards,communityCards)
 			
 	def broadcastState(self,state):
 		pass
@@ -1085,15 +1109,19 @@ class Adjudicator:
 	Function to be called to start the game.
 	First turn or Turn 0 goes to AgentOne.
 	"""
-	def runGame(self,state=None,diceThrows=None):
+	def runGame(self,diceThrows=None,chanceCards=None,communityCards=None):
 		
 		#Setting an initial state. Used during testing.
-		if isinstance(state,list) and len(state)==6:
-			self.state = state
+		#if isinstance(state,list) and len(state)==6:
+		#	self.state = state
+		self.initialize_debug_state(diceThrows,chanceCards,communityCards)
 		
 		winner = None
 			
-		while self.state[self.PLAYER_TURN_INDEX] < self.TOTAL_NO_OF_TURNS:
+		while (self.state[self.PLAYER_TURN_INDEX] < self.TOTAL_NO_OF_TURNS) and ( (self.diceThrows is None) or (len(self.diceThrows)>0) ):
+			
+			log("turn","Turn "+str(self.state[self.PLAYER_TURN_INDEX])+" start")
+			
 			#Temporary measure to clear phase payload
 			self.state[self.PHASE_PAYLOAD_INDEX] = {}
 			
@@ -1113,9 +1141,9 @@ class Adjudicator:
 			"""Resets dice roll before each turn"""
 			self.pass_dice()
 			
-			print("Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
-			print("State at the start of the turn:")
-			print(self.state)
+			log("state","Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
+			log("state","State at the start of the turn:")
+			log("state",self.state)
 			
 			while True:
 				
@@ -1123,9 +1151,10 @@ class Adjudicator:
 				notInJail = self.dice_roll(self.state,current_player)
 				
 				if notInJail:
-					print("")
-					print("State after moving the player position and updating state with effect of the position:")
-					print(self.state)
+					
+					log("state","")
+					log("state","State after moving the player position and updating state with effect of the position:")
+					log("state",self.state)
 					
 					"""BSTM"""
 					self.conductBSTM(self.state)
@@ -1138,21 +1167,22 @@ class Adjudicator:
 						winner = opponentIndex
 						break
 					
-					#print("")
-					print("State at the end of the turn:")
-					print(self.state)
+					log("state","")
+					log("state","State at the end of the turn:")
+					log("state",self.state)
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
 				
-				if (not self.dice.double) or notInJail:
+				if (not self.dice.double):
 					break
 				else:
-					print("")
-					print("Rolled Doubles. Play again.")
+					log("dice","Rolled Doubles. Play again.")
 			
 			#Storing the state at the end of the turn
 			constants.state_history.append(copy.deepcopy(self.state))
+			
+			log("turn","Turn "+str(self.state[self.PLAYER_TURN_INDEX])+" end")
 			
 			"""Update the turn counter"""
 			self.update_turn(self.state)
@@ -1165,18 +1195,16 @@ class Adjudicator:
 		for history in constants.state_history:
 			f.write(str(history)+",\n")
 		
-		print("Game Complete")
-		
 		"""Determine the winner"""
 		if winner==None:
 			winner = self.final_winning_condition(self.state)
 		
 		if winner == 0:
-			print("AgentOne won the Game.")
+			log("win","AgentOne won the Game.")
 		elif winner == 1:
-			print("AgentTwo won the Game.")
+			log("win","AgentTwo won the Game.")
 		else:
-			print("It's a Tie!")
+			log("win","It's a Tie!")
 		
 		return winner
 	
@@ -1225,9 +1253,9 @@ class Adjudicator:
 		return action
 
 #Testing
-#adjudicator = Adjudicator(Agent,Agent)
+adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-#adjudicator.runGame()
+adjudicator.runGame()

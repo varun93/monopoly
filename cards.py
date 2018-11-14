@@ -5,6 +5,10 @@ class Cards:
 	def __init__(self, items):
 		self.deck = list(map(lambda item : self.transformCard(item), items))
 		np.random.shuffle(self.deck)
+	
+	#Reinitialize the given deckType(Community or Chance) using only the cards specified and in the order specified
+	def reinit(self,deckType,cardIds):
+		self.deck = [ deckType[id] for id in cardIds ]
 		
 	def transformCard(self,item):
 		card = {}

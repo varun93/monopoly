@@ -1,10 +1,6 @@
-import logging
+from config import log
 import numpy as np
 import config
-
-
-logger = logging.getLogger(__name__)
-
 
 class Dice:
 
@@ -20,6 +16,7 @@ class Dice:
 		roll and (3) a counter of the number of consecutive double rolls."""
 		
 		if dice is not None:
+			log("dice","Choosing the debug dice")
 			roll = dice
 		else:
 			roll = np.random.choice(np.arange(1, 7), 2)
@@ -30,5 +27,4 @@ class Dice:
 		if not ignore:
 			self.double_counter += self.double
 		
-		if config.verbose['dice']:
-			logger.info('Roll a {die_1} and a {die_2}'.format(die_1=roll[0], die_2=roll[1]))
+		log("dice",'Roll a {die_1} and a {die_2}'.format(die_1=roll[0], die_2=roll[1]))
