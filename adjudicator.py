@@ -10,29 +10,21 @@ import timeout_decorator
 # make sure the state is not mutated
 class Adjudicator:
 	
-	def __init__(self,AgentOne,AgentTwo,state=None,Dice=None,n_turns=None):
+	def __init__(self,AgentOne,AgentTwo):
 		
-		if isinstance(state,list) and len(state)==6:
-			self.state = state
-		else:
-			self.state =  [
-				0, #player turn; 0
-				np.zeros(30,dtype='int'), #player properties; 1
-				[0,0],#player's position; 2
-				[1500,1500], #player's cash; 3
-				0, #phase number; 4
-				{}, #phase payload; 5
-			]
 		
-		try:
-			self.TOTAL_NO_OF_TURNS = int(n_turns)
-		except:
-			self.TOTAL_NO_OF_TURNS = 50
+		self.state =  [
+			0, #player turn; 0
+			np.zeros(30,dtype='int'), #player properties; 1
+			[0,0],#player's position; 2
+			[1500,1500], #player's cash; 3
+			0, #phase number; 4
+			{}, #phase payload; 5
+		]
+		
+		self.TOTAL_NO_OF_TURNS = 50
 			
-		if Dice!=None:
-			self.DiceClass = Dice
-		else:
-			self.DiceClass = dice.Dice
+		self.DiceClass = dice.Dice
 
 		self.PLAYER_TURN_INDEX = 0
 		self.PROPERTY_STATUS_INDEX = 1
@@ -466,13 +458,13 @@ class Adjudicator:
 				if owned:
 					if action[1] == self.COMMUNITY_GET_OUT_OF_JAIL_FREE:
 						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
-						self.chest.append(constants.communityChestCards[4])
+						self.chest.deck.append(constants.communityChestCards[4])
 						return [True,False]
 					
 					elif action[1] == self.CHANCE_GET_OUT_OF_JAIL_FREE:
 						
 						state[self.PROPERTY_STATUS_INDEX][ action[1] ] = 0
-						self.chance.append(constants.chanceCards[7])
+						self.chance.deck.append(constants.chanceCards[7])
 						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
@@ -914,14 +906,14 @@ class Adjudicator:
 				#first player
 				for prop in state[self.PROPERTY_STATUS_INDEX]:
 					if prop in range(2,6):
-						n_houses+= (i-1)
+						n_houses+= (prop-1)
 					if prop == 6:
 						n_hotels+= 1
 			else:
 				#second player
 				for prop in state[self.PROPERTY_STATUS_INDEX]:
 					if prop in range(-5,-1):
-						n_houses+= (abs(i)-1)
+						n_houses+= (abs(prop)-1)
 					if prop == -6:
 						n_hotels+= 1
 			rent = abs(card['money'])*n_houses + abs(card['money2'])*n_hotels
@@ -1020,8 +1012,7 @@ class Adjudicator:
 		if phase == self.BUYING:
 			action = self.runPlayerOnStateWithTimeout(current_player,state)
 			if action:
-				response = self.handle_buy_property(state)
-				if response:
+				if self.handle_buy_property(state):
 					return True
 			
 			#Auction
@@ -1094,7 +1085,12 @@ class Adjudicator:
 	Function to be called to start the game.
 	First turn or Turn 0 goes to AgentOne.
 	"""
-	def runGame(self):
+	def runGame(self,state=None,diceThrows=None):
+		
+		#Setting an initial state. Used during testing.
+		if isinstance(state,list) and len(state)==6:
+			self.state = state
+		
 		winner = None
 			
 		while self.state[self.PLAYER_TURN_INDEX] < self.TOTAL_NO_OF_TURNS:
@@ -1160,6 +1156,9 @@ class Adjudicator:
 			
 			"""Update the turn counter"""
 			self.update_turn(self.state)
+			
+			if winner is not None:
+				break
 		
 		#Storing the state_history to log file
 		f = open("state_history.log", "w")
@@ -1226,9 +1225,9 @@ class Adjudicator:
 		return action
 
 #Testing
-adjudicator = Adjudicator(Agent,Agent)
+#adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-adjudicator.runGame()
+#adjudicator.runGame()
