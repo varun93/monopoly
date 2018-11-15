@@ -12,7 +12,7 @@ class Adjudicator:
 	
 	def __init__(self,AgentOne,AgentTwo):
 		
-		num_properties = len(constants.space_to_property_map)
+		num_properties = len(constants.space_to_property_map) + 2
 		
 		self.state =  [
 			0, #player turn; 0
@@ -1256,9 +1256,9 @@ class Adjudicator:
 		return action
 
 #Testing
-#adjudicator = Adjudicator(Agent,Agent)
+adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-#adjudicator.runGame()
+adjudicator.runGame()
