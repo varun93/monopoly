@@ -1,8 +1,8 @@
 n_players = 2 # Number of players
 
-verbose = {'pay': False, #Player has a debt to pay handle_payments method
-           'buy': False, #player is buying an unowned property
-           'auction':False,
+verbose = {'pay': True, #Player has a debt to pay handle_payments method
+           'buy': True, #player is buying an unowned property
+           'auction':True,
            'cards':False, #when player falls on chance or community cards
            'state': True, #state information during each turn
            'dice': True, #dice value for each turn

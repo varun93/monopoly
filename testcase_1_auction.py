@@ -1,26 +1,5 @@
 import adjudicator
 
-class Debug_Dice:
-	def __init__(self):
-		
-		self.value_list = [[2,5]]
-		
-		self.die_1 = None
-		self.die_2 = None
-		self.double = False
-		self.double_counter = 0
-
-	def roll(self,ignore=False):
-		
-		if len(self.value_list)!=0:
-			[self.die_1,self.die_2] = self.value_list.pop()
-		
-			self.double = self.die_1 == self.die_2
-			if not ignore:
-				self.double_counter += self.double
-			
-			print('Roll a {die_1} and a {die_2}'.format(die_1=self.die_1, die_2=self.die_2))
-			
 class AuctionAgent_1:
 	def __init__(self, id):
 		self.id = id
@@ -32,7 +11,7 @@ class AuctionAgent_1:
 		return False
 	
 	def auctionProperty(self, state):
-		return 180
+		return 160
 	
 	def receiveState(self, state):
 		pass
@@ -48,7 +27,7 @@ class AuctionAgent_2:
 		return False
 
 	def auctionProperty(self, state):
-		return 200
+		return 170
 	
 	def receiveState(self, state):
 		pass
@@ -88,22 +67,18 @@ def compare_states(state1,state2):
 	
 def testcase_1(Adjudicator,AgentOne,AgentTwo):
 	print("Test #1 Description:")
-	print("AgentTwo will fall on States Avenue(Position 13) and will decide to Auction it.")
+	print("AgentTwo will fall on Vermont Avenue(Position 8) and will decide to auction it.")
+	print("AgentTwo will bid $90 and AgentOne $80")
 	print("The auction would be won by AgentTwo")
 	
-	input_state =  [19, [ 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1, 
-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 6], [240, 540], 3, {}]
-	
-	output_state = [20, [0, 0, 0, -1, 0, 0, 1, 0, -1, 1, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 1,
-	0, 0, 1, 0, 1, 0, -1, 0, 0], [21, 13], [240, 340], 4, {}]
-
-	
-	no_of_turns = 20
-	
-	adjudicator = Adjudicator(AgentOne,AgentTwo,input_state,Debug_Dice,no_of_turns)
-	adjudicator.runGame()
+	adjudicator = Adjudicator(AgentOne,AgentTwo)
+	adjudicator.runGame([[3,5]],None,None)
 	
 	final_state = adjudicator.state
+	
+	output_state = [1, [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0], [8, 0], [1500, 1330], 4, {}]
 	
 	result = compare_states(final_state,output_state)
 	

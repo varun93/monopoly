@@ -12,10 +12,11 @@ class Adjudicator:
 	
 	def __init__(self,AgentOne,AgentTwo):
 		
+		num_properties = len(constants.space_to_property_map)
 		
 		self.state =  [
 			0, #player turn; 0
-			np.zeros(30,dtype='int'), #player properties; 1
+			np.zeros(num_properties,dtype='int'), #player properties; 1
 			[0,0],#player's position; 2
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
@@ -405,6 +406,8 @@ class Adjudicator:
 				#The previous phase would be dice roll. But it doesn't make sense to set that back.
 				if previousPhaseNumber > self.DICE_ROLL:
 					state[self.PHASE_NUMBER_INDEX] = previousPhaseNumber
+				
+				state[self.PHASE_PAYLOAD_INDEX].pop('id',None)
 				break
 		
 		
@@ -1099,7 +1102,7 @@ class Adjudicator:
 		if isinstance(chanceCards, list) and len(chanceCards)>0:
 			self.chance.reinit(constants.chanceCards,chanceCards)
 		
-		if isinstance(diceThrows, list) and len(diceThrows)>0:
+		if isinstance(communityCards, list) and len(communityCards)>0:
 			self.chest.reinit(constants.communityChestCards,communityCards)
 			
 	def broadcastState(self,state):
@@ -1253,9 +1256,9 @@ class Adjudicator:
 		return action
 
 #Testing
-adjudicator = Adjudicator(Agent,Agent)
+#adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-adjudicator.runGame()
+#adjudicator.runGame()
