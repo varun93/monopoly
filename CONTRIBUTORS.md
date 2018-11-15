@@ -1,6 +1,6 @@
-Nodeunit contributors (sorted alphabetically)
+Monopoly Contributors (sorted alphabetically)
 ============================================
 
-* Varun Hegde
-* Sanjay Thomas
 * Pragesh Jagnani
+* Sanjay Thomas
+* Varun Hegde
