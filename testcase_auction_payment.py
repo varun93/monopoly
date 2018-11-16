@@ -45,6 +45,11 @@ def compare_states(state,expected_output):
 		return False
 	
 def testcase_auction(Adjudicator):
+	print("Test #1 Description:")
+	print("AgentTwo will fall on Vermont Avenue(Position 8) and will decide to auction it.")
+	print("AgentTwo will bid $170 and AgentOne $160")
+	print("The auction would be won by AgentTwo")
+	
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -76,10 +81,6 @@ def testcase_auction(Adjudicator):
 		
 		def receiveState(self, state):
 			pass
-	print("Test #1 Description:")
-	print("AgentTwo will fall on Vermont Avenue(Position 8) and will decide to auction it.")
-	print("AgentTwo will bid $170 and AgentOne $160")
-	print("The auction would be won by AgentTwo")
 	
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[3,5]],None,None)
@@ -103,7 +104,70 @@ def testcase_auction(Adjudicator):
 	print("")
 	
 	return result
+
+def testcase_payment(Adjudicator):
+	print("Test #2 Description:")
+	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $100.")
 	
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return False
+		
+		def auctionProperty(self, state):
+			return 160
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return False
+	
+		def auctionProperty(self, state):
+			return 170
+		
+		def receiveState(self, state):
+			pass
+	
+	adjudicator = Adjudicator(AgentOne,AgentTwo)
+	adjudicator.runGame([[3,1]],None,None)
+	
+	final_state = adjudicator.state
+	
+	expected_output = {
+		"cash": [1500-200,1500],
+		"position":[4,0]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else: 
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	print("")
+	
+	return result
+
+tests = [
+	testcase_auction,
+	testcase_payment
+]	
 
 #Execution
-testcase_auction(adjudicator.Adjudicator)
+for test in tests:
+	test(adjudicator.Adjudicator)
