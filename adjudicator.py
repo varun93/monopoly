@@ -97,9 +97,10 @@ class Adjudicator:
 		self.chance = Cards(constants.chanceCards)
 		
 	def notifyUI(self):
-		send = copy.deepcopy(self.state)
-		send = json.dumps(send, cls=NumpyEncoder)
-		self.socket.emit('game_state_updated', {'state': json.loads(send) } )
+		if self.socket is not None:
+			send = copy.deepcopy(self.state)
+			send = json.dumps(send, cls=NumpyEncoder)
+			self.socket.emit('game_state_updated', {'state': json.loads(send) } )
 			
 
 	def conductBSTM(self,state=[]):
