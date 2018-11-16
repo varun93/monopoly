@@ -33,7 +33,7 @@ class Adjudicator:
 		self.socket = socket
 		self.state =  [
 			0, #player turn; 0
-			[0]*30, #player properties; 1
+			[0]*42, #player properties; 1
 			[0,0],#player's position; 2
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
@@ -1295,4 +1295,5 @@ class Adjudicator:
 		return action
 
 #Testing
-#adjudicator = Adjudicator(Agent,Agent)
+adjudicator = Adjudicator(Agent,Agent)
+#adjudicator.runGame()
