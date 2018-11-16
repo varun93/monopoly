@@ -1,74 +1,84 @@
 import adjudicator
 
-class AuctionAgent_1:
-	def __init__(self, id):
-		self.id = id
-	
-	def getBMSTDecision(self, state):
-		return None
+PLAYER_TURN_INDEX = 0
+PROPERTY_STATUS_INDEX = 1
+PLAYER_POSITION_INDEX = 2
+PLAYER_CASH_INDEX = 3
+PHASE_NUMBER_INDEX = 4
+PHASE_PAYLOAD_INDEX = 5
 
-	def buyProperty(self, state):
-		return False
-	
-	def auctionProperty(self, state):
-		return 160
-	
-	def receiveState(self, state):
-		pass
-	
-class AuctionAgent_2:
-	def __init__(self, id):
-		self.id = id
-		
-	def getBMSTDecision(self, state):
-		return None
-		
-	def buyProperty(self, state):
-		return False
-
-	def auctionProperty(self, state):
-		return 170
-	
-	def receiveState(self, state):
-		pass
-
-def compare_states(state1,state2):
-	
-	if not isinstance(state1,type(state2)) or (len(state1)!=len(state2)):
-		print("Inconsistent type or length detected for First argument")
-		return false
-	else:
-		count = 0
-		
-		if (state1[0] == state2[0]): count+=1
-		
-		flag = True
-		for property,property2 in zip(state1[1],state2[1]):
-			if property != property2:
-				flag = False
-		if flag: count+=1
-		
-		if (state1[2][0] == state2[2][0]) and (state1[2][1] == state2[2][1]): count+=1
-		if (state1[3][0] == state2[3][0]) and (state1[3][1] == state2[3][1]): count+=1
-		if (state1[4] == state2[4]): count+=1
-		
-		if len(state1[5]) == len(state2[5]):
-			flag = True
-			for key,key2 in zip(state1[5],state2[5]):
-				if state1[5][key] != state2[5][key]:
-					 flag = False
-			if flag: count+=1
-		
-		if count == 6:
-			return True
+def compare_states(state,expected_output):
+	passCounter = 0
+	if 'turn' in expected_output:
+		if (state[PLAYER_TURN_INDEX] == expected_output['turn']):
+			passCounter+=1
 		else:
-			print( str(count)+"/"+str(len(state2))+" arguments are correct."  )
+			print("Turn number doesn't match")
+	
+	
+	if 'cash' in expected_output:
+		if (state[PLAYER_CASH_INDEX][0] == expected_output['cash'][0]) and (state[PLAYER_CASH_INDEX][1] == expected_output['cash'][1]):
+			passCounter+=1
+		else:
+			print("Cash doesn't match")
+	
+	if 'position' in expected_output:
+		if (state[PLAYER_POSITION_INDEX][0] == expected_output['position'][0]) and (state[PLAYER_POSITION_INDEX][1] == expected_output['position'][1]):
+			passCounter+=1
+		else:
+			print("Position doesn't match")
+			
+	if 'properties' in expected_output:
+		flag = True
+		for property in expected_output['properties']:
+			if state[PROPERTY_STATUS_INDEX][property[0]] != property[1]:
+				flag = False
+				print("")
+		if flag:
+			passCounter += 1
+		else:
+			print("Property"+str(property)+" don't match")
+			
+	if passCounter == len(expected_output):
+		return True
+	else:
+		return False
+	
+def testcase_auction(Adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return False
+		
+		def auctionProperty(self, state):
+			return 160
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
 			return False
 	
-def testcase_1(Adjudicator,AgentOne,AgentTwo):
+		def auctionProperty(self, state):
+			return 170
+		
+		def receiveState(self, state):
+			pass
 	print("Test #1 Description:")
 	print("AgentTwo will fall on Vermont Avenue(Position 8) and will decide to auction it.")
-	print("AgentTwo will bid $90 and AgentOne $80")
+	print("AgentTwo will bid $170 and AgentOne $160")
 	print("The auction would be won by AgentTwo")
 	
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
@@ -76,11 +86,13 @@ def testcase_1(Adjudicator,AgentOne,AgentTwo):
 	
 	final_state = adjudicator.state
 	
-	output_state = [1, [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0], [8, 0], [1500, 1330], 4, {}]
+	expected_output = {
+		"cash": [1500,1500-170],
+		"position":[8,0],
+		"properties":[(8,-1)]
+	}
 	
-	result = compare_states(final_state,output_state)
+	result = compare_states(final_state,expected_output)
 	
 	if result: print("Pass")
 	else:
@@ -94,4 +106,4 @@ def testcase_1(Adjudicator,AgentOne,AgentTwo):
 	
 
 #Execution
-testcase_1(adjudicator.Adjudicator,AuctionAgent_1,AuctionAgent_2)
+testcase_auction(adjudicator.Adjudicator)

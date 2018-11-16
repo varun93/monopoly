@@ -534,18 +534,18 @@ class Adjudicator:
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		propertyMapping = constants.space_to_property_map[playerPosition]
 		
-		actionOpponent = None
-		actionCurrentPlayer = None
-
+		winner = None
+		
 		try:
 			actionCurrentPlayer = int(actionCurrentPlayer)
-			actionOpponent = int(actionOpponent)
-			log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))
 		except:
-			log("auction","Exception caught while trying to parse Auction Responses")
-			#We will check if the current player's action is parsable.
-			#If it is, we give him the property.
-			#Else, even if opponent's action is not parsable, he will win the property.
+			actionCurrentPlayer = None
+		try:
+			actionOpponent = int(actionOpponent)
+		except:
+			actionOpponent = None
+		
+		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
 		
 		if actionOpponent is not None and actionCurrentPlayer is not None:
 			if actionCurrentPlayer > actionOpponent:
@@ -562,29 +562,28 @@ class Adjudicator:
 				#Only current player sent a valid response. He wins.
 				winner = current_player
 				winningBid = actionCurrentPlayer
-			else:
-				#Opponent wins
-				#NOTE: Opponent would win even if his response is not valid
-				#as long as current player's response is also not valid.
+			elif actionOpponent is not None:
 				winner = opponent
 				winningBid = actionOpponent
-					
-		log("auction","Player "+str(winner)+" won the Auction")
-		state[self.PLAYER_CASH_INDEX][winner] -= winningBid
-		if winner == 0:
-			state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
-		else:
-			state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
 		
-		#Receive State
-		phasePayload = {}
-		phasePayload['auctionWinner'] = winner
-		phasePayload['receiveState'] = True
-		state[self.PHASE_PAYLOAD_INDEX] = phasePayload
-		if winner == 1:
-			self.runPlayerOnStateWithTimeout(self.agentOne,state)
-		else:
-			self.runPlayerOnStateWithTimeout(self.agentTwo,state)
+		#Winner is None when both Agents send invalid responses
+		if winner is not None:
+			log("auction","Player "+str(winner)+" won the Auction")
+			state[self.PLAYER_CASH_INDEX][winner] -= winningBid
+			if winner == 0:
+				state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+			else:
+				state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+			
+			#Receive State
+			phasePayload = {}
+			phasePayload['auctionWinner'] = winner
+			phasePayload['receiveState'] = True
+			state[self.PHASE_PAYLOAD_INDEX] = phasePayload
+			if winner == 1:
+				self.runPlayerOnStateWithTimeout(self.agentOne,state)
+			else:
+				self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 		
 		#Clearing the payload as the auction has been completed
 		state[self.PHASE_PAYLOAD_INDEX] = {}
