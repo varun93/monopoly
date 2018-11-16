@@ -3,28 +3,44 @@ import dice
 import constants
 from cards import Cards
 from agent import Agent
-import numpy as np
 import copy
 import timeout_decorator
+import json
+import numpy as np
+
+class NumpyEncoder(json.JSONEncoder):
+	""" Special json encoder for numpy types """
+	def default(self, obj):
+		if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+			np.int16, np.int32, np.int64, np.uint8,
+			np.uint16, np.uint32, np.uint64)):
+			return int(obj)
+		elif isinstance(obj, (np.float_, np.float16, np.float32, 
+			np.float64)):
+			return float(obj)
+		elif isinstance(obj,(np.ndarray,)): #### This is the fix
+			return obj.tolist()
+
+
+		return json.JSONEncoder.default(self, obj)
 
 # make sure the state is not mutated
 class Adjudicator:
 	
-	def __init__(self,AgentOne,AgentTwo):
+	def __init__(self,AgentOne,AgentTwo,socket=None):
 		
 		num_properties = len(constants.space_to_property_map) + 2
-		
+		self.socket = socket
 		self.state =  [
 			0, #player turn; 0
-			np.zeros(num_properties,dtype='int'), #player properties; 1
+			[0]*30, #player properties; 1
 			[0,0],#player's position; 2
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
 			{}, #phase payload; 5
 		]
-		
+	
 		self.TOTAL_NO_OF_TURNS = 50
-			
 		self.DiceClass = dice.Dice
 
 		self.PLAYER_TURN_INDEX = 0
@@ -80,6 +96,12 @@ class Adjudicator:
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)
 		
+	def notifyUI(self):
+		send = copy.deepcopy(self.state)
+		send = json.dumps(send, cls=NumpyEncoder)
+		self.socket.emit('game_state_updated', {'state': json.loads(send) } )
+			
+
 	def conductBSTM(self,state=[]):
 
 		state = state or self.state
@@ -1196,6 +1218,8 @@ class Adjudicator:
 			
 			#Storing the state at the end of the turn
 			constants.state_history.append(copy.deepcopy(self.state))
+			# notify UI about the state change
+			self.notifyUI()
 			
 			log("turn","Turn "+str(self.state[self.PLAYER_TURN_INDEX])+" end")
 			
@@ -1271,8 +1295,3 @@ class Adjudicator:
 
 #Testing
 #adjudicator = Adjudicator(Agent,Agent)
-
-#adjudicator.conductBSTM(None)
-
-#It is currently agentOne's turn
-#adjudicator.runGame()
