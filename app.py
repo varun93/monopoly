@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_socketio import SocketIO
 from agent import Agent
 from adjudicator import Adjudicator
@@ -8,18 +8,12 @@ import json
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-
-def background_thread():
+@socketio.on('start_game')
+def startGame():
 	adjudicator = Adjudicator(Agent,Agent,socketio)
 	adjudicator.runGame()
 
-@app.route('/')
-def index():
-	socketio.start_background_task(target=background_thread)
-	return render_template('index.html')
-
-
-
 if __name__ == '__main__':
 	socketio.run(app, debug=True)
+
 
