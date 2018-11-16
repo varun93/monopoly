@@ -306,7 +306,7 @@ class Adjudicator:
 			currentPlayerCash = getPlayerCash(state,currentPlayer)
 			otherPlayerCash = getPlayerCash(state,otherPlayer)
 
-			if cashOffer > currentPlayer:
+			if cashOffer > currentPlayerCash:
 				return
 
 			if cashRequest > otherPlayerCash:
@@ -361,7 +361,15 @@ class Adjudicator:
 				for propertyRequest in propertiesRequest:
 					propertyStatus = getPropertyStatus(state,propertyRequest)
 					updatePropertyStatus(state,propertyRequest,propertyStatus*-1)
-
+			
+			#Receive State
+			phasePayload['tradeResponse'] = tradeResponse
+			phasePayload['receiveState'] = True
+			state[self.PHASE_PAYLOAD_INDEX] = phasePayload
+			if currentPlayer == 1:
+				self.runPlayerOnStateWithTimeout(self.agentOne,state)
+			else:
+				self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 
 		def takeBMSTAction(action):
 
@@ -525,6 +533,9 @@ class Adjudicator:
 		opponent = abs(current_player - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		propertyMapping = constants.space_to_property_map[playerPosition]
+		
+		actionOpponent = None
+		actionCurrentPlayer = None
 
 		try:
 			actionCurrentPlayer = int(actionCurrentPlayer)
@@ -535,51 +546,45 @@ class Adjudicator:
 			#We will check if the current player's action is parsable.
 			#If it is, we give him the property.
 			#Else, even if opponent's action is not parsable, he will win the property.
-			actionOpponent = None
-			actionCurrentPlayer = None
-
-			
+		
 		if actionOpponent is not None and actionCurrentPlayer is not None:
 			if actionCurrentPlayer > actionOpponent:
 				#Current Player wins the auction
-				if verbose['auction']:
-					log("auction","Player "+str(current_player)+" won the Auction")
-				
-				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
-				if current_player == 0:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
-				else:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+				winner = current_player
+				winningBid = actionCurrentPlayer
 			else:
 				#Opponent wins
-				log("auction","Player "+str(opponent)+" won the Auction")
-				
-				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
-				if current_player == 0:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
-				else:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+				winner = opponent
+				winningBid = actionOpponent
+					
 		else:
 			if actionCurrentPlayer is not None:
 				#Only current player sent a valid response. He wins.
-				log("auction","Player "+str(current_player)+" won the Auction")
-				
-				state[self.PLAYER_CASH_INDEX][current_player] -= actionCurrentPlayer
-				if current_player == 0:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
-				else:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+				winner = current_player
+				winningBid = actionCurrentPlayer
 			else:
 				#Opponent wins
 				#NOTE: Opponent would win even if his response is not valid
 				#as long as current player's response is also not valid.
-				log("auction","Player "+str(opponent)+" won the Auction")
-				
-				state[self.PLAYER_CASH_INDEX][opponent] -= actionOpponent
-				if current_player == 0:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
-				else:
-					state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+				winner = opponent
+				winningBid = actionOpponent
+					
+		log("auction","Player "+str(winner)+" won the Auction")
+		state[self.PLAYER_CASH_INDEX][winner] -= winningBid
+		if winner == 0:
+			state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
+		else:
+			state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = 1
+		
+		#Receive State
+		phasePayload = {}
+		phasePayload['auctionWinner'] = winner
+		phasePayload['receiveState'] = True
+		state[self.PHASE_PAYLOAD_INDEX] = phasePayload
+		if winner == 1:
+			self.runPlayerOnStateWithTimeout(self.agentOne,state)
+		else:
+			self.runPlayerOnStateWithTimeout(self.agentTwo,state)
 		
 		#Clearing the payload as the auction has been completed
 		state[self.PHASE_PAYLOAD_INDEX] = {}
@@ -598,6 +603,8 @@ class Adjudicator:
 			else:
 				state[self.PROPERTY_STATUS_INDEX][ propertyMapping ] = -1
 
+			log('buy',"Player "+str(current_player)+" has bought "+constants.board[playerPosition]['name'])
+			
 			#Clearing the payload as the buying has been completed
 			state[self.PHASE_PAYLOAD_INDEX] = {}
 			return True
@@ -622,7 +629,7 @@ class Adjudicator:
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 		
-		log('pay',"Player"+str(current_player)+" has to make a payment to "+receiver)
+		log('pay',"Player "+str(current_player)+" has to pay $"+str(debt)+" to the "+receiver)
 		
 		if playerCash >= debt:
 			state[self.PLAYER_CASH_INDEX][current_player] -= debt
@@ -698,6 +705,7 @@ class Adjudicator:
 		state[self.PHASE_PAYLOAD_INDEX]['dice_2'] = self.dice.die_2
 		state[self.PHASE_PAYLOAD_INDEX]['inJail'] = outOfJail #Implies player will not move this turn.
 		state[self.PHASE_PAYLOAD_INDEX]['anotherChance'] = self.dice.double #Implies player gets another round in the same turn.
+		state[self.PHASE_PAYLOAD_INDEX]['receiveState'] = True
 		self.runPlayerOnStateWithTimeout(player,state)
 		
 		"""If the player is still in Jail, end turn immediately."""
@@ -731,7 +739,10 @@ class Adjudicator:
 				return False
 			else:
 				return True
-			
+	
+	def isPositionProperty(self,position):
+		return (constants.board[position]['class'] == 'Street') or (constants.board[position]['class'] == 'Railroad') or (constants.board[position]['class'] == 'Utility')
+	
 	"""
 	Performed after dice is rolled and the player is moved to a new position.
 	Determines the effect of the position and action required from the player.
@@ -740,7 +751,7 @@ class Adjudicator:
 		current_player = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		
-		isProperty = (playerPosition in constants.space_to_property_map)
+		isProperty = self.isPositionProperty(playerPosition)
 		
 		state[self.PHASE_PAYLOAD_INDEX] = {} # Should this be done? Clearing of phase payload/properties?
 			
@@ -756,11 +767,13 @@ class Adjudicator:
 				#Chance
 				card = self.chance.draw_card()
 				
-				log("cards","Chance card "+str(card['id'])+" has been drawn")
+				log("cards","Chance card \""+str(card['content'])+"\" has been drawn")
 				
+				#ReceiveState
 				state[self.PHASE_NUMBER_INDEX] = self.CHANCE_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
+				state[self.PHASE_PAYLOAD_INDEX]['receiveState'] = True
 				self.runPlayerOnStateWithTimeout(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chance',player)
@@ -769,11 +782,13 @@ class Adjudicator:
 				#Community
 				card = self.chest.draw_card()
 				
-				log("cards","Community Chest card "+str(card['id'])+" has been drawn")
+				log("cards","Community Chest card \""+str(card['content'])+"\" has been drawn")
 				
+				#ReceiveState
 				state[self.PHASE_NUMBER_INDEX] = self.COMMUNITY_CHEST_CARD
 				state[self.PHASE_PAYLOAD_INDEX] = {}
 				state[self.PHASE_PAYLOAD_INDEX]['card_id'] = card['id']
+				state[self.PHASE_PAYLOAD_INDEX]['receiveState'] = True
 				self.runPlayerOnStateWithTimeout(player,state)
 				
 				self.handle_cards_pre_turn(state,card,'Chest',player)
@@ -1056,7 +1071,7 @@ class Adjudicator:
 		agentOnePropertyWorth = 0
 		agentTwoPropertyWorth = 0
 		
-		for i in range(len(state[self.PROPERTY_STATUS_INDEX])-2):
+		for i in constants.property_to_space_map:
 			#In 0 to 39 board position range
 			propertyValue =  state[self.PROPERTY_STATUS_INDEX][i]
 			propertyPosition = constants.board[ constants.property_to_space_map[ i ] ]
@@ -1155,7 +1170,6 @@ class Adjudicator:
 				
 				if notInJail:
 					
-					log("state","")
 					log("state","State after moving the player position and updating state with effect of the position:")
 					log("state",self.state)
 					
@@ -1169,13 +1183,12 @@ class Adjudicator:
 						opponentIndex = abs(current_playerIndex - 1)
 						winner = opponentIndex
 						break
-					
-					log("state","")
-					log("state","State at the end of the turn:")
-					log("state",self.state)
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
+				
+				log("state","State at the end of the turn:")
+				log("state",self.state)
 				
 				if (not self.dice.double):
 					break
@@ -1237,8 +1250,12 @@ class Adjudicator:
 		action = None
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
+		payload = state[self.PHASE_PAYLOAD_INDEX]
 		
-		if current_phase == self.BSTM:
+		if 'receiveState' in payload:
+			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
+			action = player.receiveState(state)
+		elif current_phase == self.BSTM:
 			action = player.getBMSTDecision(state)
 		elif current_phase == self.TRADE_OFFER:
 			action = player.respondTrade(state)
@@ -1250,15 +1267,13 @@ class Adjudicator:
 			pass
 		elif current_phase == self.JAIL:
 			action = player.jailDecision(state)
-		elif ( current_phase == self.DICE_ROLL ) or ( current_phase == self.CHANCE_CARD ) or ( current_phase == self.COMMUNITY_CHEST_CARD ):
-			action = player.receiveState(state)
-		 
+		
 		return action
 
 #Testing
-adjudicator = Adjudicator(Agent,Agent)
+#adjudicator = Adjudicator(Agent,Agent)
 
 #adjudicator.conductBSTM(None)
 
 #It is currently agentOne's turn
-adjudicator.runGame()
+#adjudicator.runGame()
