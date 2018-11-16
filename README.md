@@ -24,6 +24,11 @@ python testcases_x.py to run individual testcases.
 To run the entire suite, run:
 python testsuite.py
 
+To run the user interface
+cd react-user-interface
+npm install
+npm start
+
 ```
 
 ## App Structure
