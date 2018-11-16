@@ -101,7 +101,24 @@ class Adjudicator:
 			send = copy.deepcopy(self.state)
 			send = json.dumps(send, cls=NumpyEncoder)
 			self.socket.emit('game_state_updated', {'state': json.loads(send) } )
-			
+	
+	def updateState(self,indexToUpdate,valueToUpdate):
+		self.state = tuple([valueToUpdate if indexToUpdate == index else oldValue for index,oldValue in enumerate(self.state)]) 		
+
+	def transformState(self,state):
+
+		transformedState = []
+
+		for element in state:
+			if isinstance(element, list):
+				transformedState.append(tuple(element))
+			elif isinstance(element, dict):
+				transformedState.append(tuple([element[1] for element in element.items()]))
+			else:
+				transformedState.append(element)
+
+		return tuple(transformedState)
+		
 
 	def conductBSTM(self,state=[]):
 
@@ -1268,7 +1285,6 @@ class Adjudicator:
 			"""Change the return value here to ensure agent loose"""
 			return None
 
-
 	def runPlayerOnState(self,player,state):
 		
 		action = None
@@ -1278,22 +1294,22 @@ class Adjudicator:
 		
 		if 'receiveState' in payload:
 			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
-			action = player.receiveState(state)
+			action = player.receiveState(self.transformState(state))
 		elif current_phase == self.BSTM:
-			action = player.getBMSTDecision(state)
+			action = player.getBMSTDecision(self.transformState(state))
 		elif current_phase == self.TRADE_OFFER:
-			action = player.respondTrade(state)
+			action = player.respondTrade(self.transformState(state))
 		elif current_phase == self.BUYING:
-			action = player.buyProperty(state)
+			action = player.buyProperty(self.transformState(state))
 		elif current_phase == self.AUCTION:
-			action = player.auctionProperty(state)
+			action = player.auctionProperty(self.transformState(state))
 		elif current_phase == self.PAYMENT:
 			pass
 		elif current_phase == self.JAIL:
-			action = player.jailDecision(state)
+			action = player.jailDecision(self.transformState(state))
 		
 		return action
 
 #Testing
 adjudicator = Adjudicator(Agent,Agent)
-#adjudicator.runGame()
+adjudicator.runGame()
