@@ -680,7 +680,7 @@ class Adjudicator:
 	"""
 	def handle_payment(self,state,take=True):
 		
-		(debt,receiver) = state[self.DEBT_INDEX]
+		(receiver,debt) = state[self.DEBT_INDEX]
 		
 		if debt == 0:
 			#No payment to be made

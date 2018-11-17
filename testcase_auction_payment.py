@@ -6,6 +6,7 @@ PLAYER_POSITION_INDEX = 2
 PLAYER_CASH_INDEX = 3
 PHASE_NUMBER_INDEX = 4
 PHASE_PAYLOAD_INDEX = 5
+DEBT_INDEX = 6
 
 def compare_states(state,expected_output):
 	passCounter = 0
@@ -107,7 +108,7 @@ def testcase_auction(Adjudicator):
 
 def testcase_payment(Adjudicator):
 	print("Test #2 Description:")
-	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $100.")
+	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.")
 	
 	class AgentOne:
 		def __init__(self, id):
