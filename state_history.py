@@ -1,0 +1,2 @@
+global history
+history = []
