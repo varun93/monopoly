@@ -7,7 +7,7 @@ import copy
 import timeout_decorator
 import json
 import numpy as np
-import state_history
+
 
 class NumpyEncoder(json.JSONEncoder):
 	""" Special json encoder for numpy types """
@@ -39,7 +39,8 @@ class Adjudicator:
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
 			[0,0], #Debt
-			{}, #phase payload; 5
+			{}, #phase payload; 5,
+			[]
 		]
 	
 		self.TOTAL_NO_OF_TURNS = 50
@@ -52,6 +53,7 @@ class Adjudicator:
 		self.PHASE_NUMBER_INDEX = 4
 		self.PHASE_PAYLOAD_INDEX = 5
 		self.DEBT_INDEX = 6
+		self.STATE_HISTORY_INDEX = 7
 		
 		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
@@ -111,13 +113,7 @@ class Adjudicator:
 		else:
 			state[dimensionOneIndex][dimensionTwoIndex] = valueToUpdate
 		
-		id = state[self.PLAYER_TURN_INDEX] % 2
-		if 'id' in state[self.PHASE_PAYLOAD_INDEX]:
-			id = state[self.PHASE_PAYLOAD_INDEX]['id'] 
-		
-		# state_history.history.append((id,self.transformState(state)))
-		# self.state = tuple([valueToUpdate if indexToUpdate == index else oldValue for index,oldValue in enumerate(self.state)]) 		
-
+	
 	def transformState(self,state):
 
 		transformedState = []
@@ -409,6 +405,7 @@ class Adjudicator:
 			phasePayload['cashRequest'] = cashRequest 
 			phasePayload['propertiesRequest'] = propertiesRequest
 
+			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.TRADE_OFFER)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 
 			tradeResponse = self.runPlayerOnStateWithTimeout(otherAgent,state)
@@ -421,8 +418,8 @@ class Adjudicator:
 				currentPlayerCash += (cashRequest - cashOffer)
 				otherPlayerCash += (cashOffer - cashRequest)
 				
-				state[self.PLAYER_CASH_INDEX][currentPlayer] = currentPlayerCash 
-				state[self.PLAYER_CASH_INDEX][otherPlayer] = otherPlayerCash
+				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer,currentPlayerCash)
+				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
 				
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
@@ -1262,8 +1259,6 @@ class Adjudicator:
 				else:
 					log("dice","Rolled Doubles. Play again.")
 			
-			#Storing the state at the end of the turn
-			constants.state_history.append(copy.deepcopy(self.state))
 			# notify UI about the state change
 			self.notifyUI()
 			
@@ -1319,6 +1314,9 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
+
+		constants.state_history.append((player,self.transformState(state)))
+		self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
 		
 		if 'receiveState' in payload:
 			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
