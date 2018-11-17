@@ -691,8 +691,11 @@ class Adjudicator:
 		playerPosition = state[self.PLAYER_POSITION_INDEX][current_player]
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
 		opponentCash = state[self.PLAYER_CASH_INDEX][opponent]
+		receiverString = "bank"
+		if receiver>0:
+			receiverString = "Agent"+str(receiver)
 		
-		log('pay',"Player "+str(current_player)+" has to pay $"+str(debt)+" to the "+receiver)
+		log('pay',"Player "+str(current_player)+" has to pay $"+str(debt)+" to the "+receiverString)
 		
 		if playerCash >= debt:
 			self.updateState(state,self.PLAYER_CASH_INDEX,current_player,playerCash-debt)
