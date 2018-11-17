@@ -108,9 +108,12 @@ class Adjudicator:
 			state[dimensionOneIndex] = valueToUpdate
 		else:
 			state[dimensionOneIndex][dimensionTwoIndex] = valueToUpdate
-			
-		# id = state[self.PHASE_PAYLOAD_INDEX]['id'] or state[self.PLAYER_TURN_INDEX] % 2
-		# state_history.append((id,transformState(state)))
+		
+		id = state[self.PLAYER_TURN_INDEX] % 2
+		if 'id' in state[self.PHASE_PAYLOAD_INDEX]:
+			id = state[self.PHASE_PAYLOAD_INDEX]['id'] 
+		
+		# state_history.history.append((id,self.transformState(state)))
 		# self.state = tuple([valueToUpdate if indexToUpdate == index else oldValue for index,oldValue in enumerate(self.state)]) 		
 
 	def transformState(self,state):
