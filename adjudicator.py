@@ -7,6 +7,7 @@ import copy
 import timeout_decorator
 import json
 import numpy as np
+import state_history
 
 class NumpyEncoder(json.JSONEncoder):
 	""" Special json encoder for numpy types """
@@ -107,7 +108,9 @@ class Adjudicator:
 			state[dimensionOneIndex] = valueToUpdate
 		else:
 			state[dimensionOneIndex][dimensionTwoIndex] = valueToUpdate
-		
+			
+		# id = state[self.PHASE_PAYLOAD_INDEX]['id'] or state[self.PLAYER_TURN_INDEX] % 2
+		# state_history.append((id,transformState(state)))
 		# self.state = tuple([valueToUpdate if indexToUpdate == index else oldValue for index,oldValue in enumerate(self.state)]) 		
 
 	def transformState(self,state):
