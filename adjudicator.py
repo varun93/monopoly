@@ -1207,9 +1207,6 @@ class Adjudicator:
 			#Temporary measure to clear phase payload
 			self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,{})
 			
-			#Storing the state at the start of the turn
-			constants.state_history.append(copy.deepcopy(self.state))
-			
 			"""BSTM"""
 			self.conductBSTM(self.state)
 
@@ -1315,9 +1312,10 @@ class Adjudicator:
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
 
-		constants.state_history.append((player,self.transformState(state)))
-		self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
-		
+		constants.state_history.append((player.id,self.transformState(state)))
+		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
+		print(player.id)
+
 		if 'receiveState' in payload:
 			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
 			action = player.receiveState(self.transformState(state))
