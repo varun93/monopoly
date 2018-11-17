@@ -7,6 +7,7 @@ import copy
 import timeout_decorator
 import json
 import numpy as np
+from pylint.test.functional.unexpected_special_method_signature import Invalid
 
 class NumpyEncoder(json.JSONEncoder):
 	""" Special json encoder for numpy types """
@@ -37,6 +38,7 @@ class Adjudicator:
 			[0,0],#player's position; 2
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
+			[0,0], #Debt
 			{}, #phase payload; 5
 		]
 	
@@ -90,8 +92,8 @@ class Adjudicator:
 		"""
 		
 
-		self.agentOne = AgentOne(self.state)
-		self.agentTwo = AgentTwo(self.state)
+		self.agentOne = AgentOne(0)
+		self.agentTwo = AgentTwo(1)
 		self.dice = None
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)
@@ -102,8 +104,16 @@ class Adjudicator:
 			send = json.dumps(send, cls=NumpyEncoder)
 			self.socket.emit('game_state_updated', {'state': json.loads(send) } )
 			
+	def typecast(self,val,thetype,default):
+		try:
+			return thetype(val)
+		except:
+			return default
+			
 
 	def conductBSTM(self,state=[]):
+		MAX_HOUSES = 32
+		MAX_HOTELS = 12
 
 		state = state or self.state
 
@@ -115,26 +125,17 @@ class Adjudicator:
 		def updatePropertyStatus(state,propertyId,propertyStatus):
 			mappingId = constants.space_to_property_map[propertyId]
 			state[self.PROPERTY_STATUS_INDEX][mappingId] = propertyStatus
-		
-		def getCurrentPlayer(state):
-			#turn = state[self.PLAYER_TURN_INDEX] % 2
-			
-			#if turn == 0:
-			#	return 1
-			#else:
-			#	return 2
-			return state[self.PHASE_PAYLOAD_INDEX]['id']+1
 	
 		def getPlayerCash(state,player):
-			return state[self.PLAYER_CASH_INDEX][player-1]
+			return state[self.PLAYER_CASH_INDEX][player]
 	
 		# handleBMST
 		#currentPlayer = getCurrentPlayer(state)
 			
 		def rightOwner(propertyStatus, player):
-			if player == 1 and propertyStatus <= 0:
+			if player == 0 and propertyStatus <= 0:
 				return False
-			if player == 2 and propertyStatus  >= 0:
+			if player == 1 and propertyStatus  >= 0:
 				return False
 
 			return True
@@ -150,8 +151,8 @@ class Adjudicator:
 
 			return playerCash >= 0
 				
-		def validBuyingSequence(currentPlayer, properties):
-
+		def validBuyingSequence(currentPlayer, properties,sign):
+			
 			for propertyObject in properties:
 
 				(propertyId,constructions) = propertyObject
@@ -160,33 +161,80 @@ class Adjudicator:
 				if propertyStatus == 7 or propertyStatus == -7 or propertyStatus == 0:
 					return False
 
-				if constructions < 0 or constructions > 5:
-					return False
-
 				if not rightOwner(propertyStatus, currentPlayer):
+					return False
+				
+				if constructions<1 or constructions>5:
 					return False
 
 				currentConstructionsOnProperty = abs(propertyStatus) - 1 
 
-				if (currentConstructionsOnProperty + constructions) > 5:
+				if ((currentConstructionsOnProperty + sign*constructions) > 5) or ((currentConstructionsOnProperty + sign*constructions) < 0):
 					return False
 
 			return True
-
+		
+		def maxHousesHotelsCheck(state,properties,sign):
+			propertyStatus = state[self.PROPERTY_STATUS_INDEX]
+			
+			newNumberOfHotels=0
+			newNumberOfHouses=0
+			
+			for (propertyId,constructions) in properties:
+				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
+				
+			for status in propertyStatus:
+				if status>6 or status<0:
+					return False
+				elif status == 6:
+					newNumberOfHotels += 1
+				else:
+					newNumberOfHouses+=(status-1)
+				
+			if newNumberOfHouses>MAX_HOUSES:
+				return False
+			if newNumberOfHotels>MAX_HOTELS:
+				return False
+			
+			return True
+		
+		def monopolyCheck(state,properties,sign):
+			propertyStatus = state[self.PROPERTY_STATUS_INDEX]
+			for (propertyId,constructions) in properties:
+				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
+				
+			for (propertyId,constructions) in properties:
+				propertyStatus = propertyStatus[propertyId]
+				
+				space = constants.board[propertyId]
+				groupElements = space['monopoly_group_elements']
+				for groupElement in groupElements:
+					groupElementPropertyStatus = abs(getPropertyStatus(state,groupElement))
+					if groupElementPropertyStatus<(propertyStatus-1) or groupElementPropertyStatus>(propertyStatus+1):
+						return False
+			
+			return True
+						
 		# house can be built only if you own a monopoly of colours 
 		# double house can be built only if I have built one house in each colour 
 		# order of the tuples to be taken into account
-		def handleBuy(properties):
-			currentPlayer = getCurrentPlayer(state)
-			propertyConstructionSites = list(map(lambda x : x[0],filter(lambda x : x[1] > 0, properties)))
+		def handleBuy(agent,properties):
+			currentPlayer = agent.id
+			
+			invalidProperties = [x for x in properties if (x[1]<0) or (x[1]>5)]
+			if len(invalidProperties) > 0:
+				return False
 
 			# determine if the agent actually has the cash to buy all this?
 			# only then proceed; important for a future sceanrio
 			if not hasBuyingCapability(currentPlayer, properties):
-				return
+				return False
 
-			if not validBuyingSequence(currentPlayer,properties):
-				return
+			if not validBuyingSequence(currentPlayer,properties,1):
+				return False
+			
+			if not maxHousesHotelsCheck(state,properties,1):
+				return False
 
 			# ordering of this tuple becomes important  
 			for propertyObject in properties:
@@ -201,67 +249,49 @@ class Adjudicator:
 				if constructions and constructions > 0:
 					# does the agent own the all spaces in the group?
 					for groupElement in groupElements:
-						groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
-						if currentPlayer == 1 and groupElementPropertyStatus < 1:
-					 		return
-						if currentPlayer == 2 and groupElementPropertyStatus > -1:
-					 		return
-
-					# if the player wishes to construct more than a single house 
-					if constructions > 1 and currentConstructionsOnProperty < 2:
-
-						missingElementsInGroup = []
-							
-						for groupElement in groupElements:
-							groupElementPropertyStatus = getPropertyStatus(state,groupElement) 
-							if currentPlayer == 1 and (groupElementPropertyStatus == 1 or groupElementPropertyStatus == 7):
-								missingElementsInGroup.append(groupElement)
-							
-							if currentPlayer == 2 and (groupElementPropertyStatus == -1 or groupElementPropertyStatus == -7):
-								missingElementsInGroup.append(groupElement)
-
-						# not a convincing logic but the best I could think of
-						# examine the tuples if he wants to buy 
-						for groupElement in missingElementsInGroup:
-							if groupElement not in propertyConstructionSites:
-								return
-
+						groupElementPropertyStatus = getPropertyStatus(state,groupElement)
+						if currentPlayer == 0 and (groupElementPropertyStatus not in [1,2,3,4,5,6]):
+					 		return False
+						if currentPlayer == 1 and groupElementPropertyStatus not in [-1,-2,-3,-4,-5,6]:
+					 		return False
+					 	
+					if not monopolyCheck(state,properties,1):
+						return False
 
 					playerCash -= space['build_cost']*constructions
 					
 					if playerCash >= 0:
-
 						propertyStatus = constructions + currentConstructionsOnProperty + 1
 						
-						if currentPlayer == 2:
+						if currentPlayer == 1:
 							propertyStatus *= -1
 
 						updatePropertyStatus(state,propertyId,propertyStatus)
 						state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
-
 					else:
-						return
+						return False
+			return True
 
-		def handleSell(properties):
-			currentPlayer = getCurrentPlayer(state)
-			for propertyObject in properties:
+		def handleSell(agent,properties):
+			currentPlayer = agent.id
+			
+			if not validBuyingSequence(currentPlayer,properties,-1):
+				return False
+			
+			if not maxHousesHotelsCheck(state,properties,-1):
+				return False
+			
+			for (propertyId,constructions) in properties:
 
-				(propertyId,constructions) = propertyObject
 				space = constants.board[propertyId]
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
 				
-				if constructions == 0:
-					return
-				
-				if not rightOwner(propertyStatus,currentPlayer):
-					return
+				if not monopolyCheck(state,properties,-1):
+					return False
 
 				houseCount = abs(propertyStatus) - 1
 				
-				if houseCount < 1 or constructions > houseCount:
-					return
-
 				houseCount -= constructions 
 				playerCash += (space['build_cost']*0.5*constructions)
 
@@ -272,16 +302,15 @@ class Adjudicator:
 
 				updatePropertyStatus(state,propertyId,propertyStatus)
 				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = playerCash
-				
-				#First subtract what you can from the player debt.
-				#self.handle_payment(state)
+			
+			return True
 	
 		# agent mortages a particular property
 		# agent gets 50% of original money of the property 
 		# penalizing the agent by selling the property with constructions too;
 		# its a negligence on the part of the agent 
-		def handleMortgage(properties):
-			currentPlayer = getCurrentPlayer(state)
+		def handleMortgage(agent,properties):
+			currentPlayer = agent.id
 			for propertyId in properties:
 				space = constants.board[propertyId]
 				playerCash = getPlayerCash(state, currentPlayer)
@@ -291,7 +320,7 @@ class Adjudicator:
 				mortagePrice = propertyPrice/2
 				
 				if not rightOwner(propertyStatus,currentPlayer):
-					return
+					return False
 
 				if propertyStatus in [-7,7]:
 					propertyStatus = 1
@@ -304,7 +333,7 @@ class Adjudicator:
 					if playerCash >= unmortgagePrice:
 						playerCash -= unmortgagePrice 
 					else:
-						return
+						return False
 				else:
 					playerCash += mortagePrice
 					propertyStatus = 7
@@ -318,65 +347,57 @@ class Adjudicator:
 				#self.handle_payment(state)
 
 
-		def handleTrade(cashOffer,propertiesOffer,cashRequest,propertiesRequest):
-			currentPlayer = getCurrentPlayer(state)
+		def handleTrade(agent,otherAgent,cashOffer,propertiesOffer,cashRequest,propertiesRequest):
+			currentPlayer = agent.id
 			cashRequest = cashRequest or 0
 			cashOffer = cashOffer or 0
 
 			# very clumsy; we understand
-			otherPlayer = list(set([1,2]) - set([currentPlayer]))[0]
+			otherPlayer = abs(currentPlayer - 1)
 			
 			currentPlayerCash = getPlayerCash(state,currentPlayer)
 			otherPlayerCash = getPlayerCash(state,otherPlayer)
 
 			if cashOffer > currentPlayerCash:
-				return
+				return False
 
 			if cashRequest > otherPlayerCash:
-				return
+				return False
 
 			for propertyOffer in propertiesOffer:
 				propertyStatus = getPropertyStatus(state,propertyOffer)
 				if not rightOwner(propertyStatus,currentPlayer):
-					return
-
+					return False
 
 			# check if the other agent actually cash and properties to offer
 			for propertyRequest in propertiesRequest:
 				propertyStatus = getPropertyStatus(state,propertyRequest)
 				if not rightOwner(propertyStatus,otherPlayer):
-					return
-
+					return False
+				
 			# update the values in the payload index 
-			state[self.PHASE_NUMBER_INDEX] = self.TRADE_OFFER
-			phasePayload = state[self.PHASE_PAYLOAD_INDEX]
-			
-			if not phasePayload:
-				phasePayload = {}
-
+			phasePayload = {}
 			phasePayload['cashOffer'] = cashOffer 
 			phasePayload['propertiesOffer'] = propertiesOffer 
 			phasePayload['cashRequest'] = cashRequest 
 			phasePayload['propertiesRequest'] = propertiesRequest
 
+			state[self.PHASE_NUMBER_INDEX] = self.TRADE_OFFER
 			state[self.PHASE_PAYLOAD_INDEX] = phasePayload
 
-			tradeResponse = False
-
-			if currentPlayer == 1:
-				tradeResponse = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
-			else:
-				tradeResponse = self.runPlayerOnStateWithTimeout(self.agentOne,state)
-
+			tradeResponse = self.runPlayerOnStateWithTimeout(otherAgent,state)
+			
+			self.typecast(tradeResponse, bool, False)
+			
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
 
 				currentPlayerCash += (cashRequest - cashOffer)
 				otherPlayerCash += (cashOffer - cashRequest)
 				
-				state[self.PLAYER_CASH_INDEX][currentPlayer-1] = currentPlayerCash 
-				state[self.PLAYER_CASH_INDEX][otherPlayer-1] = otherPlayerCash
-
+				state[self.PLAYER_CASH_INDEX][currentPlayer] = currentPlayerCash 
+				state[self.PLAYER_CASH_INDEX][otherPlayer] = otherPlayerCash
+				
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
 					updatePropertyStatus(state,propertyOffer,propertyStatus*-1)
@@ -389,56 +410,58 @@ class Adjudicator:
 			phasePayload['tradeResponse'] = tradeResponse
 			phasePayload['receiveState'] = True
 			state[self.PHASE_PAYLOAD_INDEX] = phasePayload
-			if currentPlayer == 1:
-				self.runPlayerOnStateWithTimeout(self.agentOne,state)
-			else:
-				self.runPlayerOnStateWithTimeout(self.agentTwo,state)
+			self.runPlayerOnStateWithTimeout(agent,state)
+			
 
-		def takeBMSTAction(action):
+		def takeBMSTAction(agent,otherAgent,action):
 
 			intent = action[0]
 			
 			if intent == "B":
-				handleBuy(action[1])
+				handleBuy(agent,action[1])
 
 			elif intent == "S":
-				handleSell(action[1])
+				handleSell(agent,action[1])
 			
 			elif intent == "M":
-				handleMortgage(action[1])
+				handleMortgage(agent,action[1])
 
 			elif intent == "T":
-				handleTrade(action[1],action[2],action[3],action[4])
+				handleTrade(agent,otherAgent,action[1],action[2],action[3],action[4])
 
 		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
+		agentOneDone = False
+		agentTwoDone = False
+		
 		while True:
 			
 			state[self.PHASE_NUMBER_INDEX] = self.BSTM
-			state[self.PHASE_PAYLOAD_INDEX]['id'] = 0
 			
 			bstmActionAgentOne = self.runPlayerOnStateWithTimeout(self.agentOne,state)
-		
-			if bstmActionAgentOne is not None:
-				takeBMSTAction(bstmActionAgentOne)
-			
-			state[self.PHASE_PAYLOAD_INDEX]['id'] = 1
+			if (bstmActionAgentOne is not None) and not agentOneDone:
+				if not takeBMSTAction(self.agentOne,self.agentTwo,bstmActionAgentOne):
+					agentOneDone = True
+			else:
+				agentOneDone = True
 			
 			bstmActionAgentTwo = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
-
-			if bstmActionAgentTwo is not None:
-				takeBMSTAction(bstmActionAgentTwo)
+			if (bstmActionAgentTwo is not None) and not agentTwoDone:
+				#AgentTwo sent an erroneous input. Give it no more BSTM Turns.
+				if not takeBMSTAction(self.agentTwo,self.agentOne,bstmActionAgentTwo):
+					agentTwoDone = True
+			else:
+				agentTwoDone = True
 			
 			"""
 			Both players must be done with their BSTM
 			"""
-			if (bstmActionAgentOne is None) and (bstmActionAgentTwo is None):
+			if agentOneDone and agentTwoDone:
 				#Counter against case where we fall on an idle position and do BSTM.
 				#The previous phase would be dice roll. But it doesn't make sense to set that back.
 				if previousPhaseNumber > self.DICE_ROLL:
 					state[self.PHASE_NUMBER_INDEX] = previousPhaseNumber
-				
-				state[self.PHASE_PAYLOAD_INDEX].pop('id',None)
+					
 				break
 		
 		
@@ -562,32 +585,22 @@ class Adjudicator:
 		try:
 			actionCurrentPlayer = int(actionCurrentPlayer)
 		except:
-			actionCurrentPlayer = None
+			actionCurrentPlayer = 0
 		try:
 			actionOpponent = int(actionOpponent)
 		except:
-			actionOpponent = None
+			actionOpponent = 0
 		
 		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
 		
-		if actionOpponent is not None and actionCurrentPlayer is not None:
-			if actionCurrentPlayer > actionOpponent:
-				#Current Player wins the auction
-				winner = current_player
-				winningBid = actionCurrentPlayer
-			else:
-				#Opponent wins
-				winner = opponent
-				winningBid = actionOpponent
-					
+		if actionCurrentPlayer > actionOpponent:
+			#Current Player wins the auction
+			winner = current_player
+			winningBid = actionCurrentPlayer
 		else:
-			if actionCurrentPlayer is not None:
-				#Only current player sent a valid response. He wins.
-				winner = current_player
-				winningBid = actionCurrentPlayer
-			elif actionOpponent is not None:
-				winner = opponent
-				winningBid = actionOpponent
+			#Opponent wins
+			winner = opponent
+			winningBid = actionOpponent
 		
 		#Winner is None when both Agents send invalid responses
 		if winner is not None:
