@@ -7,7 +7,7 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      gameState: false,
+      gameState: [],
       endpoint: "http://127.0.0.1:5000"
     };
   }
@@ -20,8 +20,7 @@ class App extends Component {
     });
     // message handler for the when state changes
     this.socket.on("game_state_updated", gameState => {
-      console.log(gameState);
-      this.setState({ gameState });
+      this.setState({ gameState: gameState.state });
     });
   }
 

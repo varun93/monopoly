@@ -14,11 +14,12 @@ export default class Board extends Component {
     turn: 0
   };
 
-  componentWillReceiveProps(previousProps, nextProps) {
+  componentWillReceiveProps(nextProps) {
     //update the state with the incoming props for re-renders
     if (
-      JSON.stringify(previousProps.gameState) !==
-      JSON.stringify(nextProps.gameState)
+      nextProps.gameState &&
+      JSON.stringify(nextProps.gameState) !==
+        JSON.stringify(this.props.gameState)
     ) {
       const [
         turn,
@@ -26,7 +27,8 @@ export default class Board extends Component {
         playersPosition,
         playersCash,
         ...rest
-      ] = nextProps;
+      ] = nextProps.gameState;
+
       this.setState({
         playerOnePosition: playersPosition[0],
         playerTwoPosition: playersPosition[1],
