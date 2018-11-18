@@ -13,18 +13,24 @@ export default class Board extends Component {
           <Space space={properties[0]} />
 
           <div className="row horizontal-row bottom-row">
-            {properties.slice(1, 10).map(property => (
-              <Space space={property} />
-            ))}
+            {properties
+              .slice(1, 10)
+              .reverse()
+              .map(property => (
+                <Space space={property} />
+              ))}
           </div>
 
-          {/* JAIL */}
+          {/* Jail */}
           <Space space={properties[10]} />
 
           <div className="row vertical-row left-row">
-            {properties.slice(11, 20).map(property => (
-              <Space space={property} />
-            ))}
+            {properties
+              .slice(11, 20)
+              .reverse()
+              .map(property => (
+                <Space space={property} />
+              ))}
           </div>
 
           {/* Free Parking */}

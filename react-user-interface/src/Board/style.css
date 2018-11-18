@@ -93,7 +93,7 @@ h6 {
   grid-column: 1/9;
   grid-row: 4;
   font-size: 90px;
-  font-weight: 400;
+  font-weight: bold;
   letter-spacing: 12px;
 }
 
@@ -115,7 +115,7 @@ h6 {
 
 .label {
   text-align: center;
-  font-weight: 500;
+  font-weight: bold;
   letter-spacing: 3px;
   padding-bottom: 10px;
 }
@@ -187,14 +187,18 @@ h6 {
   height: 125px;
   width: 80px;
 }
+.name {
+  font-weight: bold;
+}
+
 .space .name,
 .space .instructions {
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 .space .price {
   font-size: 7px;
-  font-weight: 400;
+  font-weight: bold;
   padding-bottom: 5px;
 }
 
@@ -400,8 +404,8 @@ h6 {
   display: inline-block;
 }
 .income-tax .instructions {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 .luxury-tax .drawing {
