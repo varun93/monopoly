@@ -4,50 +4,108 @@ import properties from "./properties";
 import "./style.css";
 
 export default class Board extends Component {
+  state = {
+    properties,
+    game_history: [],
+    playerOnePosition: 3,
+    playerTwoPosition: 6,
+    playerOneCash: 0,
+    playerTwoCash: 0,
+    turn: 0
+  };
+
+  componentWillReceiveProps(previousProps, nextProps) {
+    //merge the incoming state with the properties to rerender
+    const [turn, properties, playersPosition, playersCash, ...rest] = nextProps;
+    this.setState({
+      playerOnePosition: playersPosition[0],
+      playerTwoPosition: playersPosition[1],
+      playerOneCash: playersCash[0],
+      playerTwoCash: playersCash[1],
+      turn: turn
+    });
+  }
+
   render() {
+    const { properties, playerOnePosition, playerTwoPosition } = this.state;
     return (
       <div className="table">
         <div className="board">
           <div className="center" />
           {/* GO */}
-          <Space space={properties[0]} />
+          <Space
+            playerOnePosition={playerOnePosition}
+            playerTwoPosition={playerTwoPosition}
+            index={0}
+            space={properties[0]}
+          />
 
           <div className="row horizontal-row bottom-row">
             {properties
               .slice(1, 10)
               .reverse()
-              .map(property => (
-                <Space space={property} />
+              .map((property, index) => (
+                <Space
+                  playerOnePosition={playerOnePosition}
+                  playerTwoPosition={playerTwoPosition}
+                  space={property}
+                  index={1 + index}
+                />
               ))}
           </div>
 
           {/* Jail */}
-          <Space space={properties[10]} />
+          <Space
+            playerOnePosition={playerOnePosition}
+            playerTwoPosition={playerTwoPosition}
+            space={properties[10]}
+            index={10}
+          />
 
           <div className="row vertical-row left-row">
             {properties
               .slice(11, 20)
               .reverse()
-              .map(property => (
-                <Space space={property} />
+              .map((property, index) => (
+                <Space
+                  playerOnePosition={playerOnePosition}
+                  playerTwoPosition={playerTwoPosition}
+                  space={property}
+                  index={11 + index}
+                />
               ))}
           </div>
 
           {/* Free Parking */}
-          <Space space={properties[20]} />
+          <Space space={properties[20]} index={20} />
 
           <div className="row horizontal-row top-row">
-            {properties.slice(21, 30).map(property => (
-              <Space space={property} />
+            {properties.slice(21, 30).map((property, index) => (
+              <Space
+                playerOnePosition={playerOnePosition}
+                playerTwoPosition={playerTwoPosition}
+                space={property}
+                index={21 + index}
+              />
             ))}
           </div>
 
           {/* Jail */}
-          <Space space={properties[30]} />
+          <Space
+            playerOnePosition={playerOnePosition}
+            playerTwoPosition={playerTwoPosition}
+            space={properties[30]}
+            index={30}
+          />
 
           <div className="row vertical-row right-row">
-            {properties.slice(31).map(property => (
-              <Space space={property} />
+            {properties.slice(31).map((property, index) => (
+              <Space
+                playerOnePosition={playerOnePosition}
+                playerTwoPosition={playerTwoPosition}
+                index={31 + index}
+                space={property}
+              />
             ))}
           </div>
         </div>

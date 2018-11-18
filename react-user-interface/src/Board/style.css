@@ -208,7 +208,7 @@ h6 {
   width: 100%;
 }
 .corner .name {
-  padding: 0;
+  padding: 15px;
 }
 
 .property .color-bar {
@@ -426,6 +426,13 @@ h6 {
 }
 
 .go .name {
-  font-size: 60px;
+  font-size: 30px;
   color: #f50c2b;
+}
+
+.player-one {
+  border: 2px solid red;
+}
+.player-two {
+  border: 2px solid blue;
 }
