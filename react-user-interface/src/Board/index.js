@@ -15,15 +15,26 @@ export default class Board extends Component {
   };
 
   componentWillReceiveProps(previousProps, nextProps) {
-    //merge the incoming state with the properties to rerender
-    const [turn, properties, playersPosition, playersCash, ...rest] = nextProps;
-    this.setState({
-      playerOnePosition: playersPosition[0],
-      playerTwoPosition: playersPosition[1],
-      playerOneCash: playersCash[0],
-      playerTwoCash: playersCash[1],
-      turn: turn
-    });
+    //update the state with the incoming props for re-renders
+    if (
+      JSON.stringify(previousProps.gameState) !==
+      JSON.stringify(nextProps.gameState)
+    ) {
+      const [
+        turn,
+        properties,
+        playersPosition,
+        playersCash,
+        ...rest
+      ] = nextProps;
+      this.setState({
+        playerOnePosition: playersPosition[0],
+        playerTwoPosition: playersPosition[1],
+        playerOneCash: playersCash[0],
+        playerTwoCash: playersCash[1],
+        turn
+      });
+    }
   }
 
   render() {
@@ -37,6 +48,7 @@ export default class Board extends Component {
             playerOnePosition={playerOnePosition}
             playerTwoPosition={playerTwoPosition}
             index={0}
+            key={0}
             space={properties[0]}
           />
 
@@ -50,6 +62,7 @@ export default class Board extends Component {
                   playerTwoPosition={playerTwoPosition}
                   space={property}
                   index={1 + index}
+                  key={index + 1}
                 />
               ))}
           </div>
@@ -60,6 +73,7 @@ export default class Board extends Component {
             playerTwoPosition={playerTwoPosition}
             space={properties[10]}
             index={10}
+            key={10}
           />
 
           <div className="row vertical-row left-row">
@@ -72,12 +86,13 @@ export default class Board extends Component {
                   playerTwoPosition={playerTwoPosition}
                   space={property}
                   index={11 + index}
+                  key={11 + index}
                 />
               ))}
           </div>
 
           {/* Free Parking */}
-          <Space space={properties[20]} index={20} />
+          <Space space={properties[20]} index={20} key={20} />
 
           <div className="row horizontal-row top-row">
             {properties.slice(21, 30).map((property, index) => (
@@ -86,6 +101,7 @@ export default class Board extends Component {
                 playerTwoPosition={playerTwoPosition}
                 space={property}
                 index={21 + index}
+                key={21 + index}
               />
             ))}
           </div>
@@ -96,6 +112,7 @@ export default class Board extends Component {
             playerTwoPosition={playerTwoPosition}
             space={properties[30]}
             index={30}
+            key={30}
           />
 
           <div className="row vertical-row right-row">
@@ -104,6 +121,7 @@ export default class Board extends Component {
                 playerOnePosition={playerOnePosition}
                 playerTwoPosition={playerTwoPosition}
                 index={31 + index}
+                key={31 + index}
                 space={property}
               />
             ))}
