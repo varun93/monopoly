@@ -50,11 +50,17 @@ h6 {
 .green {
   background: #41994e;
 }
+.brown {
+  background: brown;
+}
 
 .dark-blue {
   background: #5a6dba;
 }
 
+.pink {
+  background: pink;
+}
 .table {
   padding-left: 50px;
   padding-right: 50px;
@@ -260,8 +266,6 @@ h6 {
   grid-column: 1;
   grid-row: 11/12;
   display: grid;
-  grid-template-columns: repeat(10, 12.5px);
-  grid-template-rows: repeat(10, 12.5px);
   justify-content: center;
   align-items: center;
 }
@@ -415,4 +419,9 @@ h6 {
 .three-line-name {
   position: relative;
   top: 5px;
+}
+
+.go .name {
+  font-size: 60px;
+  color: #f50c2b;
 }

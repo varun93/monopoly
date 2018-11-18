@@ -152,9 +152,6 @@ class Adjudicator:
 		def getPlayerCash(state,player):
 			return state[self.PLAYER_CASH_INDEX][player]
 	
-		# handleBMST
-		#currentPlayer = getCurrentPlayer(state)
-			
 		def rightOwner(propertyStatus, player):
 			if player == 0 and propertyStatus <= 0:
 				return False
@@ -374,7 +371,6 @@ class Adjudicator:
 			cashRequest = cashRequest or 0
 			cashOffer = cashOffer or 0
 
-			# very clumsy; we understand
 			otherPlayer = abs(currentPlayer - 1)
 			
 			currentPlayerCash = getPlayerCash(state,currentPlayer)
@@ -385,6 +381,7 @@ class Adjudicator:
 
 			if cashRequest > otherPlayerCash:
 				return False
+
 
 			for propertyOffer in propertiesOffer:
 				propertyStatus = getPropertyStatus(state,propertyOffer)
@@ -399,9 +396,35 @@ class Adjudicator:
 				
 			# update the values in the payload index 
 
+			mortgagedProperties = filter(lambda propertyOffer : getPropertyStatus(state,propertiesOffer) in [-7,7], propertiesOffer)
+			restOffers = set(propertiesOffer) - set(mortgagedProperties)
+
+			for mortgagedProperty in mortgagedProperties:
+				space = constants.board[propertyId]
+				response = otherAgent.respondMortgage(mortgagedProperty)
+				propertyPrice = space['price']
+				mortagePrice = propertyPrice/2
+				
+				multiplier = 1
+
+				if otherPlayer == 1:
+					 multiplier -= 1
+
+				if response:
+					unmortgagePrice = mortagePrice + 0.1*mortagePrice
+					currentPlayerCash += unmortgagePrice
+					otherPlayerCash -= unmortgagePrice
+					updatePropertyStatus(state,mortgagedProperty,multiplier*1)
+					self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,currentPlayerCash)
+				else:
+					otherPlayerCash -= mortagePrice*0.1
+				
+				self.updateState(state,self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
+			
+					
 			phasePayload = {}
 			phasePayload['cashOffer'] = cashOffer 
-			phasePayload['propertiesOffer'] = propertiesOffer 
+			phasePayload['propertiesOffer'] = restOffers 
 			phasePayload['cashRequest'] = cashRequest 
 			phasePayload['propertiesRequest'] = propertiesRequest
 
@@ -1314,7 +1337,6 @@ class Adjudicator:
 
 		constants.state_history.append((player.id,self.transformState(state)))
 		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
-		print(player.id)
 
 		if 'receiveState' in payload:
 			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
