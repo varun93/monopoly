@@ -88,9 +88,7 @@ def testcase_buying_houses(Adjudicator):
 	print("\nTest Case: Buying of houses")
 	
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200-120-200,1500-140-200-150],
@@ -154,9 +152,7 @@ def testcase_selling_houses(Adjudicator):
 	
 	print("\nTest Case: Selling of houses")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200-120-200+50,1500-140-200-150],
@@ -227,9 +223,7 @@ def testcase_trade(Adjudicator):
 	
 	print("\nTest Case: Trade")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3],[2,3]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3],[2,3]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200-120-160+50,1500-140-200-150-50],
@@ -296,9 +290,7 @@ def testcase_buying_houses_invalid_1(Adjudicator):
 	
 	print("\nTest Case: Trying to buy houses without completing monopoly")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200,1500-140-200],
@@ -362,9 +354,7 @@ def testcase_buying_houses_invalid_2(Adjudicator):
 	
 	print("\nTest Case: Trying to buy an invalid number of houses in a completed monopoly")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200-120,1500-140-200-150],
@@ -395,6 +385,8 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 			
 			if (oriental == 1) and (vermont == 1) and (connecticut == 1):
 				return ("M", [6,8,9])
+			elif (oriental == 7):
+				return ("M", [6])
 			else:
 				return None
 	
@@ -426,14 +418,12 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 	
 	print("\nTest Case: Unmortgaging a property")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
-	
-	final_state = adjudicator.state
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
-		"cash": [1500-100-100+200-120+50+50+60,1500-140-200-150],
+		"cash": [1500-100-100+200-120+50+50+60-50-5,1500-140-200-150],
 		"position":[9,28],
-		"properties":[(6,7),(8,7),(9,7),(11,-1),(19,-1),(28,-1)]
+		"properties":[(6,1),(8,7),(9,7),(11,-1),(19,-1),(28,-1)]
 	}
 	
 	result = compare_states(final_state,expected_output)

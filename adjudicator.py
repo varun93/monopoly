@@ -177,7 +177,7 @@ class Adjudicator:
 				(propertyId,constructions) = propertyObject
 				propertyStatus = getPropertyStatus(state, propertyId)
 
-				if propertyStatus == 7 or propertyStatus == -7 or propertyStatus == 0:
+				if propertyStatus in [7,-7,0]:
 					return False
 
 				if not rightOwner(propertyStatus, currentPlayer):
@@ -219,9 +219,21 @@ class Adjudicator:
 			
 			return True
 		
+		#Checks consistency of the group elements for current buy/sell house operation
 		def monopolyCheck(state,properties,sign):
 			propertyStatus = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
 			for (propertyId,constructions) in properties:
+				space = constants.board[propertyId]
+				groupElements = space['monopoly_group_elements']
+				for groupElement in groupElements:
+					groupElementPropertyStatus = propertyStatus[groupElement]
+					#GroupElement's Property Status should be same sign as current property and should be > 0
+					if groupElementPropertyStatus*propertyStatus[propertyId] < 1:
+						return False
+					#House and Hotel related transactions can't take place when there are mortgaged properties in the current monopoly
+					if groupElementPropertyStatus in [7,-7]:
+						return False
+				
 				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
 				
 			for (propertyId,constructions) in properties:
@@ -230,6 +242,7 @@ class Adjudicator:
 				space = constants.board[propertyId]
 				groupElements = space['monopoly_group_elements']
 				for groupElement in groupElements:
+					#Checking if houses are being built or sold evenly
 					groupElementPropertyStatus = abs(propertyStatus[groupElement])
 					if groupElementPropertyStatus<(propertyStat-1) or groupElementPropertyStatus>(propertyStat+1):
 						return False
@@ -271,14 +284,6 @@ class Adjudicator:
 				currentConstructionsOnProperty = abs(propertyStatus) - 1 
 
 				if constructions and constructions > 0:
-					# does the agent own the all spaces in the group?
-					for groupElement in groupElements:
-						groupElementPropertyStatus = getPropertyStatus(state,groupElement)
-						if currentPlayer == 0 and (groupElementPropertyStatus not in [1,2,3,4,5,6]):
-					 		return False
-						if currentPlayer == 1 and groupElementPropertyStatus not in [-1,-2,-3,-4,-5,6]:
-					 		return False
-
 					playerCash -= space['build_cost']*constructions
 					
 					if playerCash >= 0:
@@ -290,6 +295,7 @@ class Adjudicator:
 						updatePropertyStatus(state,propertyId,propertyStatus)
 						self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 					else:
+						#Should never occur
 						return False
 			return True
 
@@ -326,43 +332,46 @@ class Adjudicator:
 			return True
 
 		# agent mortages a particular property
-		# agent gets 50% of original money of the property 
-		# penalizing the agent by selling the property with constructions too;
-		# its a negligence on the part of the agent 
+		# agent gets 50% of original money of the property
+		# If the user tries to unmortgage something and he doesn't have the money entire operation fails
+		# If user tries to mortgage an invalid property, entire operation fails
 		def handleMortgage(agent,properties):
 			currentPlayer = agent.id
+			playerCash = getPlayerCash(state, currentPlayer)
+			propertyStatusList = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
+			
 			for propertyId in properties:
 				space = constants.board[propertyId]
-				playerCash = getPlayerCash(state, currentPlayer)
-				propertyStatus = getPropertyStatus(state,propertyId)
-				
 				propertyPrice = space['price']
 				mortagePrice = propertyPrice/2
+				propertyStatus = propertyStatusList[propertyId]
+				
+				if (propertyStatus>1 and propertyStatus<7) or (propertyStatus<-1 and propertyStatus>-7):
+					return False
 				
 				if not rightOwner(propertyStatus,currentPlayer):
 					return False
 
 				if propertyStatus in [-7,7]:
-					propertyStatus = 1
-
-					if currentPlayer == 2:
-						propertyStatus *= -1
-
+					
 					unmortgagePrice = mortagePrice + mortagePrice*0.1
 
 					if playerCash >= unmortgagePrice:
 						playerCash -= unmortgagePrice 
 					else:
 						return False
+					
+					propertyStatus = 1
 				else:
 					playerCash += mortagePrice
 					propertyStatus = 7
 
-					if currentPlayer == 2:
+				if currentPlayer == 1:
 						propertyStatus *= -1
-				
-				updatePropertyStatus(state,propertyId,propertyStatus)
-				self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer-1,playerCash)
+				propertyStatusList[propertyId] = propertyStatus
+			
+			self.updateState(state,self.PROPERTY_STATUS_INDEX,None,propertyStatusList)	
+			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 				#First subtract what you can from the player debt.
 				#self.handle_payment(state)
 
@@ -1290,7 +1299,7 @@ class Adjudicator:
 		else:
 			log("win","It's a Tie!")
 		
-		return winner
+		return [winner,self.state]
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent
