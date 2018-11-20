@@ -436,6 +436,69 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 	
 	return result
 
+def testcase_invalid_mortgaging(Adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			newyork = state[PROPERTY_STATUS_INDEX][19]
+			waterworks = state[PROPERTY_STATUS_INDEX][28]
+			
+			if (newyork == -1):
+				return ("M", [19]) #Owned by opponent
+			elif (waterworks == -1):
+				return ("M", [29]) #Unowned Property
+			else:
+				return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Trying to mortgage opponent's property and an unowned property")
+	adjudicator = Adjudicator(AgentOne,AgentTwo)
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
+	
+	expected_output = {
+		"cash": [1500-100-100+200-120,1500-140-200-150],
+		"position":[9,28],
+		"properties":[(6,1),(8,1),(9,1),(11,-1),(19,-1),(28,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
 print("Testcase flow Description:")
 print("Turn 0:")
 print("AgentOne falls on Oriental Avenue and buys it.")
@@ -466,7 +529,8 @@ tests = [
 	testcase_trade,
 	testcase_buying_houses_invalid_1,
 	testcase_buying_houses_invalid_2,
-	testcase_mortgaging_unmortgaging
+	testcase_mortgaging_unmortgaging,
+	testcase_invalid_mortgaging
 ]
 
 #Execution
