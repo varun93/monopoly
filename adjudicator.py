@@ -701,9 +701,8 @@ class Adjudicator:
 		phasePayload = [winner]
 		
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-	
-		self.runPlayerOnStateWithTimeout(self.agentOne,state,receiveState=True)
-		self.runPlayerOnStateWithTimeout(self.agentTwo,state,receiveState=True)
+		
+		self.broadcastState(state)
 		
 		#Clearing the payload as the auction has been completed
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
@@ -808,6 +807,9 @@ class Adjudicator:
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 			action = self.runPlayerOnStateWithTimeout(player,state)
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
+			phasePayload = [outOfJail]
+			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
+			self.broadcastState(state)
 		
 		if not diceThrown:
 			diceThrow = None
@@ -825,9 +827,9 @@ class Adjudicator:
 		5. Player rolls doubles for 3 third time in a row in a single turn.
 		"""
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.DICE_ROLL)
-		phasePayload = [self.dice.die_1,self.dice.die_2,outOfJail,self.dice.double] #Should outOfJail be in another receiveState call?
+		phasePayload = [self.dice.die_1,self.dice.die_2,self.dice.double] #Should outOfJail be in another receiveState call?
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-		self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
+		self.broadcastState(state)
 		
 		"""If the player is still in Jail, end turn immediately."""
 		if not outOfJail:
@@ -854,7 +856,7 @@ class Adjudicator:
 			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,playerPosition)
 			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 
-			self.determine_position_effect(state,player)
+			self.determine_position_effect(state)
 			
 			if state[self.PHASE_NUMBER_INDEX] == self.JAIL:
 				return False
@@ -868,7 +870,7 @@ class Adjudicator:
 	Performed after dice is rolled and the player is moved to a new position.
 	Determines the effect of the position and action required from the player.
 	"""		
-	def determine_position_effect(self,state,player):
+	def determine_position_effect(self,state):
 		currentPlayer = state[self.PLAYER_TURN_INDEX]%2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 		
@@ -896,8 +898,8 @@ class Adjudicator:
 				
 				self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.CHANCE_CARD)
 				self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-				self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
-				self.handle_cards_pre_turn(state,card,'Chance',player)
+				self.broadcastState(state)
+				self.handle_cards_pre_turn(state,card,'Chance')
 				
 			elif constants.board[playerPosition]['class'] == 'Chest':
 				#Community
@@ -910,8 +912,8 @@ class Adjudicator:
 
 				self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.COMMUNITY_CHEST_CARD)
 				self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-				self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
-				self.handle_cards_pre_turn(state,card,'Chest',player)
+				self.broadcastState(state)
+				self.handle_cards_pre_turn(state,card,'Chest')
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
 				#Tax
@@ -998,7 +1000,7 @@ class Adjudicator:
 	"""
 	Method handles various events for Chance and Community cards
 	"""
-	def handle_cards_pre_turn(self,state,card,deck,player):
+	def handle_cards_pre_turn(self,state,card,deck):
 		currentPlayer = state[self.PLAYER_TURN_INDEX]%2
 		opponent = abs(currentPlayer - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
@@ -1150,7 +1152,7 @@ class Adjudicator:
 		self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 		# make further calls
 		if updateState:
-			self.determine_position_effect(state,player)
+			self.determine_position_effect(state)
 	
 	"""Function calls the relevant method of the Agent"""
 	def turn_effect(self,state,currentPlayer,opponent):
@@ -1237,7 +1239,8 @@ class Adjudicator:
 			self.chest.reinit(constants.communityChestCards,communityCards)
 			
 	def broadcastState(self,state):
-		pass
+		self.runPlayerOnStateWithTimeout(self.agentOne,state,receiveState=True)
+		self.runPlayerOnStateWithTimeout(self.agentTwo,state,receiveState=True)
 	
 	"""
 	Function to be called to start the game.
@@ -1338,7 +1341,7 @@ class Adjudicator:
 		else:
 			log("win","It's a Tie!")
 		
-		return [winner,self.state]
+		return [winner,self.transformState(self.state)]
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent
@@ -1366,24 +1369,26 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
+		
+		state = self.transformState(state)
 
-		constants.state_history.append((player.id,self.transformState(state)))
+		constants.state_history.append((player.id,state))
 		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
 
 		if receiveState:
-			action = player.receiveState(self.transformState(state))
+			action = player.receiveState(state)
 		elif current_phase == self.BSTM:
-			action = player.getBMSTDecision(self.transformState(state))
+			action = player.getBMSTDecision(state)
 		elif current_phase == self.TRADE_OFFER:
-			action = player.respondTrade(self.transformState(state))
+			action = player.respondTrade(state)
 		elif current_phase == self.BUYING:
-			action = player.buyProperty(self.transformState(state))
+			action = player.buyProperty(state)
 		elif current_phase == self.AUCTION:
-			action = player.auctionProperty(self.transformState(state))
+			action = player.auctionProperty(state)
 		elif current_phase == self.PAYMENT:
 			pass
 		elif current_phase == self.JAIL:
-			action = player.jailDecision(self.transformState(state))
+			action = player.jailDecision(state)
 		
 		return action
 
