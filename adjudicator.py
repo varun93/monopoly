@@ -92,6 +92,8 @@ class Adjudicator:
 		
 		self.AGENTONE = 1
 		self.AGENTTWO = 2
+		
+		self.JUST_VISTING = 10
 		"""
 		Phase Payload Description:
 		Buying Phase:
@@ -577,7 +579,7 @@ class Adjudicator:
 	2. Whether there was a dice throw while handling jail state.
 	"""
 	def handle_in_jail_state(self,state,action):
-		c = state[self.PLAYER_TURN_INDEX] % 2
+		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		
 		if isinstance(action, list) and len(action)>0:
 			if action[0] == 'P':
@@ -589,6 +591,7 @@ class Adjudicator:
 				if playerCash >= 50:
 					playerCash -= 50
 					self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
+					self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
 					return [True,False]
 			
 			elif action[0] == 'C':
@@ -608,6 +611,7 @@ class Adjudicator:
 							self.chance.deck.append(constants.chanceCards[7])
 						
 						self.updateState(state,self.PROPERTY_STATUS_INDEX,action[1],0)
+						self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
 						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
@@ -619,6 +623,7 @@ class Adjudicator:
 			#Player can go out
 			#Need to ensure that there is no second turn for the player in this turn.
 			self.dice.double = False
+			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
 			return [True,True]
 		
 		return [False,True]
