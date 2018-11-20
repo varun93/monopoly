@@ -43,7 +43,7 @@ def compare_states(state,expected_output):
 	else:
 		return False
 
-def testcase_buying_houses(Adjudicator):
+def testcase_buying_houses(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -89,7 +89,6 @@ def testcase_buying_houses(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -108,7 +107,7 @@ def testcase_buying_houses(Adjudicator):
 	
 	return result
 	
-def testcase_selling_houses(Adjudicator):
+def testcase_selling_houses(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -156,7 +155,6 @@ def testcase_selling_houses(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -175,7 +173,7 @@ def testcase_selling_houses(Adjudicator):
 	
 	return result
 
-def testcase_trade(Adjudicator):
+def testcase_trade(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -230,7 +228,6 @@ def testcase_trade(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3],[2,3]],None,[0])
 	
 	expected_output = {
@@ -249,7 +246,7 @@ def testcase_trade(Adjudicator):
 	
 	return result
 
-def testcase_buying_houses_invalid_1(Adjudicator):
+def testcase_buying_houses_invalid_1(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -300,7 +297,6 @@ def testcase_buying_houses_invalid_1(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6]],None,[0])
 	
 	expected_output = {
@@ -321,7 +317,7 @@ def testcase_buying_houses_invalid_1(Adjudicator):
 	
 	return result
 
-def testcase_buying_houses_invalid_2(Adjudicator):
+def testcase_buying_houses_invalid_2(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -367,7 +363,6 @@ def testcase_buying_houses_invalid_2(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -386,7 +381,7 @@ def testcase_buying_houses_invalid_2(Adjudicator):
 	
 	return result
 
-def testcase_mortgaging_unmortgaging(Adjudicator):
+def testcase_mortgaging_unmortgaging(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -434,7 +429,6 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -453,7 +447,7 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 	
 	return result
 
-def testcase_invalid_mortgaging(Adjudicator):
+def testcase_invalid_mortgaging(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -500,7 +494,6 @@ def testcase_invalid_mortgaging(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -519,7 +512,7 @@ def testcase_invalid_mortgaging(Adjudicator):
 	
 	return result
 
-def testcase_auction_for_invalid_action(Adjudicator):
+def testcase_auction_for_invalid_action(adjudicator):
 	print("\nTest Description:")
 	print("AgentOne will fall on Vermont Avenue(Position 8) and will decide to auction it.")
 	print("AgentTwo will bid $170 and AgentOne will pass Junk Value")
@@ -559,7 +552,6 @@ def testcase_auction_for_invalid_action(Adjudicator):
 
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	adjudicator.runGame(agentOne,agentTwo,[[3, 5]], None, None)
 
 	final_state = adjudicator.state
@@ -583,7 +575,7 @@ def testcase_auction_for_invalid_action(Adjudicator):
 
 	return result
 
-def testcase_trade_for_invalid_action(Adjudicator):
+def testcase_trade_for_invalid_action(adjudicator):
 	print("Test Description:")
 	print("AgentOne falls on Oriental Avenue and buys it.")
 	print("AgentTwo falls on St. Charles Avenue and buys it.")
@@ -634,7 +626,6 @@ def testcase_trade_for_invalid_action(Adjudicator):
 
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	adjudicator.runGame(agentOne,agentTwo,[[1, 5], [5, 6]], None, [0])
 
 	final_state = adjudicator.state
@@ -653,7 +644,7 @@ def testcase_trade_for_invalid_action(Adjudicator):
 
 	return result
 
-def testcase_buyproperty_for_invalid_action(Adjudicator):
+def testcase_buyproperty_for_invalid_action(adjudicator):
 	print("Test Description:")
 	print(
 		"AgentOne will fall on Vermont Avenue(Position 8) and will return an erroneous value. This should start an auction phase.")
@@ -694,7 +685,6 @@ def testcase_buyproperty_for_invalid_action(Adjudicator):
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	adjudicator.runGame(agentOne,agentTwo,[[3, 5]], None, None)
 
 	final_state = adjudicator.state
@@ -718,7 +708,7 @@ def testcase_buyproperty_for_invalid_action(Adjudicator):
 
 	return result
 
-def testcase_buying_invalid_two_hotels(Adjudicator):
+def testcase_buying_invalid_two_hotels(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -763,7 +753,6 @@ def testcase_buying_invalid_two_hotels(Adjudicator):
 	print("\nTest Case: Invalid buying of 2 hotels on two properties in a single monopoly")
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
 	expected_output = {
@@ -782,7 +771,7 @@ def testcase_buying_invalid_two_hotels(Adjudicator):
 	
 	return result
 
-def testcase_buying_max_houses(Adjudicator):
+def testcase_buying_max_houses(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
 			self.id = id
@@ -827,13 +816,73 @@ def testcase_buying_max_houses(Adjudicator):
 	print("\nTest Case: Buying of houses")
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	adjudicator = Adjudicator()
-	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,4]],None,[0])
 	
 	expected_output = {
-		"cash": [1500-100-100+200-120-600,1500-140-200-150],
+		"cash": [1500-100-100+200-120-600,1500-140-200-280],
 		"position":[9,28],
-		"properties":[(6,5),(8,5),(9,5),(11,-1),(19,-1),(28,-1)]
+		"properties":[(6,5),(8,5),(9,5),(11,-1),(19,-1),(29,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
+def testGettingOutOfJail(adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+		def jailDecision(self,state):
+			return ("P",)
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+	print("\nTest Case: Getting Out Of Jail")
+	p1 = AgentOne(0)
+	p2 = AgentTwo(1)
+	dice = [(6, 6), (6, 6),(6, 6), (2, 3),(4,2)]
+	
+	[winner, final_state] = adjudicator.runGame(p1, p2, dice, [], [])
+	
+	expected_output = {
+		"cash": [1500-150-240-50-180,1500-200],
+		"position":[16,5],
+		"properties":[(12,1),(24,1),(5,-1)]
 	}
 	
 	result = compare_states(final_state,expected_output)
@@ -870,6 +919,7 @@ print("AgentOne accepts.\n")
 
 print("This testcase validates the following:")
 
+
 tests = [
 	testcase_buying_houses,
 	testcase_selling_houses,
@@ -882,11 +932,13 @@ tests = [
 	testcase_trade_for_invalid_action,
 	testcase_buyproperty_for_invalid_action,
 	testcase_buying_invalid_two_hotels,
-	testcase_buying_max_houses
+	testcase_buying_max_houses,
+	testGettingOutOfJail
 ]
 
 #testcase_buying_houses_beyond_max
 
 #Execution
 for test in tests:
-	test(adjudicator.Adjudicator)
+	adjudicatorObj = adjudicator.Adjudicator()
+	test(adjudicatorObj)

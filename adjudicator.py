@@ -553,6 +553,9 @@ class Adjudicator:
 		
 		
 	def send_player_to_jail(self,state):
+		#Disable double
+		self.dice.double = False
+		
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		log("jail","Player "+str(currentPlayer)+" has been sent to jail")
 		self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,-1)
@@ -581,7 +584,7 @@ class Adjudicator:
 	def handle_in_jail_state(self,state,action):
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		
-		if isinstance(action, list) and len(action)>0:
+		if (isinstance(action, tuple) or isinstance(action, list)) and len(action)>0:
 			if action[0] == 'P':
 				"""
 				Should there be a BSTM here?
@@ -812,6 +815,11 @@ class Adjudicator:
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 			action = self.runPlayerOnStateWithTimeout(player,state)
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
+			
+			#In case player is out of jail, need to take position again
+			playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
+			playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
+			
 			phasePayload = [outOfJail]
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 			self.broadcastState(state)
