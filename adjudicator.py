@@ -8,7 +8,6 @@ import timeout_decorator
 import json
 import numpy as np
 
-
 class NumpyEncoder(json.JSONEncoder):
 	""" Special json encoder for numpy types """
 	def default(self, obj):
@@ -39,7 +38,7 @@ class Adjudicator:
 			[1500,1500], #player's cash; 3
 			0, #phase number; 4
 			[0,0], #Debt
-			{}, #phase payload; 5,
+			(), #phase payload; 5,
 			[]
 		]
 	
@@ -195,7 +194,8 @@ class Adjudicator:
 			return True
 		
 		def maxHousesHotelsCheck(state,properties,sign):
-			propertyStatus = state[self.PROPERTY_STATUS_INDEX]
+			#If we dont do this, it replaces the list inplace
+			propertyStatus = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
 			
 			newNumberOfHotels=0
 			newNumberOfHouses=0
@@ -204,11 +204,12 @@ class Adjudicator:
 				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
 				
 			for status in propertyStatus:
+				status = abs(status)
 				if status>6 or status<0:
 					return False
 				elif status == 6:
 					newNumberOfHotels += 1
-				else:
+				elif status>1:
 					newNumberOfHouses+=(status-1)
 				
 			if newNumberOfHouses>MAX_HOUSES:
@@ -219,18 +220,18 @@ class Adjudicator:
 			return True
 		
 		def monopolyCheck(state,properties,sign):
-			propertyStatus = state[self.PROPERTY_STATUS_INDEX]
+			propertyStatus = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
 			for (propertyId,constructions) in properties:
 				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
 				
 			for (propertyId,constructions) in properties:
-				propertyStatus = propertyStatus[propertyId]
+				propertyStat = propertyStatus[propertyId]
 				
 				space = constants.board[propertyId]
 				groupElements = space['monopoly_group_elements']
 				for groupElement in groupElements:
-					groupElementPropertyStatus = abs(getPropertyStatus(state,groupElement))
-					if groupElementPropertyStatus<(propertyStatus-1) or groupElementPropertyStatus>(propertyStatus+1):
+					groupElementPropertyStatus = abs(propertyStatus[groupElement])
+					if groupElementPropertyStatus<(propertyStat-1) or groupElementPropertyStatus>(propertyStat+1):
 						return False
 			
 			return True
@@ -255,6 +256,9 @@ class Adjudicator:
 			
 			if not maxHousesHotelsCheck(state,properties,1):
 				return False
+			
+			if not monopolyCheck(state,properties,1):
+				return False
 
 			# ordering of this tuple becomes important  
 			for propertyObject in properties:
@@ -274,9 +278,6 @@ class Adjudicator:
 					 		return False
 						if currentPlayer == 1 and groupElementPropertyStatus not in [-1,-2,-3,-4,-5,6]:
 					 		return False
-					 	
-					if not monopolyCheck(state,properties,1):
-						return False
 
 					playerCash -= space['build_cost']*constructions
 					
@@ -301,14 +302,14 @@ class Adjudicator:
 			if not maxHousesHotelsCheck(state,properties,-1):
 				return False
 			
+			if not monopolyCheck(state,properties,-1):
+				return False
+			
 			for (propertyId,constructions) in properties:
 
 				space = constants.board[propertyId]
 				playerCash = getPlayerCash(state, currentPlayer)
 				propertyStatus = getPropertyStatus(state,propertyId)
-				
-				if not monopolyCheck(state,properties,-1):
-					return False
 
 				houseCount = abs(propertyStatus) - 1
 				
@@ -396,8 +397,8 @@ class Adjudicator:
 				
 			# update the values in the payload index 
 
-			mortgagedProperties = filter(lambda propertyOffer : getPropertyStatus(state,propertiesOffer) in [-7,7], propertiesOffer)
-			restOffers = set(propertiesOffer) - set(mortgagedProperties)
+			mortgagedProperties = filter(lambda propertyOffer : getPropertyStatus(state,propertyOffer) in [-7,7], propertiesOffer)
+			restOffers = list(set(propertiesOffer) - set(mortgagedProperties))
 
 			for mortgagedProperty in mortgagedProperties:
 				space = constants.board[propertyId]
@@ -422,11 +423,7 @@ class Adjudicator:
 				self.updateState(state,self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
 			
 					
-			phasePayload = {}
-			phasePayload['cashOffer'] = cashOffer 
-			phasePayload['propertiesOffer'] = restOffers 
-			phasePayload['cashRequest'] = cashRequest 
-			phasePayload['propertiesRequest'] = propertiesRequest
+			phasePayload = [cashOffer,restOffers,cashRequest,propertiesRequest]
 
 			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.TRADE_OFFER)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
@@ -453,11 +450,10 @@ class Adjudicator:
 					updatePropertyStatus(state,propertyRequest,propertyStatus*-1)
 			
 			#Receive State
-			phasePayload['tradeResponse'] = tradeResponse
-			phasePayload['receiveState'] = True
+			phasePayload.insert(0,tradeResponse)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 			
-			self.runPlayerOnStateWithTimeout(agent,state)
+			self.runPlayerOnStateWithTimeout(agent,state,receiveState=True)
 
 		def takeBMSTAction(agent,otherAgent,action):
 
@@ -606,8 +602,8 @@ class Adjudicator:
 		#Unowned
 		#Below mentioned property needed if the auction is not blind
 		#state[self.PHASE_PAYLOAD_INDEX]['subphase'] = "start"
-		phasePayload = state[self.PHASE_PAYLOAD_INDEX] or {}
-		phasePayload['property'] = playerPosition
+		phasePayload = state[self.PHASE_PAYLOAD_INDEX] or []
+		phasePayload.append(playerPosition)
 	
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.AUCTION)
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
@@ -657,17 +653,15 @@ class Adjudicator:
 		self.updateState(state,self.PROPERTY_STATUS_INDEX,propertyMapping,propertyStatus)	
 		
 		#Receive State
-		phasePayload = {}
-		phasePayload['auctionWinner'] = winner
-		phasePayload['receiveState'] = True
+		phasePayload = [winner]
 		
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 	
-		self.runPlayerOnStateWithTimeout(self.agentOne,state)
-		self.runPlayerOnStateWithTimeout(self.agentTwo,state)
+		self.runPlayerOnStateWithTimeout(self.agentOne,state,receiveState=True)
+		self.runPlayerOnStateWithTimeout(self.agentTwo,state,receiveState=True)
 		
 		#Clearing the payload as the auction has been completed
-		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,{})
+		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 
 	
 	"""
@@ -689,7 +683,7 @@ class Adjudicator:
 			log('buy',"Player "+str(current_player)+" has bought "+constants.board[playerPosition]['name'])
 			
 			#Clearing the payload as the buying has been completed
-			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,{})
+			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 			return True
 		
 		#This would indicate going to Auction
@@ -766,7 +760,7 @@ class Adjudicator:
 		#Jail
 		if playerPosition == -1:
 			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.JAIL)
-			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,{})
+			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 			action = self.runPlayerOnStateWithTimeout(player,state)
 			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
 		
@@ -786,14 +780,9 @@ class Adjudicator:
 		5. Player rolls doubles for 3 third time in a row in a single turn.
 		"""
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.DICE_ROLL)
-		phasePayload = {}
-		phasePayload['dice_1'] = self.dice.die_1
-		phasePayload['dice_2'] = self.dice.die_2
-		phasePayload['outOfJail'] = outOfJail #Implies player will not move this turn.
-		phasePayload['anotherChance'] = self.dice.double #Implies player gets another round in the same turn.
-		phasePayload['receiveState'] = True
+		phasePayload = [self.dice.die_1,self.dice.die_2,outOfJail,self.dice.double] #Should outOfJail be in another receiveState call?
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-		self.runPlayerOnStateWithTimeout(player,state)
+		self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
 		
 		"""If the player is still in Jail, end turn immediately."""
 		if not outOfJail:
@@ -858,13 +847,11 @@ class Adjudicator:
 				log("cards","Chance card \""+str(card['content'])+"\" has been drawn")
 				
 				#ReceiveState
-				phasePayload = {}
-				phasePayload['card_id'] = card['id']
-				phasePayload['receiveState'] = True
+				phasePayload = [card['id']]
 				
 				self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.CHANCE_CARD)
 				self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-				self.runPlayerOnStateWithTimeout(player,state)
+				self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
 				self.handle_cards_pre_turn(state,card,'Chance',player)
 				
 			elif constants.board[playerPosition]['class'] == 'Chest':
@@ -874,13 +861,11 @@ class Adjudicator:
 				log("cards","Community Chest card \""+str(card['content'])+"\" has been drawn")
 				
 				#ReceiveState
-				phasePayload = {}
-				phasePayload['card_id'] = card['id']
-				phasePayload['receiveState'] = True
+				phasePayload = [card['id']]
 
 				self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.COMMUNITY_CHEST_CARD)
 				self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-				self.runPlayerOnStateWithTimeout(player,state)
+				self.runPlayerOnStateWithTimeout(player,state,receiveState=True)
 				self.handle_cards_pre_turn(state,card,'Chest',player)
 			   
 			elif constants.board[playerPosition]['class'] == 'Tax':
@@ -909,8 +894,7 @@ class Adjudicator:
 		if propertyValue == 0:
 			#Unowned
 			output['phase'] = self.BUYING
-			output['phase_properties'] = {}
-			output['phase_properties']['property'] = playerPosition
+			output['phase_properties'] = [playerPosition]
 			output['debt'] = (0,constants.board[playerPosition]['price'])
 		else:
 			#Check if owned by opponent
@@ -956,7 +940,7 @@ class Adjudicator:
 					rent = constants.board[playerPosition]['rent_hotel']
 				
 				output['phase'] = self.PAYMENT
-				output['phase_properties'] = {}
+				output['phase_properties'] = []
 				output['debt'] = (opponent+1,rent)
 			
 			else:
@@ -979,7 +963,7 @@ class Adjudicator:
 		propertyStatus = state[self.PROPERTY_STATUS_INDEX][current_player]
 		updateState = False
 
-		phasePayload = {}
+		phasePayload = []
 		
 		if card['type'] == 1:
 			#What should we do if we are receiving cash here? Should there be a BSTM?
@@ -1085,7 +1069,7 @@ class Adjudicator:
 					#Unowned
 					phaseNumber = self.BUYING
 					debt = (0,constants.board[playerPosition]['price'])
-					phasePayload['property'] = playerPosition
+					phasePayload.append(playerPosition)
 				else:
 					#Check if owned by opponent
 					if current_player == 0:
@@ -1228,7 +1212,7 @@ class Adjudicator:
 			log("turn","Turn "+str(self.state[self.PLAYER_TURN_INDEX])+" start")
 			
 			#Temporary measure to clear phase payload
-			self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,{})
+			self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,[])
 			
 			"""BSTM"""
 			self.conductBSTM(self.state)
@@ -1320,15 +1304,15 @@ class Adjudicator:
 	"""
 
 	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
-	def runPlayerOnStateWithTimeout(self, player,state):
+	def runPlayerOnStateWithTimeout(self, player,state,receiveState=False):
 		try:
-			return self.runPlayerOnState(player,state)
+			return self.runPlayerOnState(player,state,receiveState)
 		except TimeoutError:
 			print("Agent Timed Out")
 			"""Change the return value here to ensure agent loose"""
 			return None
 
-	def runPlayerOnState(self,player,state):
+	def runPlayerOnState(self,player,state,receiveState=False):
 		
 		action = None
 		
@@ -1338,8 +1322,7 @@ class Adjudicator:
 		constants.state_history.append((player.id,self.transformState(state)))
 		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
 
-		if 'receiveState' in payload:
-			state[self.PHASE_PAYLOAD_INDEX].pop('receiveState',None)
+		if receiveState:
 			action = player.receiveState(self.transformState(state))
 		elif current_phase == self.BSTM:
 			action = player.getBMSTDecision(self.transformState(state))

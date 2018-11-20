@@ -85,6 +85,8 @@ def testcase_buying_houses(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
+	print("\nTest Case: Buying of houses")
+	
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
@@ -150,6 +152,7 @@ def testcase_selling_houses(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
+	print("\nTest Case: Selling of houses")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
@@ -220,8 +223,9 @@ def testcase_trade(Adjudicator):
 		def receiveState(self, state):
 			phase = state[PHASE_NUMBER_INDEX]
 			if phase == 1:#Trade Offer Phase
-				self.trade_status = state[PHASE_PAYLOAD_INDEX]['tradeResponse']
+				(self.trade_status,cashOffer,propertiesOffer,cashRequest,propertiesRequest) = state[PHASE_PAYLOAD_INDEX]
 	
+	print("\nTest Case: Trade")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3],[2,3]],None,[0])
 	
@@ -290,6 +294,7 @@ def testcase_buying_houses_invalid_1(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
+	print("\nTest Case: Trying to buy houses without completing monopoly")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6]],None,[0])
 	
@@ -355,6 +360,7 @@ def testcase_buying_houses_invalid_2(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
+	print("\nTest Case: Trying to buy an invalid number of houses in a completed monopoly")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
@@ -418,6 +424,7 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
+	print("\nTest Case: Unmortgaging a property")
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
 	
@@ -438,14 +445,6 @@ def testcase_mortgaging_unmortgaging(Adjudicator):
 		print(final_state)
 	
 	return result
-
-print("This testcase validates the following:")
-print("a) Buying of houses")
-print("b) Selling of houses")
-print("c) Trade")
-print("d) Trying to buy houses without completing monopoly")
-print("e) Trying to buy an invalid number of houses in a completed monopoly")
-print("f) Unmortgaging a property")
 
 print("Testcase flow Description:")
 print("Turn 0:")
@@ -469,6 +468,7 @@ print("AgentOne falls on Virginia Avenue and buys it.")
 print("During the post turn BSTM, AgentTwo proposes a trade of $50 and New York Avenue for Virginia Avenue.")
 print("AgentOne accepts.\n")
 
+print("This testcase validates the following:")
 
 tests = [
 	testcase_buying_houses,
