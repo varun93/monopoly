@@ -83,8 +83,10 @@ def testcase_auction(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
-	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[3,5]],None,None)
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	adjudicator = Adjudicator()
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[3,5]],None,None)
 	
 	final_state = adjudicator.state
 	
@@ -142,8 +144,10 @@ def testcase_payment(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
-	adjudicator = Adjudicator(AgentOne,AgentTwo)
-	adjudicator.runGame([[3,1]],None,None)
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	adjudicator = Adjudicator()
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[3,1]],None,None)
 	
 	final_state = adjudicator.state
 	
