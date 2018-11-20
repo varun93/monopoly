@@ -60,6 +60,11 @@ class Adjudicator:
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
 		
+		self.MAX_HOUSES = 32
+		self.MAX_HOTELS = 12
+		self.remaining_houses = 32
+		self.remaining_hotels = 12
+		
 		"""
 		Phases
 		Initial Idea:
@@ -136,10 +141,11 @@ class Adjudicator:
 			return default
 
 	def conductBSTM(self,state=[]):
-		MAX_HOUSES = 32
-		MAX_HOTELS = 12
 
 		state = state or self.state
+		buy_contention = False
+		buy_contention_cash = None
+		buy_contention_properties = None
 
 		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
@@ -195,31 +201,43 @@ class Adjudicator:
 
 			return True
 		
+		#Checks if the max number of houses and hotels in the game have been exceeded
+		#Returns the number of houses left
 		def maxHousesHotelsCheck(state,properties,sign):
-			#If we dont do this, it replaces the list inplace
-			propertyStatus = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
-			
 			newNumberOfHotels=0
 			newNumberOfHouses=0
 			
 			for (propertyId,constructions) in properties:
-				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
+				propertyStatus = abs(getPropertyStatus(state,propertyId))-1
+				newPropertyStatus = propertyStatus + sign*constructions
 				
-			for status in propertyStatus:
-				status = abs(status)
-				if status>6 or status<0:
-					return False
-				elif status == 6:
-					newNumberOfHotels += 1
-				elif status>1:
-					newNumberOfHouses+=(status-1)
-				
-			if newNumberOfHouses>MAX_HOUSES:
-				return False
-			if newNumberOfHotels>MAX_HOTELS:
-				return False
+				#Selling a hotel and possibly some houses
+				if propertyStatus==5 and newPropertyStatus<5:
+					newNumberOfHotels-=1
+					newNumberOfHouses+=newPropertyStatus
+				#Buying a hotel
+				elif newPropertyStatus==5 and propertyStatus<5:
+					newNumberOfHotels+=1
+					newNumberOfHouses-=propertyStatus
+				else:
+					#There are no hotel constructions
+					newNumberOfHouses+= (newPropertyStatus-propertyStatus)
 			
-			return True
+			house_count = (self.remaining_houses - newNumberOfHouses)
+			if house_count>self.MAX_HOUSES or house_count<0:
+				house_count = -1
+			else:
+				self.remaining_houses-=newNumberOfHouses
+				house_count = self.remaining_houses
+			
+			hotel_count = (self.remaining_hotels - newNumberOfHotels)
+			if hotel_count>self.MAX_HOTELS or hotel_count<0:
+				hotel_count = -1
+			else:
+				self.remaining_hotels-=newNumberOfHotels
+				hotel_count = self.remaining_hotels
+			
+			return [house_count,hotel_count]
 		
 		#Checks consistency of the group elements for current buy/sell house operation
 		def monopolyCheck(state,properties,sign):
@@ -263,28 +281,29 @@ class Adjudicator:
 			if len(invalidProperties) > 0:
 				return False
 
+			if not validBuyingSequence(currentPlayer,properties,1):
+				return False
+
 			# determine if the agent actually has the cash to buy all this?
 			# only then proceed; important for a future sceanrio
 			if not hasBuyingCapability(currentPlayer, properties):
 				return False
-
-			if not validBuyingSequence(currentPlayer,properties,1):
-				return False
 			
-			if not maxHousesHotelsCheck(state,properties,1):
+			[remaining_houses,remaining_hotels] = maxHousesHotelsCheck(state,properties,1)
+			if remaining_houses==-1 or remaining_hotels==-1:
 				return False
 			
 			if not monopolyCheck(state,properties,1):
 				return False
-
+			
+			playerCash = getPlayerCash(state, currentPlayer)
+			propertyStatusList = [ prop for prop in state[self.PROPERTY_STATUS_INDEX] ]
+			
 			# ordering of this tuple becomes important  
 			for propertyObject in properties:
-
 				(propertyId,constructions) = propertyObject
 				space = constants.board[propertyId]
-				groupElements = space['monopoly_group_elements']
-				playerCash = getPlayerCash(state, currentPlayer)
-				propertyStatus = getPropertyStatus(state, propertyId)
+				propertyStatus = propertyStatusList[propertyId]
 				currentConstructionsOnProperty = abs(propertyStatus) - 1 
 
 				if constructions and constructions > 0:
@@ -292,15 +311,16 @@ class Adjudicator:
 					
 					if playerCash >= 0:
 						propertyStatus = constructions + currentConstructionsOnProperty + 1
-
+						
 						if currentPlayer == 1:
 							propertyStatus *= -1
-
-						updatePropertyStatus(state,propertyId,propertyStatus)
-						self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
+						
+						propertyStatusList[propertyId] = propertyStatus
 					else:
 						#Should never occur
 						return False
+			self.updateState(state,self.PROPERTY_STATUS_INDEX,None,propertyStatusList)
+			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 			return True
 
 		def handleSell(agent,properties):
@@ -309,7 +329,8 @@ class Adjudicator:
 			if not validBuyingSequence(currentPlayer,properties,-1):
 				return False
 			
-			if not maxHousesHotelsCheck(state,properties,-1):
+			[remaining_houses,remaining_hotels] = maxHousesHotelsCheck(state,properties,1)
+			if remaining_houses==-1 or remaining_hotels==-1:
 				return False
 			
 			if not monopolyCheck(state,properties,-1):
@@ -374,7 +395,7 @@ class Adjudicator:
 						propertyStatus *= -1
 				propertyStatusList[propertyId] = propertyStatus
 			
-			self.updateState(state,self.PROPERTY_STATUS_INDEX,None,propertyStatusList)	
+			self.updateState(state,self.PROPERTY_STATUS_INDEX,None,propertyStatusList)
 			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 				#First subtract what you can from the player debt.
 				#self.handle_payment(state)

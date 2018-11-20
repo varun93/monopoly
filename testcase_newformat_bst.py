@@ -734,7 +734,7 @@ def testcase_buying_invalid_two_hotels(Adjudicator):
 		def receiveState(self, state):
 			pass
 	
-	print("\nTest Case: Buying of houses")
+	print("\nTest Case: Invalid buying of 2 hotels on two properties in a single monopoly")
 	
 	adjudicator = Adjudicator(AgentOne,AgentTwo)
 	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
@@ -743,6 +743,69 @@ def testcase_buying_invalid_two_hotels(Adjudicator):
 		"cash": [1500-100-100+200-120,1500-140-200-150],
 		"position":[9,28],
 		"properties":[(6,1),(8,1),(9,1),(11,-1),(19,-1),(28,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
+def testcase_buying_max_houses(Adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			oriental = state[PROPERTY_STATUS_INDEX][6]
+			vermont = state[PROPERTY_STATUS_INDEX][8]
+			connecticut = state[PROPERTY_STATUS_INDEX][9]
+			
+			if (oriental == 1) and (vermont == 1) and (connecticut == 1):
+				return ("B", [(6,4),(8,4),(9,4)])
+			else:
+				return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Buying of houses")
+	
+	adjudicator = Adjudicator(AgentOne,AgentTwo)
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
+	
+	expected_output = {
+		"cash": [1500-100-100+200-120-600,1500-140-200-150],
+		"position":[9,28],
+		"properties":[(6,5),(8,5),(9,5),(11,-1),(19,-1),(28,-1)]
 	}
 	
 	result = compare_states(final_state,expected_output)
@@ -790,8 +853,8 @@ tests = [
 	testcase_auction_for_invalid_action,
 	testcase_trade_for_invalid_action,
 	testcase_buyproperty_for_invalid_action,
-	testcase_buying_invalid_two_hotels
-	
+	testcase_buying_invalid_two_hotels,
+	testcase_buying_max_houses
 ]
 
 #testcase_buying_houses_beyond_max
