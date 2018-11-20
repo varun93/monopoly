@@ -499,6 +499,262 @@ def testcase_invalid_mortgaging(Adjudicator):
 	
 	return result
 
+def testcase_auction_for_invalid_action(Adjudicator):
+	print("\nTest Description:")
+	print("AgentOne will fall on Vermont Avenue(Position 8) and will decide to auction it.")
+	print("AgentTwo will bid $170 and AgentOne will pass Junk Value")
+	print("The auction would be won by AgentTwo")
+
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+
+		def getBMSTDecision(self, state):
+			return None
+
+		def buyProperty(self, state):
+			return False
+
+		def auctionProperty(self, state):
+			return "Junk Value"
+
+		def receiveState(self, state):
+			pass
+
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+
+		def getBMSTDecision(self, state):
+			return None
+
+		def buyProperty(self, state):
+			return False
+
+		def auctionProperty(self, state):
+			return 170
+
+		def receiveState(self, state):
+			pass
+
+	adjudicator = Adjudicator(AgentOne, AgentTwo)
+	adjudicator.runGame([[3, 5]], None, None)
+
+	final_state = adjudicator.state
+
+	expected_output = {
+		"cash": [1500, 1500 - 170],
+		"position": [8, 0],
+		"properties": [(8, -1)]
+	}
+
+	result = compare_states(final_state, expected_output)
+
+	if result:
+		print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+
+	print("")
+
+	return result
+
+def testcase_trade_for_invalid_action(Adjudicator):
+	print("Test Description:")
+	print("AgentOne falls on Oriental Avenue and buys it.")
+	print("AgentTwo falls on St. Charles Avenue and buys it.")
+	print("AgentOne will trade Oriental Avenue property for St. Charles Avenue and AgentTwo returns Junk Value")
+
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+
+		def getBMSTDecision(self, state):
+			oriental = state[PROPERTY_STATUS_INDEX][6]
+			if oriental == 1 and self.erronous_bstm_counter == 0:
+				self.erronous_bstm_counter = 1
+				return ("T", 0, [6], 0, [11])
+			return None
+
+		def buyProperty(self, state):
+			return True
+
+		def auctionProperty(self, state):
+			return 160
+
+		def receiveState(self, state):
+			pass
+
+		def respondTrade(self, state):
+			return False
+
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+
+		def getBMSTDecision(self, state):
+			return None
+
+		def buyProperty(self, state):
+			return True
+
+		def auctionProperty(self, state):
+			return 170
+
+		def receiveState(self, state):
+			pass
+
+		def respondTrade(self, state):
+			return "Junk Value"
+
+	adjudicator = Adjudicator(AgentOne, AgentTwo)
+	adjudicator.runGame([[1, 5], [5, 6]], None, [0])
+
+	final_state = adjudicator.state
+
+	# Since the trade is unsuccessful here
+	result = final_state[PROPERTY_STATUS_INDEX][6] == 1
+
+	if result:
+		print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+
+	print("")
+
+	return result
+
+def testcase_buyproperty_for_invalid_action(Adjudicator):
+	print("Test Description:")
+	print(
+		"AgentOne will fall on Vermont Avenue(Position 8) and will return an erroneous value. This should start an auction phase.")
+	print("AgentTwo will bid $170 and AgentOne will bid $160")
+	print("The auction would be won by AgentTwo")
+
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+
+		def getBMSTDecision(self, state):
+			return None
+
+		def buyProperty(self, state):
+			return "Junk Value"
+
+		def auctionProperty(self, state):
+			return 160
+
+		def receiveState(self, state):
+			pass
+
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+
+		def getBMSTDecision(self, state):
+			return None
+
+		def buyProperty(self, state):
+			return False
+
+		def auctionProperty(self, state):
+			return 170
+
+		def receiveState(self, state):
+			pass
+
+	adjudicator = Adjudicator(AgentOne, AgentTwo)
+	adjudicator.runGame([[3, 5]], None, None)
+
+	final_state = adjudicator.state
+
+	expected_output = {
+		"cash": [1500, 1500 - 170],
+		"position": [8, 0],
+		"properties": [(8, -1)]
+	}
+
+	result = compare_states(final_state, expected_output)
+
+	if result:
+		print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+
+	print("")
+
+	return result
+
+def testcase_buying_invalid_two_hotels(Adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			oriental = state[PROPERTY_STATUS_INDEX][6]
+			vermont = state[PROPERTY_STATUS_INDEX][8]
+			connecticut = state[PROPERTY_STATUS_INDEX][9]
+			
+			if (oriental == 1) and (vermont == 1) and (connecticut == 1):
+				return ("B", [(6,4),(8,5),(9,5)])
+			else:
+				return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Buying of houses")
+	
+	adjudicator = Adjudicator(AgentOne,AgentTwo)
+	[winner,final_state] = adjudicator.runGame([[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,3]],None,[0])
+	
+	expected_output = {
+		"cash": [1500-100-100+200-120,1500-140-200-150],
+		"position":[9,28],
+		"properties":[(6,1),(8,1),(9,1),(11,-1),(19,-1),(28,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
 print("Testcase flow Description:")
 print("Turn 0:")
 print("AgentOne falls on Oriental Avenue and buys it.")
@@ -530,8 +786,15 @@ tests = [
 	testcase_buying_houses_invalid_1,
 	testcase_buying_houses_invalid_2,
 	testcase_mortgaging_unmortgaging,
-	testcase_invalid_mortgaging
+	testcase_invalid_mortgaging,
+	testcase_auction_for_invalid_action,
+	testcase_trade_for_invalid_action,
+	testcase_buyproperty_for_invalid_action,
+	testcase_buying_invalid_two_hotels
+	
 ]
+
+#testcase_buying_houses_beyond_max
 
 #Execution
 for test in tests:

@@ -129,6 +129,8 @@ class Adjudicator:
 	
 	def typecast(self,val,thetype,default):
 		try:
+			if (thetype == bool) and not isinstance(val, thetype):
+				return default
 			return thetype(val)
 		except:
 			return default
@@ -245,6 +247,8 @@ class Adjudicator:
 					#Checking if houses are being built or sold evenly
 					groupElementPropertyStatus = abs(propertyStatus[groupElement])
 					if groupElementPropertyStatus<(propertyStat-1) or groupElementPropertyStatus>(propertyStat+1):
+						return False
+					if (groupElementPropertyStatus == 6) and (propertyStat == 6):
 						return False
 			
 			return True
@@ -439,7 +443,7 @@ class Adjudicator:
 
 			tradeResponse = self.runPlayerOnStateWithTimeout(otherAgent,state)
 			
-			self.typecast(tradeResponse, bool, False)
+			tradeResponse = self.typecast(tradeResponse, bool, False)
 			
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
@@ -633,8 +637,8 @@ class Adjudicator:
 		
 		winner = None
 		
-		self.typecast(actionCurrentPlayer, int, 0)
-		self.typecast(actionOpponent, int, 0)
+		actionCurrentPlayer = self.typecast(actionCurrentPlayer, int, 0)
+		actionOpponent = self.typecast(actionOpponent, int, 0)
 		
 		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
 		
@@ -1122,6 +1126,7 @@ class Adjudicator:
 		phase = state[self.PHASE_NUMBER_INDEX]
 		if phase == self.BUYING:
 			action = self.runPlayerOnStateWithTimeout(current_player,state)
+			action = self.typecast(action, bool, False)
 			if action:
 				if self.handle_buy_property(state):
 					return True
