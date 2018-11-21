@@ -103,6 +103,7 @@ class Adjudicator:
 		
 		"""
 		
+		self.stateHistory = []
 
 		self.agentOne = None
 		self.agentTwo = None
@@ -1402,24 +1403,24 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
-		
-		constants.state_history.append((player.id,self.transformState(state)))
-		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
+		stateToBeSent = copy.deepcopy(self.transformState(state))
+		# self.stateHistory.append((player.id, stateToBeSent))
+		# self.updateState(state, self.STATE_HISTORY_INDEX, None, self.stateHistory)
 
 		if receiveState:
-			action = player.receiveState(self.transformState(state))
+			action = player.receiveState(stateToBeSent)
 		elif current_phase == self.BSTM:
-			action = player.getBMSTDecision(self.transformState(state))
+			action = player.getBMSTDecision(stateToBeSent)
 		elif current_phase == self.TRADE_OFFER:
-			action = player.respondTrade(self.transformState(state))
+			action = player.respondTrade(stateToBeSent)
 		elif current_phase == self.BUYING:
-			action = player.buyProperty(self.transformState(state))
+			action = player.buyProperty(stateToBeSent)
 		elif current_phase == self.AUCTION:
-			action = player.auctionProperty(self.transformState(state))
+			action = player.auctionProperty(stateToBeSent)
 		elif current_phase == self.PAYMENT:
 			pass
 		elif current_phase == self.JAIL:
-			action = player.jailDecision(self.transformState(state))
+			action = player.jailDecision(stateToBeSent)
 		
 		return action
 
