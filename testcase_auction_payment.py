@@ -16,7 +16,6 @@ def compare_states(state,expected_output):
 		else:
 			print("Turn number doesn't match")
 	
-	
 	if 'cash' in expected_output:
 		if (state[PLAYER_CASH_INDEX][0] == expected_output['cash'][0]) and (state[PLAYER_CASH_INDEX][1] == expected_output['cash'][1]):
 			passCounter+=1

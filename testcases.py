@@ -6,6 +6,7 @@ PLAYER_POSITION_INDEX = 2
 PLAYER_CASH_INDEX = 3
 PHASE_NUMBER_INDEX = 4
 PHASE_PAYLOAD_INDEX = 5
+DEBT_INDEX = 6
 
 def compare_states(state,expected_output):
 	passCounter = 0
@@ -813,14 +814,14 @@ def testcase_buying_max_houses(adjudicator):
 		def receiveState(self, state):
 			pass
 	
-	print("\nTest Case: Buying of houses")
+	print("\nTest Case: Buying Max Number of houses")
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5],[5,6],[1,1],[5,4],[2,6],[5,4],[6,4]],None,[0])
 	
 	expected_output = {
 		"cash": [1500-100-100+200-120-600,1500-140-200-280],
-		"position":[9,28],
+		"position":[9,29],
 		"properties":[(6,5),(8,5),(9,5),(11,-1),(19,-1),(29,-1)]
 	}
 	
