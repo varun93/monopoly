@@ -157,7 +157,7 @@ class Adjudicator:
 		buy_contention = False
 		buy_contention_cash = None
 		buy_contention_properties = None
-		mortgagedPropertiesDuringTrade = []
+		mortgagedDuringTrade = []
 
 		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
@@ -445,7 +445,7 @@ class Adjudicator:
 					return False
 				
 			
-			phasePayload = [cashOffer,restOffers,cashRequest,propertiesRequest]
+			phasePayload = [cashOffer,propertiesOffer,cashRequest,propertiesRequest]
 
 			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.TRADE_OFFER)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
@@ -456,27 +456,29 @@ class Adjudicator:
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
 				# update the values in the payload index 
-				mortgagedProperties = filter(lambda propertyId : getPropertyStatus(state,propertyId) in [-7,7], propertiesOffer + propertyRequest)
+				mortgagedProperties = filter(lambda propertyId : getPropertyStatus(state,propertyId) in [-7,7], propertiesOffer + propertiesRequest)
 
 				for mortgagedProperty in mortgagedProperties:
 					if mortgagedProperty not in mortgagedDuringTrade:
 						mortgagedDuringTrade.append(mortgagedProperty)
 						space = constants.board[mortgagedProperty]
 						propertyPrice = space['price']
+						mortgagedPrice = propertyPrice/2
 						agentInQuestion = 1
+
 						if getPropertyStatus(state, mortgagedProperty) == -7:
 							agentInQuestion = 2
-
+																																						
 						agentsCash = getPlayerCash(state,agentInQuestion)
-						agentsCash -= propertyPrice*0.1
-						self.updateState(state,self.PLAYER_CASH_INDEX,agentInQuestion,agentsCash)
+						agentsCash -= mortgagedPrice*0.1
+						self.updateState(state,self.PLAYER_CASH_INDEX,agentInQuestion-1,agentsCash)
 
 
 				currentPlayerCash += (cashRequest - cashOffer)
 				otherPlayerCash += (cashOffer - cashRequest)
 				
-				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer-1,currentPlayerCash)
-				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
+				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer - 1,currentPlayerCash)
+				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer - 1,otherPlayerCash)
 				
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
