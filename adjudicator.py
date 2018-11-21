@@ -636,8 +636,6 @@ class Adjudicator:
 		
 		return [False,True]
 
-	def parseAction(self):
-			pass
 
 	"""To reset dice for a new turn"""
 	def pass_dice(self):
