@@ -103,6 +103,7 @@ class Adjudicator:
 		
 		"""
 		
+		self.stateHistory = []
 
 		self.agentOne = None
 		self.agentTwo = None
@@ -154,6 +155,7 @@ class Adjudicator:
 	def conductBSTM(self,state=[]):
 
 		state = state or self.state
+		mortgagedDuringTrade = []
 
 		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
@@ -388,7 +390,12 @@ class Adjudicator:
 
 				if propertyStatus in [-7,7]:
 					
-					unmortgagePrice = mortagePrice + mortagePrice*0.1
+					unmortgagePrice = mortagePrice	
+
+					if propertyId in mortgagedDuringTrade:
+						mortgagedDuringTrade.remove(propertyId)
+					else:
+						unmortgagePrice = unmortgagePrice + unmortgagePrice*0.1
 
 					if playerCash >= unmortgagePrice:
 						playerCash -= unmortgagePrice 
@@ -435,51 +442,41 @@ class Adjudicator:
 				if not rightOwner(propertyStatus,otherPlayer):
 					return False
 				
-			# update the values in the payload index 
-
-			mortgagedProperties = filter(lambda propertyOffer : getPropertyStatus(state,propertyOffer) in [-7,7], propertiesOffer)
-			restOffers = list(set(propertiesOffer) - set(mortgagedProperties))
-
-			for mortgagedProperty in mortgagedProperties:
-				space = constants.board[propertyId]
-				response = otherAgent.respondMortgage(mortgagedProperty)
-				propertyPrice = space['price']
-				mortagePrice = propertyPrice/2
-				
-				multiplier = 1
-
-				if otherPlayer == 1:
-					 multiplier -= 1
-
-				if response:
-					unmortgagePrice = mortagePrice + 0.1*mortagePrice
-					currentPlayerCash += unmortgagePrice
-					otherPlayerCash -= unmortgagePrice
-					updatePropertyStatus(state,mortgagedProperty,multiplier*1)
-					self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer-1,currentPlayerCash)
-				else:
-					otherPlayerCash -= mortagePrice*0.1
-				
-				self.updateState(state,self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
 			
-					
-			phasePayload = [cashOffer,restOffers,cashRequest,propertiesRequest]
+			phasePayload = [cashOffer,propertiesOffer,cashRequest,propertiesRequest]
 
 			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.TRADE_OFFER)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 
 			tradeResponse = self.runPlayerOnStateWithTimeout(otherAgent,state)
-			
 			tradeResponse = self.typecast(tradeResponse, bool, False)
 			
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
+				# update the values in the payload index 
+				mortgagedProperties = filter(lambda propertyId : getPropertyStatus(state,propertyId) in [-7,7], propertiesOffer + propertiesRequest)
+
+				for mortgagedProperty in mortgagedProperties:
+					if mortgagedProperty not in mortgagedDuringTrade:
+						mortgagedDuringTrade.append(mortgagedProperty)
+						space = constants.board[mortgagedProperty]
+						propertyPrice = space['price']
+						mortgagedPrice = propertyPrice/2
+						agentInQuestion = 1
+
+						if getPropertyStatus(state, mortgagedProperty) == -7:
+							agentInQuestion = 2
+																																						
+						agentsCash = getPlayerCash(state,agentInQuestion)
+						agentsCash -= mortgagedPrice*0.1
+						self.updateState(state,self.PLAYER_CASH_INDEX,agentInQuestion-1,agentsCash)
+
 
 				currentPlayerCash += (cashRequest - cashOffer)
 				otherPlayerCash += (cashOffer - cashRequest)
 				
-				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer-1,currentPlayerCash)
-				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer,otherPlayerCash)
+				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer - 1,currentPlayerCash)
+				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer - 1,otherPlayerCash)
 				
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
@@ -1422,24 +1419,24 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
-		
-		constants.state_history.append((player.id,self.transformState(state)))
-		# self.updateState(state, self.STATE_HISTORY_INDEX, None, constants.state_history)
+		stateToBeSent = copy.deepcopy(self.transformState(state))
+		# self.stateHistory.append((player.id, stateToBeSent))
+		# self.updateState(state, self.STATE_HISTORY_INDEX, None, self.stateHistory)
 
 		if receiveState:
-			action = player.receiveState(self.transformState(state))
+			action = player.receiveState(stateToBeSent)
 		elif current_phase == self.BSTM:
-			action = player.getBMSTDecision(self.transformState(state))
+			action = player.getBMSTDecision(stateToBeSent)
 		elif current_phase == self.TRADE_OFFER:
-			action = player.respondTrade(self.transformState(state))
+			action = player.respondTrade(stateToBeSent)
 		elif current_phase == self.BUYING:
-			action = player.buyProperty(self.transformState(state))
+			action = player.buyProperty(stateToBeSent)
 		elif current_phase == self.AUCTION:
-			action = player.auctionProperty(self.transformState(state))
+			action = player.auctionProperty(stateToBeSent)
 		elif current_phase == self.PAYMENT:
 			pass
 		elif current_phase == self.JAIL:
-			action = player.jailDecision(self.transformState(state))
+			action = player.jailDecision(stateToBeSent)
 		
 		return action
 
