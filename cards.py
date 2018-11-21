@@ -32,7 +32,7 @@ class Cards:
 		
 
 	def draw_card(self):
-		drawn_card = self.deck.pop()
+		drawn_card = self.deck.pop(0)
 
 		if drawn_card['type'] is not 4:
 			self.deck.append(drawn_card)

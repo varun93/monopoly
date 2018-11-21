@@ -154,9 +154,6 @@ class Adjudicator:
 	def conductBSTM(self,state=[]):
 
 		state = state or self.state
-		buy_contention = False
-		buy_contention_cash = None
-		buy_contention_properties = None
 
 		# might move these as class methods at a later point
 		def getPropertyStatus(state,propertyId):
@@ -264,12 +261,12 @@ class Adjudicator:
 					#House and Hotel related transactions can't take place when there are mortgaged properties in the current monopoly
 					if groupElementPropertyStatus in [7,-7]:
 						return False
-				
+			
+			for (propertyId,constructions) in properties:
 				propertyStatus[propertyId] = abs(propertyStatus[propertyId]) + sign*constructions
 				
 			for (propertyId,constructions) in properties:
 				propertyStat = propertyStatus[propertyId]
-				
 				space = constants.board[propertyId]
 				groupElements = space['monopoly_group_elements']
 				for groupElement in groupElements:
@@ -302,6 +299,7 @@ class Adjudicator:
 			
 			[remaining_houses,remaining_hotels] = maxHousesHotelsCheck(state,properties,1)
 			if remaining_houses==-1 or remaining_hotels==-1:
+				log("bstm","Can't buy a house/hotel on "+str(properties)+". Max House limit reached.")
 				return False
 			
 			if not monopolyCheck(state,properties,1):
@@ -409,7 +407,6 @@ class Adjudicator:
 			self.updateState(state,self.PROPERTY_STATUS_INDEX,None,propertyStatusList)
 			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer-1,playerCash)
 
-
 		def handleTrade(agent,otherAgent,cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			currentPlayer = agent.id
 			cashRequest = cashRequest or 0
@@ -497,27 +494,40 @@ class Adjudicator:
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 			
 			self.runPlayerOnStateWithTimeout(agent,state,receiveState=True)
-
-		def takeBMSTAction(agent,otherAgent,action):
-
-			intent = action[0]
-			
-			if intent == "B":
-				handleBuy(agent,action[1])
-
-			elif intent == "S":
-				handleSell(agent,action[1])
-			
-			elif intent == "M":
-				handleMortgage(agent,action[1])
-
-			elif intent == "T":
-				handleTrade(agent,otherAgent,action[1],action[2],action[3],action[4])
-
-		# TODO:merging of states; and hiding the bmst decison of first agent to the second
+			return True
+		
 		previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
 		agentOneDone = False
 		agentTwoDone = False
+		agentOneTradeDone = False
+		agentTwoTradeDone = False
+		
+		def takeBMSTAction(agent,otherAgent,action):
+			nonlocal agentOneTradeDone
+			nonlocal agentTwoTradeDone
+			
+			intent = action[0]
+			
+			if intent == "B":
+				return handleBuy(agent,action[1])
+
+			elif intent == "S":
+				return handleSell(agent,action[1])
+			
+			elif intent == "M":
+				return handleMortgage(agent,action[1])
+
+			elif intent == "T":
+				agentId = agent.id
+				if agentId==1 and not agentOneTradeDone:
+					agentOneTradeDone = True
+					return handleTrade(agent,otherAgent,action[1],action[2],action[3],action[4])
+				elif agentId==2 and not agentTwoTradeDone:
+					agentTwoTradeDone = True
+					return handleTrade(agent,otherAgent,action[1],action[2],action[3],action[4])
+				return False #An agent shouldn't make more than one Trade request per BSTM
+				
+		# TODO:merging of states; and hiding the bmst decison of first agent to the second
 		
 		while True:
 			
@@ -525,14 +535,14 @@ class Adjudicator:
 			
 			bstmActionAgentOne = self.runPlayerOnStateWithTimeout(self.agentOne,state)
 
-			if (bstmActionAgentOne is not None) and not agentOneDone:
+			if ( isinstance(bstmActionAgentOne,list) or isinstance(bstmActionAgentOne,tuple) ) and not agentOneDone:
 				if not takeBMSTAction(self.agentOne,self.agentTwo,bstmActionAgentOne):
 					agentOneDone = True
 			else:
 				agentOneDone = True
 
 			bstmActionAgentTwo = self.runPlayerOnStateWithTimeout(self.agentTwo,state)
-			if (bstmActionAgentTwo is not None) and not agentTwoDone:
+			if ( isinstance(bstmActionAgentTwo,list) or isinstance(bstmActionAgentTwo,tuple) ) and not agentTwoDone:
 				#AgentTwo sent an erroneous input. Give it no more BSTM Turns.
 				if not takeBMSTAction(self.agentTwo,self.agentOne,bstmActionAgentTwo):
 					agentTwoDone = True
@@ -653,8 +663,8 @@ class Adjudicator:
 		#Unowned
 		#Below mentioned property needed if the auction is not blind
 		#state[self.PHASE_PAYLOAD_INDEX]['subphase'] = "start"
-		phasePayload = state[self.PHASE_PAYLOAD_INDEX] or []
-		phasePayload.append(playerPosition)
+		#0 represents bidding phase of the auction
+		phasePayload = [playerPosition,0]
 	
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.AUCTION)
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
@@ -670,8 +680,8 @@ class Adjudicator:
 	def handle_auction(self,state,actionOpponent,actionCurrentPlayer):
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		opponent = abs(currentPlayer - 1)
-		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
-		propertyMapping = constants.space_to_property_map[playerPosition]
+		auctionedProperty = state[self.PHASE_PAYLOAD_INDEX][0]
+		propertyMapping = constants.space_to_property_map[auctionedProperty]
 		
 		winner = None
 		
@@ -692,7 +702,13 @@ class Adjudicator:
 		log("auction","Player "+str(winner)+" won the Auction")
 		
 		playerCash = state[self.PLAYER_CASH_INDEX][winner]
-		playerCash -= winningBid
+		if playerCash>=winningBid:
+			playerCash -= winningBid
+		else:
+			#Player placed a bid greater than the amount of money he/she has. His loss.
+			result = [True,True]
+			result[winner] = False
+			return result
 
 		self.updateState(state,self.PLAYER_CASH_INDEX,winner,playerCash)
 
@@ -704,15 +720,16 @@ class Adjudicator:
 		self.updateState(state,self.PROPERTY_STATUS_INDEX,propertyMapping,propertyStatus)	
 		
 		#Receive State
-		phasePayload = [winner]
+		phasePayload = [auctionedProperty,winner+1]
 		
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 		
 		self.broadcastState(state)
 		
 		#Clearing the payload as the auction has been completed
+		self.updateState(state,self.DEBT_INDEX,None,[0,0,0,0])
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
-
+		return [True,True]
 	
 	"""
 	Handle the action response from the Agent for buying an unowned property
@@ -1200,8 +1217,7 @@ class Adjudicator:
 			self.start_auction(state)
 			actionOpponent = self.runPlayerOnStateWithTimeout(opponent,state)
 			actionCurrentPlayer = self.runPlayerOnStateWithTimeout(currentPlayer,state)
-			self.handle_auction(state,actionOpponent,actionCurrentPlayer)
-			return [True,True]
+			return self.handle_auction(state,actionOpponent,actionCurrentPlayer)
 			
 		if phase == self.PAYMENT:
 			return self.handle_payment(state)
