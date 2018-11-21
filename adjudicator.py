@@ -1419,9 +1419,13 @@ class Adjudicator:
 		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
 		payload = state[self.PHASE_PAYLOAD_INDEX]
-		stateToBeSent = copy.deepcopy(self.transformState(state))
-		# self.stateHistory.append((player.id, stateToBeSent))
-		# self.updateState(state, self.STATE_HISTORY_INDEX, None, self.stateHistory)
+		
+		stateToBeSent = self.transformState(state)
+		#Need to avoid self reference
+		historyState = list(stateToBeSent)
+		historyState.pop(7)
+		self.stateHistory.append((player.id, historyState))
+		self.updateState(state, self.STATE_HISTORY_INDEX, None, self.stateHistory)
 
 		if receiveState:
 			action = player.receiveState(stateToBeSent)
