@@ -2,7 +2,6 @@ from config import log
 import dice
 import constants
 from cards import Cards
-from agent import Agent
 import copy
 import timeout_decorator
 import json
@@ -1420,10 +1419,7 @@ class Adjudicator:
 	def runPlayerOnState(self,player,state,receiveState=False):
 		
 		action = None
-		
 		current_phase = state[self.PHASE_NUMBER_INDEX]
-		payload = state[self.PHASE_PAYLOAD_INDEX]
-		
 		stateToBeSent = self.transformState(state)
 		#Need to avoid self reference
 		historyState = list(stateToBeSent)
@@ -1447,6 +1443,7 @@ class Adjudicator:
 			action = player.jailDecision(stateToBeSent)
 		
 		return action
+
 
 #Testing
 agentOne = Agent(1)
