@@ -1487,7 +1487,7 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 
-	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
+	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
 	def runPlayerOnStateWithTimeout(self, player,state,receiveState=False):
 		try:
 			return self.runPlayerOnState(player,state,receiveState)

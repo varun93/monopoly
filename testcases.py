@@ -1125,7 +1125,11 @@ print("AgentOne accepts.\n")
 print("This testcase validates the following:")
 
 """
-testcase_buying_houses,
+
+"""
+
+tests = [
+	testcase_buying_houses,
 	testcase_selling_houses,
 	testcase_trade,
 	testcase_buying_houses_invalid_1,
@@ -1139,13 +1143,7 @@ testcase_buying_houses,
 	testGettingOutOfJail,
 	testcase_buying_max_houses,
 	testcase_trade_mortgage,
-"""
-
-tests = [
-	# testcase_selling_hotel_aftermax,
-	testcase_trade_mortgage
-	
-	
+	testcase_selling_hotel_aftermax
 ]
 
 #testcase_buying_houses_beyond_max
