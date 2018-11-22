@@ -948,8 +948,9 @@ def testcase_selling_hotel_aftermax(adjudicator):
 			elif orange_0==1 and orange_1==1 and orange_2==1:
 				return ("B", [(16,2),(18,1),(19,1)])
 			elif state[PROPERTY_STATUS_INDEX][19]==2:
-				#This build operation would fail.Already reached 32 houses.
-				return ("B", [(19,1)])
+				return ("B", [(6,1),(18,1),(19,2)])
+			elif oriental==6:
+				return ("S",[(6,1)]) # Should fail
 			else:
 				return None
 	
@@ -1005,12 +1006,12 @@ def testcase_selling_hotel_aftermax(adjudicator):
 	print("\nTest Case: Trying to buy a house when all 32 houses have already been constructed")
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
-	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5], [5,6], [1,1],[5,4], [1,1],[5,5],[3,3], [5,4], [2,2],[5,5],[3,3], [3,4], [6,5], [1,2], [6,6],[5,4], [1,2], [5,4], [3,5], [4,3]],[13,0],[0,1,7])
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5], [5,6], [1,1],[5,4], [1,1],[5,5],[3,3], [5,4], [2,2],[5,5],[3,3], [3,4], [6,5], [1,2], [6,6],[5,4], [1,2], [5,4], [3,5], [4,3], [3,4]],[13,0,15],[0,1,7])
 	
 	expected_output = {
-		"cash": [1500-100-100+200-120-600-180-200+200+200-8-400,1500-10-10-10-50-1200-10-50-10-10+200+200+100-600-10],
-		"position":[0,18],
-		"properties":[(6,5),(8,5),(9,5),(11,-5),(13,-5),(14,-5),(16,3),(18,2),(19,2),(21,-3),(23,-2),(24,-2),(39,-1)]
+		"cash": [1500-100-100+200-120-600-180-200+200+200-8-400-350+150,1500-10-10-10-50-1200-10-50-10-10+200+200+100-600-10],
+		"position":[7,18],
+		"properties":[(6,6),(8,5),(9,5),(11,-5),(13,-5),(14,-5),(16,3),(18,3),(19,4),(21,-3),(23,-2),(24,-2),(39,-1)]
 	}
 	
 	result = compare_states(final_state,expected_output)
@@ -1125,11 +1126,7 @@ print("AgentOne accepts.\n")
 print("This testcase validates the following:")
 
 """
-
-"""
-
-tests = [
-	testcase_buying_houses,
+testcase_buying_houses,
 	testcase_selling_houses,
 	testcase_trade,
 	testcase_buying_houses_invalid_1,
@@ -1142,8 +1139,12 @@ tests = [
 	testcase_buying_invalid_two_hotels,
 	testGettingOutOfJail,
 	testcase_buying_max_houses,
+	testcase_trade_mortgage,
+"""
+
+tests = [
 	testcase_selling_hotel_aftermax,
-	testcase_trade_mortgage
+	
 	
 ]
 

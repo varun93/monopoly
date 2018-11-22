@@ -334,8 +334,9 @@ class Adjudicator:
 			if not validBuyingSequence(currentPlayer,properties,-1):
 				return False
 			
-			[remaining_houses,remaining_hotels] = maxHousesHotelsCheck(state,properties,1)
+			[remaining_houses,remaining_hotels] = maxHousesHotelsCheck(state,properties,-1)
 			if remaining_houses==-1 or remaining_hotels==-1:
+				log("bstm","Can't sell a house/hotel on "+str(properties)+". Max House limit reached.")
 				return False
 			
 			if not monopolyCheck(state,properties,-1):
