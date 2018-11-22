@@ -10,7 +10,8 @@ class App extends Component {
       gameState: [],
       gameHistory: [],
       endpoint: "http://127.0.0.1:5000",
-      currentStepNumber: 0
+      currentStepNumber: 0,
+      turn: 0
     };
   }
 
@@ -18,34 +19,40 @@ class App extends Component {
 
   componentDidMount() {
     const { endpoint } = this.state;
-    // this.socket = socketIOClient(endpoint);
-    // this.socket.on("connect", function() {
-    //   console.log("Websocket connected!");
-    // });
-    // // message handler for the when state changes
-    // this.socket.on("game_state_updated", gameHistory => {
-    //   this.setState({ gameHistory: gameHistory.state });
-    // });
+    this.socket = socketIOClient(endpoint);
+    this.socket.on("connect", function() {
+      console.log("Websocket connected!");
+    });
+    // message handler for the when state changes
+    this.socket.on("game_state_updated", gameHistory => {
+      gameHistory = gameHistory.state;
+      // gameHistory.forEach(gameState => {
+      //   this.setState({ gameState: gameState[1] });
+      // });
+
+      this.setState({ gameHistory });
+    });
   }
 
   startGame = () => {
     this.socket.emit("start_game");
   };
 
+  setGameState = (currentStepNumber, gameHistory) => {
+    const gameState = gameHistory[currentStepNumber][1];
+    this.setState({ currentStepNumber, gameState });
+  };
+
   previousMove = () => {
     let { currentStepNumber, gameHistory } = this.state;
     currentStepNumber -= 1;
-    const gameState = gameHistory[currentStepNumber];
-    console.log(gameState);
-    this.setState({ currentStepNumber, gameState: gameState[1] });
+    this.setGameState(currentStepNumber, gameHistory);
   };
 
   nextMove = () => {
     let { currentStepNumber, gameHistory } = this.state;
     currentStepNumber += 1;
-    const gameState = gameHistory[currentStepNumber];
-    console.log(gameState, gameHistory);
-    this.setState({ currentStepNumber, gameState: gameState[1] });
+    this.setGameState(currentStepNumber, gameHistory);
   };
 
   render() {

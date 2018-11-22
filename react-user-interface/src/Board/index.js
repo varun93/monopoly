@@ -9,13 +9,11 @@ export default class Board extends Component {
   state = {
     properties,
     game_history: [],
-    playerOnePosition: 14,
-    playerTwoPosition: 35,
+    playerOnePosition: 0,
+    playerTwoPosition: 0,
     playerOneCash: 0,
     playerTwoCash: 0,
-    constructions: {
-      1: { owner: 2, numberOfConstructions: 6 }
-    },
+    constructions: {},
     turn: 0
   };
 
@@ -79,7 +77,6 @@ export default class Board extends Component {
 
       properties.forEach((element, index) => {
         const propertyValue = Math.abs(element);
-        //
         let numberOfConstructions = 0;
         let owner = null;
         if (propertyValue > 0) {
@@ -89,14 +86,15 @@ export default class Board extends Component {
         constructions[index] = { numberOfConstructions, owner };
       });
 
-      // this.setState({
-      //   playerOnePosition: playersPosition[0],
-      //   playerTwoPosition: playersPosition[1],
-      //   playerOneCash: playersCash[0],
-      //   playerTwoCash: playersCash[1],
-      //   constructions,
-      //   turn
-      // });
+      const [playerOnePosition, playerTwoPosition] = playersPosition;
+      this.setState({
+        playerOnePosition: playerOnePosition === -1 ? 10 : playerOnePosition,
+        playerTwoPosition: playerTwoPosition === -1 ? 10 : playerTwoPosition,
+        playerOneCash: playersCash[0],
+        playerTwoCash: playersCash[1],
+        constructions,
+        turn
+      });
     }
   }
 
