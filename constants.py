@@ -979,7 +979,7 @@ chanceCards = [
     "content": "Pay poor tax of $15",
     "type": 1,
     "position": 0,
-    "money": 15,
+    "money": -15,
     "money2": 0
   },
   {

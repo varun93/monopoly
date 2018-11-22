@@ -1010,7 +1010,13 @@ class Adjudicator:
 						if (counter==len(monopolies)+1):
 							rent = rent * 2
 					elif (constants.board[playerPosition]['class'] == 'Railroad'):
-						rent = rent * counter
+						rent = 25
+						if counter == 2:
+							rent = 50
+						if counter == 3:
+							rent = 100
+						if counter == 4:
+							rent = 200
 					elif (constants.board[playerPosition]['class'] == 'Utility'):
 						if (counter==len(monopolies)+1):
 							rent = 10
@@ -1347,7 +1353,7 @@ class Adjudicator:
 			stateForLog.pop(7)
 			log("state",stateForLog)
 			
-			while True:
+			while ( (self.diceThrows is None) or (len(self.diceThrows)>0) ):
 				
 				[outOfJail,diceThrown] = self.jail_handler(self.state,currentPlayer)
 				
