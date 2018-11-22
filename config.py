@@ -19,8 +19,5 @@ f.write("----------------------------------------------------------\n")
 
 def log(section,msg):
   if verbose[section]:
-    if isinstance(msg, list):
-      msg = msg[:-1]
-
     f.write(str(msg)+'\n')
   
