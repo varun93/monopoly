@@ -92,14 +92,9 @@ class Adjudicator:
 		
 		"""
 		
-		self.stateHistory = []
-
 		self.agentOne = None
 		self.agentTwo = None
 		self.dice = None
-		self.chest = Cards(constants.communityChestCards)
-		self.chance = Cards(constants.chanceCards)
-		self.agentJailCounter = [0,0]
 		
 	def notifyUI(self):
 		if self.socket is not None:
@@ -1305,6 +1300,13 @@ class Adjudicator:
 	"""
 	def runGame(self,agentOne,agentTwo,diceThrows=None,chanceCards=None,communityCards=None):
 		
+		self.stateHistory = []
+
+		self.chest = Cards(constants.communityChestCards)
+		self.chance = Cards(constants.chanceCards)
+		self.agentJailCounter = [0,0]
+		self.timeoutTracker = [False,False]
+		
 		self.agentOne = agentOne
 		self.agentTwo = agentTwo
 		self.state =  [
@@ -1334,9 +1336,6 @@ class Adjudicator:
 			#Temporary measure to clear phase payload
 			self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,[])
 			
-			"""BSTM"""
-			self.conductBSTM(self.state)
-
 			"""Determining whose turn it is"""
 			currentPlayer = self.agentOne
 			opponent = self.agentTwo
@@ -1347,6 +1346,15 @@ class Adjudicator:
 			"""Resets dice roll before each turn"""
 			self.pass_dice()
 			
+			"""BSTM"""
+			self.conductBSTM(self.state)
+			if True in self.timeoutTracker:
+				if self.timeoutTracker[currentPlayer.id]:
+					winner = opponent.id-1
+				else:
+					winner = currentPlayer.id-1
+				break
+			
 			log("state","Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
 			log("state","State at the start of the turn:")
 			stateForLog = list(self.state)
@@ -1356,13 +1364,34 @@ class Adjudicator:
 			while ( (self.diceThrows is None) or (len(self.diceThrows)>0) ):
 				
 				[outOfJail,diceThrown] = self.jail_handler(self.state,currentPlayer)
+				if self.state[self.PLAYER_CASH_INDEX][currentPlayer.id-1]<0:
+					winner = opponent.id-1
+					break
+				if True in self.timeoutTracker:
+					if self.timeoutTracker[currentPlayer]:
+						winner = opponent.id-1
+					else:
+						winner = currentPlayer.id-1
+					break
 				
 				if outOfJail:
 					"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
 					notInJail = self.dice_roll(self.state,currentPlayer,diceThrown)
+					if True in self.timeoutTracker:
+						if self.timeoutTracker[currentPlayer]:
+							winner = opponent.id-1
+						else:
+							winner = currentPlayer.id-1
+						break
 					
 					if notInJail:
 						self.determine_position_effect(self.state)
+						if True in self.timeoutTracker:
+							if self.timeoutTracker[currentPlayer]:
+								winner = opponent.id-1
+							else:
+								winner = currentPlayer.id-1
+							break
 						
 						log("state","State after moving the player position and updating state with effect of the position:")
 						stateForLog = list(self.state)
@@ -1371,22 +1400,37 @@ class Adjudicator:
 						
 						"""BSTM"""
 						self.conductBSTM(self.state)
+						if True in self.timeoutTracker:
+							if self.timeoutTracker[currentPlayer]:
+								winner = opponent.id-1
+							else:
+								winner = currentPlayer.id-1
+							break
 						
 						"""State now contain info about the position the player landed on"""
 						"""Performing the actual effect of the current position"""
 						result = self.turn_effect(self.state,currentPlayer,opponent)
 						if not result[0]:
-							currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
-							opponentIndex = abs(currentPlayerIndex - 1)
-							winner = opponentIndex
+							winner = opponent.id-1
 							break
 						elif not result[1]:
-							currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
-							winner = currentPlayerIndex
+							winner = currentPlayer.id-1
+							break
+						if True in self.timeoutTracker:
+							if self.timeoutTracker[currentPlayer]:
+								winner = opponent.id-1
+							else:
+								winner = currentPlayer.id-1
 							break
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
+				if True in self.timeoutTracker:
+					if self.timeoutTracker[currentPlayer]:
+						winner = opponent.id-1
+					else:
+						winner = currentPlayer.id-1
+					break
 				
 				log("state","State at the end of the turn:")
 				stateForLog = list(self.state)
@@ -1439,13 +1483,14 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 
-	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
+	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
 	def runPlayerOnStateWithTimeout(self, player,state,receiveState=False):
 		try:
 			return self.runPlayerOnState(player,state,receiveState)
 		except TimeoutError:
 			print("Agent Timed Out")
 			"""Change the return value here to ensure agent loose"""
+			self.timeoutTracker[player.id] = True
 			return None
 
 	def runPlayerOnState(self,player,state,receiveState=False):
