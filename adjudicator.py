@@ -1325,7 +1325,9 @@ class Adjudicator:
 			
 			log("state","Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
 			log("state","State at the start of the turn:")
-			log("state",self.state)
+			stateForLog = list(self.state)
+			stateForLog.pop(7)
+			log("state",stateForLog)
 			
 			while True:
 				
@@ -1335,7 +1337,9 @@ class Adjudicator:
 				if notInJail:
 					
 					log("state","State after moving the player position and updating state with effect of the position:")
-					log("state",self.state)
+					stateForLog = list(self.state)
+					stateForLog.pop(7)
+					log("state",stateForLog)
 					
 					"""BSTM"""
 					self.conductBSTM(self.state)
@@ -1357,7 +1361,9 @@ class Adjudicator:
 				self.conductBSTM(self.state)
 				
 				log("state","State at the end of the turn:")
-				log("state",self.state)
+				stateForLog = list(self.state)
+				stateForLog.pop(7)
+				log("state",stateForLog)
 				
 				if (not self.dice.double):
 					break
