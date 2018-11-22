@@ -144,6 +144,15 @@ class Adjudicator:
 			return thetype(val)
 		except:
 			return default
+		
+	def check_valid_bid(self,cash):
+		try:
+			cash = int(cash)
+		except:
+			return False
+		if cash < 0:
+			return False
+		return True
 	
 	def getOtherPlayer(self,currentPlayer):
 		if currentPlayer == self.AGENTONE:
@@ -415,8 +424,11 @@ class Adjudicator:
 
 		def handleTrade(agent,otherAgent,cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			currentPlayer = agent.id
-			cashRequest = cashRequest or 0
-			cashOffer = cashOffer or 0
+			
+			if not self.check_valid_bid(cashRequest):
+				cashRequest = 0
+			if not self.check_valid_bid(cashOffer):
+				cashOffer = 0
 			
 			otherPlayer = self.getOtherPlayer(currentPlayer)
 			
@@ -679,8 +691,10 @@ class Adjudicator:
 		
 		winner = None
 		
-		actionCurrentPlayer = self.typecast(actionCurrentPlayer, int, 0)
-		actionOpponent = self.typecast(actionOpponent, int, 0)
+		if not self.check_valid_bid(actionCurrentPlayer):
+			actionCurrentPlayer = 0
+		if not self.check_valid_bid(actionOpponent):
+			actionOpponent = 0
 		
 		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
 		
