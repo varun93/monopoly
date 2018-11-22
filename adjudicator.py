@@ -30,16 +30,6 @@ class Adjudicator:
 		
 		num_properties = len(constants.space_to_property_map) + 2
 		self.socket = socket
-		self.state =  [
-			0, #player turn; 0
-			[0]*42, #player properties; 1
-			[0,0],#player's position; 2
-			[1500,1500], #player's cash; 3
-			0, #phase number; 4
-			(), #phase payload; 5,
-			[0,0,0,0], #Debt 6
-			[]
-		]
 	
 		self.TOTAL_NO_OF_TURNS = 50
 		self.DiceClass = dice.Dice
@@ -53,8 +43,8 @@ class Adjudicator:
 		self.DEBT_INDEX = 6
 		self.STATE_HISTORY_INDEX = 7
 		
-		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
-		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
+		self.CHANCE_GET_OUT_OF_JAIL_FREE = 40
+		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 41
 		
 		self.BOARD_SIZE = 40
 		self.PASSING_GO_MONEY = 200
@@ -1145,6 +1135,7 @@ class Adjudicator:
 			elif (playerPosition < 35) and (playerPosition>=25):
 				playerPosition = 35
 			
+			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,playerPosition)
 			output = self.handle_property(state)
 			if 'phase' in output:
 				phaseNumber = output['phase']
@@ -1154,8 +1145,9 @@ class Adjudicator:
 				outputDebt = output['debt']
 				#We need to double rent if the player landed on opponent's property.
 				#We could fall on our own property in which case there is no source payload attribute
+				debt[2*currentPlayer] = outputDebt[0]
+				debt[2*currentPlayer+1] = outputDebt[1]
 				if (outputDebt[0]>0):
-					debt[2*currentPlayer] = outputDebt[0]
 					debt[2*currentPlayer+1] = outputDebt[1]*2
 		
 		elif card['type'] == 7:
@@ -1169,34 +1161,34 @@ class Adjudicator:
 			elif (playerPosition < 28) and (playerPosition>=12):
 				playerPosition = 28
 			
-				propertyValue = state[self.PROPERTY_STATUS_INDEX][ constants.space_to_property_map[playerPosition] ]
-				if propertyValue == 0:
-					#Unowned
-					phaseNumber = self.BUYING
-					debt[2*currentPlayer] = 0
-					debt[2*currentPlayer+1] = constants.board[playerPosition]['price']
-					phasePayload.append(playerPosition)
+			propertyValue = state[self.PROPERTY_STATUS_INDEX][ constants.space_to_property_map[playerPosition] ]
+			if propertyValue == 0:
+				#Unowned
+				phaseNumber = self.BUYING
+				debt[2*currentPlayer] = 0
+				debt[2*currentPlayer+1] = constants.board[playerPosition]['price']
+				phasePayload.append(playerPosition)
+			else:
+				#Check if owned by opponent
+				if currentPlayer == 0:
+					owned = (propertyValue < 0)
 				else:
-					#Check if owned by opponent
-					if currentPlayer == 0:
-						owned = (propertyValue < 0)
-					else:
-						owned = (propertyValue > 0)
-					
-					if owned:
-						absPropertyValue = abs(propertyValue)
-						#This point is up for contention.
-						#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
-						#But, not considering that as it doesn't seem to be in the spirit of the game.
-						if absPropertyValue == 1:
-							diceThrow = None
-							if (self.diceThrows is not None) and len(self.diceThrows)>0:
-								diceThrow = self.diceThrows.pop(0)
-							self.dice.roll(ignore=True,dice=diceThrow)
-							
-							phaseNumber = self.PAYMENT
-							debt[2*currentPlayer] = opponent+1
-							debt[2*currentPlayer+1] = 10 * (self.dice.die_1 + self.dice.die_2)
+					owned = (propertyValue > 0)
+				
+				if owned:
+					absPropertyValue = abs(propertyValue)
+					#This point is up for contention.
+					#The rules of the card if taken literally state that you would need to pay even if the property is mortgaged.
+					#But, not considering that as it doesn't seem to be in the spirit of the game.
+					if absPropertyValue == 1:
+						diceThrow = None
+						if (self.diceThrows is not None) and len(self.diceThrows)>0:
+							diceThrow = self.diceThrows.pop(0)
+						self.dice.roll(ignore=True,dice=diceThrow)
+						
+						phaseNumber = self.PAYMENT
+						debt[2*currentPlayer] = opponent+1
+						debt[2*currentPlayer+1] = 10 * (self.dice.die_1 + self.dice.die_2)
 		
 		elif card['type'] == 8:
 			#Go back 3 spaces
@@ -1309,10 +1301,22 @@ class Adjudicator:
 		
 		self.agentOne = agentOne
 		self.agentTwo = agentTwo
+		self.state =  [
+			0, #player turn; 0
+			[0]*42, #player properties; 1
+			[0,0],#player's position; 2
+			[1500,1500], #player's cash; 3
+			0, #phase number; 4
+			(), #phase payload; 5,
+			[0,0,0,0], #Debt 6
+			[]
+		]
 		
 		#Setting an initial state. Used during testing.
 		#if isinstance(state,list) and len(state)==6:
 		#	self.state = state
+		
+		
 		self.initialize_debug_state(diceThrows,chanceCards,communityCards)
 		
 		winner = None
