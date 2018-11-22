@@ -3,21 +3,24 @@ import constants
 class Agent:
 	def __init__(self, id):
 		self.id = id
+
 		self.PLAYER_TURN_INDEX = 0
 		self.PROPERTY_STATUS_INDEX = 1
 		self.PLAYER_POSITION_INDEX = 2
 		self.PLAYER_CASH_INDEX = 3
 		self.PHASE_NUMBER_INDEX = 4
 		self.PHASE_PAYLOAD_INDEX = 5
-		self.CHANCE_GET_OUT_OF_JAIL_FREE = 28
-		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 29
+		self.DEBT_INDEX = 6
+		self.STATE_HISTORY_INDEX = 7
+
+		self.CHANCE_GET_OUT_OF_JAIL_FREE = 40
+		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 41
 	
 	
 	def getBMSTDecision(self, state):
-		current_player = state[self.PHASE_PAYLOAD_INDEX]['id']
-		debt = 0
-		if 'cash' in state[self.PHASE_PAYLOAD_INDEX]:
-			debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
+		current_player = self.id - 1
+		debt = self.parseDebt(state, current_player)[1]
+
 		money = state[self.PLAYER_CASH_INDEX][current_player]
 
 		if debt > 0 and debt > money:
@@ -206,11 +209,9 @@ class Agent:
 		return False
 
 	def buyProperty(self, state):
-		debt = 0
-		if 'cash' in state[self.PHASE_PAYLOAD_INDEX]:
-			debt = state[self.PHASE_PAYLOAD_INDEX]['cash']
-		receiver = state[self.PHASE_PAYLOAD_INDEX]['source']
-		property = constants.board[state[self.PHASE_PAYLOAD_INDEX]['property']]
+		(debt, receiver) = self.parseDebt(state, self.id - 1)
+		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
+		property = constants.board[property_id]
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		playerCash = state[self.PLAYER_CASH_INDEX][current_player]
@@ -222,7 +223,7 @@ class Agent:
 		
 
 	def auctionProperty(self, state):
-		playerPosition = state[self.PHASE_PAYLOAD_INDEX]['property']
+		playerPosition = state[self.PHASE_PAYLOAD_INDEX][0]
 		propertyPrice = constants.board[playerPosition]['price']
 		current_player = state[self.PLAYER_TURN_INDEX] % 2
 		current_player_money = state[self.PLAYER_CASH_INDEX][current_player]
@@ -270,6 +271,20 @@ class Agent:
 			return ("P")
 		else:
 			return ("R")
+
+
+	def parseDebt(self, state, current_player):
+		debt = state[self.DEBT_INDEX]
+		money_owed = 0
+		source = 0
+		if current_player == 0:
+			money_owed = debt[1]
+			source = debt[0]
+		else:
+			money_owed = debt[3]
+			source = debt[2]
+		return  (source, money_owed)
+
 
 	def respondMortgage(self, state):
 		return False

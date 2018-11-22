@@ -1445,5 +1445,7 @@ class Adjudicator:
 		return action
 
 #Testing
-#adjudicator = Adjudicator(Agent,Agent)
-#adjudicator.runGame()
+agentOne = Agent(1)
+agentTwo = Agent(2)
+adjudicator = Adjudicator()
+adjudicator.runGame(agentOne, agentTwo)
