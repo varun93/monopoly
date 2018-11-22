@@ -18,14 +18,14 @@ class App extends Component {
 
   componentDidMount() {
     const { endpoint } = this.state;
-    this.socket = socketIOClient(endpoint);
-    this.socket.on("connect", function() {
-      console.log("Websocket connected!");
-    });
-    // message handler for the when state changes
-    this.socket.on("game_state_updated", gameHistory => {
-      this.setState({ gameHistory: gameHistory.state });
-    });
+    // this.socket = socketIOClient(endpoint);
+    // this.socket.on("connect", function() {
+    //   console.log("Websocket connected!");
+    // });
+    // // message handler for the when state changes
+    // this.socket.on("game_state_updated", gameHistory => {
+    //   this.setState({ gameHistory: gameHistory.state });
+    // });
   }
 
   startGame = () => {

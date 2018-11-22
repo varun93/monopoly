@@ -9,8 +9,8 @@ export default class Board extends Component {
   state = {
     properties,
     game_history: [],
-    playerOnePosition: 3,
-    playerTwoPosition: 6,
+    playerOnePosition: 14,
+    playerTwoPosition: 35,
     playerOneCash: 0,
     playerTwoCash: 0,
     constructions: {
@@ -89,14 +89,14 @@ export default class Board extends Component {
         constructions[index] = { numberOfConstructions, owner };
       });
 
-      this.setState({
-        playerOnePosition: playersPosition[0],
-        playerTwoPosition: playersPosition[1],
-        playerOneCash: playersCash[0],
-        playerTwoCash: playersCash[1],
-        constructions,
-        turn
-      });
+      // this.setState({
+      //   playerOnePosition: playersPosition[0],
+      //   playerTwoPosition: playersPosition[1],
+      //   playerOneCash: playersCash[0],
+      //   playerTwoCash: playersCash[1],
+      //   constructions,
+      //   turn
+      // });
     }
   }
 
@@ -136,9 +136,9 @@ export default class Board extends Component {
                   playerOnePosition={playerOnePosition}
                   playerTwoPosition={playerTwoPosition}
                   space={property}
-                  index={1 + index}
-                  constructions={constructions[1 + index]}
-                  key={index + 1}
+                  index={10 - (1 + index)}
+                  constructions={constructions[10 - (1 + index)]}
+                  key={10 - (index + 1)}
                 />
               ))}
           </div>
@@ -162,9 +162,9 @@ export default class Board extends Component {
                   playerOnePosition={playerOnePosition}
                   playerTwoPosition={playerTwoPosition}
                   space={property}
-                  index={11 + index}
-                  constructions={constructions[11 + index]}
-                  key={11 + index}
+                  index={20 - (1 + index)}
+                  constructions={constructions[20 - (1 + index)]}
+                  key={20 - (1 + index)}
                 />
               ))}
           </div>

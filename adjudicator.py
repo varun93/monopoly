@@ -452,7 +452,7 @@ class Adjudicator:
 			# if the trade was successful update the cash and property status
 			if tradeResponse:
 				# update the values in the payload index 
-				mortgagedProperties = filter(lambda propertyId : getPropertyStatus(state,propertyId) in [-7,7], propertiesOffer + propertiesRequest)
+				mortgagedProperties = list(filter(lambda propertyId : getPropertyStatus(state,propertyId) in [-7,7], propertiesOffer + propertiesRequest))
 
 				for mortgagedProperty in mortgagedProperties:
 					if mortgagedProperty not in mortgagedDuringTrade:
@@ -468,14 +468,17 @@ class Adjudicator:
 						agentsCash = getPlayerCash(state,agentInQuestion)
 						agentsCash -= mortgagedPrice*0.1
 						self.updateState(state,self.PLAYER_CASH_INDEX,agentInQuestion-1,agentsCash)
+						print(agentsCash)
 
-
+				currentPlayerCash = getPlayerCash(state,currentPlayer)
+				otherPlayerCash = getPlayerCash(state,otherPlayer)
+	
 				currentPlayerCash += (cashRequest - cashOffer)
 				otherPlayerCash += (cashOffer - cashRequest)
 				
 				self.updateState(state, self.PLAYER_CASH_INDEX,currentPlayer - 1,currentPlayerCash)
 				self.updateState(state, self.PLAYER_CASH_INDEX,otherPlayer - 1,otherPlayerCash)
-				
+
 				for propertyOffer in propertiesOffer:
 					propertyStatus = getPropertyStatus(state,propertyOffer) 
 					updatePropertyStatus(state,propertyOffer,propertyStatus*-1)

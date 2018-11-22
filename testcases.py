@@ -1097,7 +1097,6 @@ def testcase_trade_mortgage(adjudicator):
 	else:
 		print("Fail")
 		print("Received Output:")
-		print(final_state)
 	
 	return result
 
@@ -1143,7 +1142,8 @@ testcase_buying_houses,
 """
 
 tests = [
-	testcase_selling_hotel_aftermax,
+	# testcase_selling_hotel_aftermax,
+	testcase_trade_mortgage
 	
 	
 ]
