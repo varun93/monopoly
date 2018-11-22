@@ -459,10 +459,10 @@ class Adjudicator:
 						space = constants.board[mortgagedProperty]
 						propertyPrice = space['price']
 						mortgagedPrice = propertyPrice/2
-						agentInQuestion = 1
+						agentInQuestion = 2
 
 						if getPropertyStatus(state, mortgagedProperty) == -7:
-							agentInQuestion = 2
+							agentInQuestion = 1
 																																						
 						agentsCash = getPlayerCash(state,agentInQuestion)
 						agentsCash -= mortgagedPrice*0.1
@@ -1483,7 +1483,7 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 
-	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
+	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
 	def runPlayerOnStateWithTimeout(self, player,state,receiveState=False):
 		try:
 			return self.runPlayerOnState(player,state,receiveState)
