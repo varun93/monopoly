@@ -10,8 +10,10 @@ socketio = SocketIO(app)
 
 @socketio.on('start_game')
 def startGame():
-	adjudicator = Adjudicator(Agent,Agent,socketio)
-	adjudicator.runGame()
+	agentOne = Agent(1)
+	agentTwo = Agent(2)
+	adjudicator = Adjudicator(socketio)
+	adjudicator.runGame(agentOne,agentTwo)
 
 if __name__ == '__main__':
 	socketio.run(app, debug=True)

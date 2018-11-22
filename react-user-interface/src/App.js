@@ -8,9 +8,13 @@ class App extends Component {
     super();
     this.state = {
       gameState: [],
-      endpoint: "http://127.0.0.1:5000"
+      gameHistory: [],
+      endpoint: "http://127.0.0.1:5000",
+      currentStepNumber: 0
     };
   }
+
+  didGameEnd = () => {};
 
   componentDidMount() {
     const { endpoint } = this.state;
@@ -19,8 +23,8 @@ class App extends Component {
       console.log("Websocket connected!");
     });
     // message handler for the when state changes
-    this.socket.on("game_state_updated", gameState => {
-      this.setState({ gameState: gameState.state });
+    this.socket.on("game_state_updated", gameHistory => {
+      this.setState({ gameHistory: gameHistory.state });
     });
   }
 
@@ -28,12 +32,30 @@ class App extends Component {
     this.socket.emit("start_game");
   };
 
+  previousMove = () => {
+    let { currentStepNumber, gameHistory } = this.state;
+    currentStepNumber -= 1;
+    const gameState = gameHistory[currentStepNumber];
+    console.log(gameState);
+    this.setState({ currentStepNumber, gameState: gameState[1] });
+  };
+
+  nextMove = () => {
+    let { currentStepNumber, gameHistory } = this.state;
+    currentStepNumber += 1;
+    const gameState = gameHistory[currentStepNumber];
+    console.log(gameState, gameHistory);
+    this.setState({ currentStepNumber, gameState: gameState[1] });
+  };
+
   render() {
     const { gameState } = this.state;
-    const { startGame } = this;
+    const { startGame, previousMove, nextMove } = this;
     return (
       <div className="App">
         <button onClick={startGame}>Start Game</button>
+        <button onClick={previousMove}>Previous Move</button>
+        <button onClick={nextMove}>Next Move</button>
         <Board gameState={gameState} />
       </div>
     );

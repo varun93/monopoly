@@ -12,7 +12,7 @@ class NumpyEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
 			np.int16, np.int32, np.int64, np.uint8,
-			np.uint16, np.uint32, np.uint64)):
+			np.uint16, np.uint32, np.uint64, np.bool_)):
 			return int(obj)
 		elif isinstance(obj, (np.float_, np.float16, np.float32, 
 			np.float64)):
@@ -112,9 +112,9 @@ class Adjudicator:
 		
 	def notifyUI(self):
 		if self.socket is not None:
-			send = copy.deepcopy(self.state)
-			send = json.dumps(send, cls=NumpyEncoder)
-			self.socket.emit('game_state_updated', {'state': json.loads(send) } )
+			# print(self.stateHistory)
+			send = json.dumps(self.stateHistory, cls=NumpyEncoder)
+			self.socket.emit('game_state_updated', {'state': json.loads(send)} )
 		
 	def updateState(self, state, dimensionOneIndex, dimensionTwoIndex, valueToUpdate):
 		if dimensionTwoIndex is None:
@@ -1367,8 +1367,6 @@ class Adjudicator:
 				else:
 					log("dice","Rolled Doubles. Play again.")
 			
-			# notify UI about the state change
-			self.notifyUI()
 			
 			log("turn","Turn "+str(self.state[self.PLAYER_TURN_INDEX])+" end")
 			
@@ -1393,8 +1391,11 @@ class Adjudicator:
 			log("win","AgentTwo won the Game.")
 		else:
 			log("win","It's a Tie!")
-		
-		return [winner,self.transformState(self.state)]
+
+		#add to the state history
+		finalState = self.transformState(self.state)
+		self.notifyUI()
+		return [winner,finalState]
 	
 	"""
 	This function is called whenever adjudicator needs to communicate with the agent
