@@ -109,6 +109,7 @@ class Adjudicator:
 		self.dice = None
 		self.chest = Cards(constants.communityChestCards)
 		self.chance = Cards(constants.chanceCards)
+		self.agentJailCounter = [0,0]
 		
 	def notifyUI(self):
 		if self.socket is not None:
@@ -587,8 +588,8 @@ class Adjudicator:
 	Processes the response to the agent.jailDecision function."""
 	"""
 	Incoming action format:
-	("R") : represents rolling to get out
-    ("P") : represents paying $50 to get out (BSMT should follow)
+	("R",) : represents rolling to get out
+    ("P",) : represents paying $50 to get out (BSMT should follow)
     ("C", propertyNumber) : represents using a get out of jail card, 
     but in case someone has both, needs to specify which one they are using. 
     In general, should always specify the number (either 28 or 29)
@@ -599,6 +600,14 @@ class Adjudicator:
 	"""
 	def handle_in_jail_state(self,state,action):
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
+		
+		if self.agentJailCounter[currentPlayer]==3:
+			playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
+			#This could cause Bankruptcy. Would cause playerCash to go below 0.
+			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash-50)
+			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+			self.agentJailCounter[currentPlayer]=0
+			return [True,False]
 		
 		if (isinstance(action, tuple) or isinstance(action, list)) and len(action)>0:
 			if action[0] == 'P':
@@ -611,6 +620,7 @@ class Adjudicator:
 					playerCash -= 50
 					self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
 					self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+					self.agentJailCounter[currentPlayer]=0
 					return [True,False]
 			
 			elif action[0] == 'C':
@@ -631,6 +641,7 @@ class Adjudicator:
 						
 						self.updateState(state,self.PROPERTY_STATUS_INDEX,action[1],0)
 						self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+						self.agentJailCounter[currentPlayer]=0
 						return [True,False]
 		
 		"""If both the above method fail for some reason, we default to dice roll."""
@@ -643,8 +654,10 @@ class Adjudicator:
 			#Need to ensure that there is no second turn for the player in this turn.
 			self.dice.double = False
 			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+			self.agentJailCounter[currentPlayer]=0
 			return [True,True]
 		
+		self.agentJailCounter[currentPlayer]+=1
 		return [False,True]
 
 
@@ -824,34 +837,38 @@ class Adjudicator:
 	"""
 	
 	"""
+	Returns 2 booleans 
+	First is True if not in jail or no longer in jail
+	Second is True if dice has already been thrown for the current turn during jail processing
+	"""
+	def jail_handler(self,state,player):
+		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
+		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
+		if playerPosition != -1:
+			return [True,False]
+		
+		#InJail
+		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.JAIL)
+		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
+		action = self.runPlayerOnStateWithTimeout(player,state)
+		result = self.handle_in_jail_state(state,action)
+		
+		phasePayload = [result[0]]
+		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
+		self.broadcastState(state)
+		return result
+	
+	"""
 	Dice Roll Function
 	1. Checks if player is currently in Jail and handles separately if that is the case.
 	2. else, rolls the dice, checks for all the dice events.
 	3. Then moves the player to new position and finds out what the effect of the position is.
 	"""
-	def dice_roll(self,state,player):
+	def dice_roll(self,state,player,diceThrown):
 		
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
 		playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
-		
-		outOfJail = True #If the player is currently not in jail
-		diceThrown = False # Represents if the dice has already been thrown for the turn.
-		
-		#Jail
-		if playerPosition == -1:
-			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.JAIL)
-			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
-			action = self.runPlayerOnStateWithTimeout(player,state)
-			[outOfJail,diceThrown] = self.handle_in_jail_state(state,action)
-			
-			#In case player is out of jail, need to take position again
-			playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
-			playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
-			
-			phasePayload = [outOfJail]
-			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
-			self.broadcastState(state)
 		
 		if not diceThrown:
 			diceThrow = None
@@ -869,13 +886,9 @@ class Adjudicator:
 		5. Player rolls doubles for 3 third time in a row in a single turn.
 		"""
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.DICE_ROLL)
-		phasePayload = [self.dice.die_1,self.dice.die_2,self.dice.double] #Should outOfJail be in another receiveState call?
+		phasePayload = [self.dice.die_1,self.dice.die_2,self.dice.double]
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 		self.broadcastState(state)
-		
-		"""If the player is still in Jail, end turn immediately."""
-		if not outOfJail:
-			return False
 		
 		if self.dice.double_counter == 3:
 			self.send_player_to_jail(state)
@@ -884,26 +897,16 @@ class Adjudicator:
 			#Should there be a GoToJail state to let the player know?
 		else:
 			#Update player position
-			
 			playerPosition += (self.dice.die_1 + self.dice.die_2)
 			
 			#Passing Go
 			if playerPosition>=self.BOARD_SIZE:
-
 				playerPosition = playerPosition % self.BOARD_SIZE
 				playerCash += self.PASSING_GO_MONEY
 			
-			#Next, perform square effect
-			#Preparation for next phase:
 			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,playerPosition)
 			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
-
-			self.determine_position_effect(state)
-			
-			if state[self.PHASE_NUMBER_INDEX] == self.JAIL:
-				return False
-			else:
-				return True
+			return True
 	
 	def isPositionProperty(self,position):
 		return (constants.board[position]['class'] == 'Street') or (constants.board[position]['class'] == 'Railroad') or (constants.board[position]['class'] == 'Utility')
@@ -1342,31 +1345,35 @@ class Adjudicator:
 			
 			while True:
 				
-				"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
-				notInJail = self.dice_roll(self.state,currentPlayer)
+				[outOfJail,diceThrown] = self.jail_handler(self.state,currentPlayer)
 				
-				if notInJail:
+				if outOfJail:
+					"""rolls dice, moves the player and determines what happens on the space he has fallen on."""
+					notInJail = self.dice_roll(self.state,currentPlayer,diceThrown)
 					
-					log("state","State after moving the player position and updating state with effect of the position:")
-					stateForLog = list(self.state)
-					stateForLog.pop(7)
-					log("state",stateForLog)
-					
-					"""BSTM"""
-					self.conductBSTM(self.state)
-					
-					"""State now contain info about the position the player landed on"""
-					"""Performing the actual effect of the current position"""
-					result = self.turn_effect(self.state,currentPlayer,opponent)
-					if not result[0]:
-						currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
-						opponentIndex = abs(currentPlayerIndex - 1)
-						winner = opponentIndex
-						break
-					elif not result[1]:
-						currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
-						winner = currentPlayerIndex
-						break
+					if notInJail:
+						self.determine_position_effect(self.state)
+						
+						log("state","State after moving the player position and updating state with effect of the position:")
+						stateForLog = list(self.state)
+						stateForLog.pop(7)
+						log("state",stateForLog)
+						
+						"""BSTM"""
+						self.conductBSTM(self.state)
+						
+						"""State now contain info about the position the player landed on"""
+						"""Performing the actual effect of the current position"""
+						result = self.turn_effect(self.state,currentPlayer,opponent)
+						if not result[0]:
+							currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
+							opponentIndex = abs(currentPlayerIndex - 1)
+							winner = opponentIndex
+							break
+						elif not result[1]:
+							currentPlayerIndex = self.state[self.PLAYER_TURN_INDEX] % 2
+							winner = currentPlayerIndex
+							break
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
