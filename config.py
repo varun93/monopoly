@@ -18,5 +18,9 @@ f = open("monopoly.log", "a")
 f.write("----------------------------------------------------------\n")
 
 def log(section,msg):
-	if verbose[section]:
-		f.write(str(msg)+'\n')
+  if verbose[section]:
+    if isinstance(msg, list):
+      msg = msg[:-1]
+
+    f.write(str(msg)+'\n')
+  

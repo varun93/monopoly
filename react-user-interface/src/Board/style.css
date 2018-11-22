@@ -82,11 +82,9 @@ h6 {
   grid-column: 2/11;
   grid-row: 2/11;
   background: #fafaf8;
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(7, 1fr);
-  justify-items: center;
-  align-items: center;
 }
 
 .title {
@@ -97,12 +95,14 @@ h6 {
   letter-spacing: 12px;
 }
 
-.community-chest-deck {
-  grid-column: 2/4;
-  grid-row: 2/4;
-  transform: rotate(135deg);
-  margin-bottom: 60px;
-  margin-right: 60px;
+.player-one-info {
+  margin-left: 20%;
+  margin-top: 50px;
+}
+
+.player-two-info {
+  margin-left: 50px;
+  margin-top: 50px;
 }
 
 .chance-deck {
@@ -214,9 +214,6 @@ h6 {
 .property .color-bar {
   height: 25px;
   border-bottom: 2px solid #080808;
-}
-.property .name {
-  padding-bottom: 50px;
 }
 
 .railroad .name {
@@ -435,4 +432,14 @@ h6 {
 }
 .player-two {
   border: 2px solid blue;
+}
+
+.owner-1 {
+  background: red;
+  height: 5px;
+}
+
+.owner-2 {
+  background: blue;
+  height: 5px;
 }

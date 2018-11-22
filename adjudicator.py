@@ -1445,8 +1445,9 @@ class Adjudicator:
 		return action
 
 
-#Testing
-agentOne = Agent(1)
-agentTwo = Agent(2)
-adjudicator = Adjudicator()
-adjudicator.runGame(agentOne, agentTwo)
+# for testing purposes only
+# from agent import Agent
+# agentOne = Agent(1)
+# agentTwo = Agent(2)
+# adjudicator = Adjudicator()
+# adjudicator.runGame(agentOne, agentTwo)

@@ -1,0 +1,10 @@
+export const BSTM = 0;
+export const TRADE_OFFER = 1;
+export const DICE_ROLL = 2;
+export const BUYING = 3;
+export const AUCTION = 4;
+export const PAYMENT = 5;
+export const JAIL = 6;
+export const CHANCE_CARD = 7;
+export const COMMUNITY_CHEST_CARD = 8;
+export const JUST_VISTING = 10;
