@@ -31,7 +31,7 @@ class Adjudicator:
 		num_properties = len(constants.space_to_property_map) + 2
 		self.socket = socket
 	
-		self.TOTAL_NO_OF_TURNS = 50
+		self.TOTAL_NO_OF_TURNS = 100
 		self.DiceClass = dice.Dice
 
 		self.PLAYER_TURN_INDEX = 0
