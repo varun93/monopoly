@@ -468,7 +468,6 @@ class Adjudicator:
 						agentsCash = getPlayerCash(state,agentInQuestion)
 						agentsCash -= mortgagedPrice*0.1
 						self.updateState(state,self.PLAYER_CASH_INDEX,agentInQuestion-1,agentsCash)
-						print(agentsCash)
 
 				currentPlayerCash = getPlayerCash(state,currentPlayer)
 				otherPlayerCash = getPlayerCash(state,otherPlayer)
@@ -590,14 +589,6 @@ class Adjudicator:
 	def handle_in_jail_state(self,state,action):
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		
-		if self.agentJailCounter[currentPlayer]==3:
-			playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
-			#This could cause Bankruptcy. Would cause playerCash to go below 0.
-			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash-50)
-			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
-			self.agentJailCounter[currentPlayer]=0
-			return [True,False]
-		
 		if (isinstance(action, tuple) or isinstance(action, list)) and len(action)>0:
 			if action[0] == 'P':
 				"""
@@ -647,6 +638,13 @@ class Adjudicator:
 			return [True,True]
 		
 		self.agentJailCounter[currentPlayer]+=1
+		if self.agentJailCounter[currentPlayer]==3:
+			playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
+			#This could cause Bankruptcy. Would cause playerCash to go below 0.
+			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash-50)
+			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+			self.agentJailCounter[currentPlayer]=0
+			return [True,True]
 		return [False,True]
 
 
@@ -958,6 +956,9 @@ class Adjudicator:
 				debt[2*currentPlayer] = 0
 				debt[2*currentPlayer+1] = cash
 				self.updateState(state,self.DEBT_INDEX,None,debt)
+			
+			elif constants.board[playerPosition]['class'] == 'GoToJail':
+				self.send_player_to_jail(state)
 			
 			elif constants.board[playerPosition]['class'] == 'Idle':
 				#Represents Go,Jail(Visiting),Free Parking
@@ -1275,12 +1276,12 @@ class Adjudicator:
 		log("win_condition","AgentTwo Property Value: "+str(agentTwoPropertyWorth))
 		
 		if ( (agentOneCash+agentOnePropertyWorth) > (agentTwoCash+agentTwoPropertyWorth) ):
-			return 0
-		elif ( (agentOneCash+agentOnePropertyWorth) < (agentTwoCash+agentTwoPropertyWorth) ):
 			return 1
+		elif ( (agentOneCash+agentOnePropertyWorth) < (agentTwoCash+agentTwoPropertyWorth) ):
+			return 2
 		else:
 			#Tie
-			return 2
+			return 0
 	
 	def initialize_debug_state(self,diceThrows,chanceCards,communityCards):
 		if isinstance(diceThrows, list) and len(diceThrows)>0:
@@ -1354,9 +1355,9 @@ class Adjudicator:
 			self.conductBSTM(self.state)
 			if True in self.timeoutTracker:
 				if self.timeoutTracker[currentPlayer.id]:
-					winner = opponent.id-1
+					winner = opponent.id
 				else:
-					winner = currentPlayer.id-1
+					winner = currentPlayer.id
 				break
 			
 			log("state","Turn "+str(self.state[self.PLAYER_TURN_INDEX]))
@@ -1369,13 +1370,13 @@ class Adjudicator:
 				
 				[outOfJail,diceThrown] = self.jail_handler(self.state,currentPlayer)
 				if self.state[self.PLAYER_CASH_INDEX][currentPlayer.id-1]<0:
-					winner = opponent.id-1
+					winner = opponent.id
 					break
 				if True in self.timeoutTracker:
 					if self.timeoutTracker[currentPlayer]:
-						winner = opponent.id-1
+						winner = opponent.id
 					else:
-						winner = currentPlayer.id-1
+						winner = currentPlayer.id
 					break
 				
 				if outOfJail:
@@ -1383,18 +1384,18 @@ class Adjudicator:
 					notInJail = self.dice_roll(self.state,currentPlayer,diceThrown)
 					if True in self.timeoutTracker:
 						if self.timeoutTracker[currentPlayer]:
-							winner = opponent.id-1
+							winner = opponent.id
 						else:
-							winner = currentPlayer.id-1
+							winner = currentPlayer.id
 						break
 					
 					if notInJail:
 						self.determine_position_effect(self.state)
 						if True in self.timeoutTracker:
 							if self.timeoutTracker[currentPlayer]:
-								winner = opponent.id-1
+								winner = opponent.id
 							else:
-								winner = currentPlayer.id-1
+								winner = currentPlayer.id
 							break
 						
 						log("state","State after moving the player position and updating state with effect of the position:")
@@ -1406,34 +1407,34 @@ class Adjudicator:
 						self.conductBSTM(self.state)
 						if True in self.timeoutTracker:
 							if self.timeoutTracker[currentPlayer]:
-								winner = opponent.id-1
+								winner = opponent.id
 							else:
-								winner = currentPlayer.id-1
+								winner = currentPlayer.id
 							break
 						
 						"""State now contain info about the position the player landed on"""
 						"""Performing the actual effect of the current position"""
 						result = self.turn_effect(self.state,currentPlayer,opponent)
 						if not result[0]:
-							winner = opponent.id-1
+							winner = opponent.id
 							break
 						elif not result[1]:
-							winner = currentPlayer.id-1
+							winner = currentPlayer.id
 							break
 						if True in self.timeoutTracker:
 							if self.timeoutTracker[currentPlayer]:
-								winner = opponent.id-1
+								winner = opponent.id
 							else:
-								winner = currentPlayer.id-1
+								winner = currentPlayer.id
 							break
 				
 				"""BSTM"""
 				self.conductBSTM(self.state)
 				if True in self.timeoutTracker:
 					if self.timeoutTracker[currentPlayer]:
-						winner = opponent.id-1
+						winner = opponent.id
 					else:
-						winner = currentPlayer.id-1
+						winner = currentPlayer.id
 					break
 				
 				log("state","State at the end of the turn:")
@@ -1464,14 +1465,16 @@ class Adjudicator:
 		if winner==None:
 			winner = self.final_winning_condition(self.state)
 		
-		if winner == 0:
+		if winner == 1:
 			log("win","AgentOne won the Game.")
-		elif winner == 1:
+		elif winner == 2:
 			log("win","AgentTwo won the Game.")
 		else:
 			log("win","It's a Tie!")
 
 		#add to the state history
+		#Clearing the payload as it might contain some internal info used by the adjudicator
+		self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,[])
 		finalState = self.transformState(self.state)
 		self.notifyUI()
 		return [winner,finalState]

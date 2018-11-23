@@ -19,14 +19,28 @@ def compare_states(state,expected_output):
 	if 'cash' in expected_output:
 		if (state[PLAYER_CASH_INDEX][0] == expected_output['cash'][0]) and (state[PLAYER_CASH_INDEX][1] == expected_output['cash'][1]):
 			passCounter+=1
+			if 'cash_2' in expected_output:
+				passCounter+=1
 		else:
 			print("Cash doesn't match")
+			if 'cash_2' in expected_output:
+				if (state[PLAYER_CASH_INDEX][0] == expected_output['cash_2'][0]) and (state[PLAYER_CASH_INDEX][1] == expected_output['cash_2'][1]):
+					passCounter+=2
+				else:
+					print("Cash_2 doesn't match")
 	
 	if 'position' in expected_output:
 		if (state[PLAYER_POSITION_INDEX][0] == expected_output['position'][0]) and (state[PLAYER_POSITION_INDEX][1] == expected_output['position'][1]):
 			passCounter+=1
+			if 'position_2' in expected_output:
+				passCounter+=1
 		else:
 			print("Position doesn't match")
+			if 'position_2' in expected_output:
+				if (state[PLAYER_POSITION_INDEX][0] == expected_output['position_2'][0]) and (state[PLAYER_POSITION_INDEX][1] == expected_output['position_2'][1]):
+					passCounter+=2
+				else:
+					print("Position_2 doesn't match")
 			
 	if 'properties' in expected_output:
 		flag = True
@@ -39,7 +53,7 @@ def compare_states(state,expected_output):
 		else:
 			print("Property"+str(property)+" don't match")
 			
-	if passCounter == len(expected_output):
+	if passCounter >= len(expected_output):
 		return True
 	else:
 		return False
@@ -1003,7 +1017,7 @@ def testcase_selling_hotel_aftermax(adjudicator):
 		def jailDecision(self,state):
 			return ("P",)
 	
-	print("\nTest Case: Trying to buy a house when all 32 houses have already been constructed")
+	print("\nTest Case: Trying to sell a hotel when more than 28 houses have already been constructed")
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
 	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5], [5,6], [1,1],[5,4], [1,1],[5,5],[3,3], [5,4], [2,2],[5,5],[3,3], [3,4], [6,5], [1,2], [6,6],[5,4], [1,2], [5,4], [3,5], [4,3], [3,4]],[13,0,15],[0,1,7])
@@ -1079,7 +1093,7 @@ def testcase_trade_mortgage(adjudicator):
 			if phase == 1:#Trade Offer Phase
 				(self.trade_status,cashOffer,propertiesOffer,cashRequest,propertiesRequest) = state[PHASE_PAYLOAD_INDEX]
 	
-	print("\nTest Case: Trade")
+	print("\nTest Case: Trade involving one mortgaged item. The item is unmortgaged in the next turn.")
 	
 	agentOne = AgentOne(1)
 	agentTwo = AgentTwo(2)
@@ -1097,6 +1111,145 @@ def testcase_trade_mortgage(adjudicator):
 	else:
 		print("Fail")
 		print("Received Output:")
+	
+	return result
+
+def testcase_three_jails_a_day_keeps_the_lawyer_away(adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			oriental = state[PROPERTY_STATUS_INDEX][6]
+			vermont = state[PROPERTY_STATUS_INDEX][8]
+			connecticut = state[PROPERTY_STATUS_INDEX][9]
+			
+			if (oriental == 1) and (vermont == 1) and (connecticut == 1):
+				return ("B", [(6,4),(8,4),(9,5)])
+			else:
+				return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+		def jailDecision(self,state):
+			return ("R",)
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Player stays in jail for 3 turns and has to pay and get out on the third turn.")
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5], [5,6], [1,1],[5,4], [2,6], [5,4], [6,3], [3,3],[5,4], [5,4], [5,1], [5,3], [5,6], [4,3], [4,3], [5,3], [4,5]],None,[0,1])
+	
+	expected_output = {
+		"cash": [1500-100-100+200-120-650-200-240-50-16,1500-140-200-150-350-150+16],
+		"position":[19,20],
+		"properties":[(5,-1),(6,5),(8,5),(9,6),(12,-1),(15,1),(11,-1),(19,-1),(24,1),(28,-1),(37,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result and winner==2: 
+		print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
+def testcase_three_jails_a_day_keeps_the_lawyer_away_2(adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+		
+		def getBMSTDecision(self, state):
+			oriental = state[PROPERTY_STATUS_INDEX][6]
+			vermont = state[PROPERTY_STATUS_INDEX][8]
+			connecticut = state[PROPERTY_STATUS_INDEX][9]
+			
+			if (oriental == 1) and (vermont == 1) and (connecticut == 1):
+				return ("B", [(6,4),(8,4),(9,5)])
+			else:
+				return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+		
+		def jailDecision(self,state):
+			return ("R",)
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			self.erronous_bstm_counter = 0
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return False
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Player stays in jail for 3 turns and has to pay and get out on the third turn. But he doesn't have enough and goes bankrupt.")
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[1,5], [5,6], [1,1],[5,4], [2,6], [5,4], [6,3], [3,3],[5,4], [5,4], [1,1],[1,1],[1,1], [5,3], [5,6], [4,3], [4,3], [5,3], [4,3]],None,[0,1])
+	
+	#Acept the answer if the final cash includes the jail payment or not. This could vary based on adjudicator implementation.
+	expected_output = {
+		"cash": [1500-100-100+200-120-650-200-240-260-8-50,1500-140-200-150-350+8-150],
+		"cash_2": [1500-100-100+200-120-650-200-240-260-8,1500-140-200-150-350+8-150],
+		"position":[10,20],
+		"position_2":[-1,20],
+		"properties":[(5,-1),(6,5),(8,5),(9,6),(12,-1),(15,1),(11,-1),(19,-1),(24,1),(26,1),(28,-1),(37,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result and winner==2: 
+		print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
 	
 	return result
 
@@ -1125,7 +1278,6 @@ print("AgentOne accepts.\n")
 print("This testcase validates the following:")
 
 """
-
 """
 
 tests = [
@@ -1143,7 +1295,10 @@ tests = [
 	testGettingOutOfJail,
 	testcase_buying_max_houses,
 	testcase_trade_mortgage,
-	testcase_selling_hotel_aftermax
+	testcase_selling_hotel_aftermax,
+	testcase_three_jails_a_day_keeps_the_lawyer_away,
+	testcase_three_jails_a_day_keeps_the_lawyer_away_2
+	
 ]
 
 #testcase_buying_houses_beyond_max
