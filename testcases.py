@@ -328,8 +328,6 @@ def testcase_buying_houses_invalid_1(adjudicator):
 		print("Received Output:")
 		print(final_state)
 	
-	print("")
-	
 	return result
 
 def testcase_buying_houses_invalid_2(adjudicator):
@@ -1253,6 +1251,116 @@ def testcase_three_jails_a_day_keeps_the_lawyer_away_2(adjudicator):
 	
 	return result
 
+def testcase_utility_chance_card_owned(adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return 5
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return 0
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Player falls on the Chance card which makes you advance to nearest Utility. But it is owned. Checking if rent is correctly calculated.")
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[6,6],[1,2],[4,3],[6,4]],[3],None)
+	
+	expected_output = {
+		"cash": [1500-150-200+100,1500-100],
+		"position":[15,12],
+		"properties":[(12,1),(15,1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
+def testcase_railroad_chance_card_owned(adjudicator):
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return True
+		
+		def auctionProperty(self, state):
+			return 5
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return True
+	
+		def auctionProperty(self, state):
+			return 0
+		
+		def receiveState(self, state):
+			pass
+	
+	print("\nTest Case: Player falls on the Chance card which makes you advance to nearest Railroad. But it is owned. Checking if rent is correctly calculated.")
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[6,6],[1,2],[4,3]],[5],None)
+	
+	expected_output = {
+		"cash": [1500-150-200+50,1500-50],
+		"position":[15,15],
+		"properties":[(12,1),(15,1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
 print("Testcase flow Description:")
 print("Turn 0:")
 print("AgentOne falls on Oriental Avenue and buys it.")
@@ -1278,6 +1386,8 @@ print("AgentOne accepts.\n")
 print("This testcase validates the following:")
 
 """
+Testcases that maybe invalid:
+testcase_buying_invalid_two_hotels
 """
 
 tests = [
@@ -1291,13 +1401,14 @@ tests = [
 	testcase_auction_for_invalid_action,
 	testcase_trade_for_invalid_action,
 	testcase_buyproperty_for_invalid_action,
-	testcase_buying_invalid_two_hotels,
 	testGettingOutOfJail,
 	testcase_buying_max_houses,
 	testcase_trade_mortgage,
 	testcase_selling_hotel_aftermax,
 	testcase_three_jails_a_day_keeps_the_lawyer_away,
-	testcase_three_jails_a_day_keeps_the_lawyer_away_2
+	testcase_three_jails_a_day_keeps_the_lawyer_away_2,
+	testcase_utility_chance_card_owned,
+	testcase_railroad_chance_card_owned
 	
 ]
 

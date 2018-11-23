@@ -270,8 +270,9 @@ class Adjudicator:
 					groupElementPropertyStatus = abs(propertyStatus[groupElement])
 					if groupElementPropertyStatus<(propertyStat-1) or groupElementPropertyStatus>(propertyStat+1):
 						return False
-					if (groupElementPropertyStatus == 6) and (propertyStat == 6):
-						return False
+					#Think its ok to have more than one hotel in a monopoly. Uncomment if otherwise
+					#if (groupElementPropertyStatus == 6) and (propertyStat == 6):
+					#	return False
 			
 			return True
 						
