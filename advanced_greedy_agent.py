@@ -97,19 +97,41 @@ class Agent:
 		pass
 
 	def respondTrade(self, state):
+		# Need to decide strategy for this one/
 		return False
 
 	def buyProperty(self, state):
-		pass
+		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
+		if self.getAuctionValue(property_id) > 0: #This should decide whether I planned auction for this property in previous bmst.
+			return False
+		return True
 
 	def auctionProperty(self, state):
-		pass
+		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
+		return self.getAuctionValue(property_id)
 
 	def receiveState(self, state):
 		pass
 
+	def isDanger(self, state):
+		"""Compute the rent in 12 squares after Jail which I might need to pay"""
+		return True # True or False
+
 	def jailDecision(self, state):
-		pass
+		current_player = self.current_player
+		if self.isDanger(state):
+			return ("R")
+		else:
+			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
+			check_list = [1, -1]
+			if state[self.PROPERTY_STATUS_INDEX][self.CHANCE_GET_OUT_OF_JAIL_FREE] == check_list[current_player]:
+				return ("C", self.CHANCE_GET_OUT_OF_JAIL_FREE)
+			elif state[self.PROPERTY_STATUS_INDEX][self.COMMUNITY_GET_OUT_OF_JAIL_FREE] == check_list[current_player]:
+				return ("C", self.COMMUNITY_GET_OUT_OF_JAIL_FREE)
+			elif playerCash >= 50:
+				return ("P")
+			else:
+				return ("R")
 
 	def parseDebt(self, state, current_player):
 		debt = state[self.DEBT_INDEX]
