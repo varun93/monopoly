@@ -35,8 +35,8 @@ class Agent:
 		elif debt > 0 and debt > money:
 			actual_debt = debt - money
 
-			if(self.isDebtForBuyPropertyPhase(state)):
-				if(self.isPropertyWorthToBuy(state, self.current_player)):
+			if self.isDebtForBuyPropertyPhase(state):
+				if self.isPropertyWorthToBuy(state, self.current_player):
 					mortgaged_property_ids = self.mortgaging_property_strategy()
 					if len(mortgaged_property_ids) != 0:
 						return mortgaged_property_ids
@@ -62,11 +62,16 @@ class Agent:
 		pass
 
 	def selling_house_strategy(self, state, actual_debt):
-
+		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+		for property in owned_properties:
+			#Calculate worth and sort them
 		pass #return list of properties and number of houses to be sold.
 
 	def mortgaging_property_strategy(self, state, actual_debt):
 		"""Mortgage only the properties with zero houses"""
+		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+		for property in owned_properties:
+			# Calculate worth and sort them
 		pass
 
 
@@ -86,7 +91,7 @@ class Agent:
 	def buying_houses_or_unmortgaging_strategy(self):
 		#It should evaluate the buying house and unmortgaging property as an atomic action and then return a decision.
 		#Calculate worth of both the actions by calculating the increase in rent and then return.
-		wealth = estimateWealth("NORMAL")
+		wealth = self.estimateWealth("NORMAL")
 		threshold_wealth = self.threshold * wealth
 		"""Decide to buy houses or unmortgaging based on threshold wealth"""
 		pass
