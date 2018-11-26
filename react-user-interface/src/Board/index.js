@@ -15,7 +15,8 @@ export default class Board extends Component {
     playersDebt: [],
     constructions: {},
     phaseNumber: 0,
-    turn: 0
+    turn: 0,
+    otherInfo: ""
   };
 
   parsePhaseText = (phaseNumber, payload) => {
@@ -78,8 +79,6 @@ export default class Board extends Component {
         playersDebt
       ] = nextProps.gameState;
 
-      console.log(phasePayload);
-
       const constructions = {};
 
       properties.forEach((element, index) => {
@@ -93,6 +92,7 @@ export default class Board extends Component {
         constructions[index] = { numberOfConstructions, owner };
       });
 
+      const otherInfo = this.parsePhaseText(phaseNumber, phasePayload);
       const [playerOnePosition, playerTwoPosition] = playersPosition;
       this.setState({
         playerOnePosition: playerOnePosition === -1 ? 10 : playerOnePosition,
@@ -101,6 +101,7 @@ export default class Board extends Component {
         playersDebt: [playersDebt[1], playersDebt[3]],
         phaseNumber,
         constructions,
+        otherInfo,
         turn
       });
     }
@@ -113,14 +114,19 @@ export default class Board extends Component {
       playerTwoPosition,
       constructions,
       playersCash,
-      playersDebt
+      playersDebt,
+      otherInfo
     } = this.state;
 
     return (
       <div className="table">
         <div className="board">
           <div className="center">
-            <GameInfo playersCash={playersCash} playersDebt={playersDebt} />
+            <GameInfo
+              otherInfo={otherInfo}
+              playersCash={playersCash}
+              playersDebt={playersDebt}
+            />
           </div>
           {/* GO */}
           <Space

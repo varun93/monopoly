@@ -1,6 +1,6 @@
 import React from "react";
 
-const GameInfo = ({ playersCash = [], playersDebt = [] }) => {
+const GameInfo = ({ otherInfo, playersCash = [], playersDebt = [] }) => {
   const [playerOneCash, playerTwoCash] = playersCash;
   const [playerOneDebt, playerTwoDebt] = playersDebt;
   return (
@@ -15,7 +15,10 @@ const GameInfo = ({ playersCash = [], playersDebt = [] }) => {
         <div>Cash : {playerTwoCash}</div>
         <div>Debt : {playerTwoDebt}</div>
       </div>
-      <div className="other-info">Other Info</div>
+      <div className="other-info">
+        Other Info
+        <div>{otherInfo} </div>
+      </div>
     </div>
   );
 };

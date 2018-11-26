@@ -82,7 +82,7 @@ class App extends Component {
       <div className="App">
         <button
           type="button"
-          className="start-game btn btn-primary"
+          className="center-block start-game btn btn-primary"
           onClick={startGame}
         >
           Start Game
