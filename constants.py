@@ -45,7 +45,8 @@ board = {
 "rent_house_4":160,
 "rent_hotel":250,
 "tax":0,
-"monopoly_group_elements":[3]
+"monopoly_group_elements":[3],
+"monopoly_group_id": 0
 },
 2:{
 "class":"Chest",
@@ -76,7 +77,8 @@ board = {
 "rent_house_4":320,
 "rent_hotel":450,
 "tax":0,
-"monopoly_group_elements":[1]
+"monopoly_group_elements":[1],
+"monopoly_group_id": 0
 },
 4:{
 "class":"Tax",
@@ -107,7 +109,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[15, 25, 35]
+"monopoly_group_elements":[15, 25, 35],
+"monopoly_group_id": 1
 },
 6:{
 "class":"Street",
@@ -123,7 +126,8 @@ board = {
 "rent_house_4":400,
 "rent_hotel":550,
 "tax":0,
-"monopoly_group_elements":[8, 9]
+"monopoly_group_elements":[8, 9],
+"monopoly_group_id": 2
 },
 7:{
 "class":"Chance",
@@ -154,7 +158,8 @@ board = {
 "rent_house_4":400,
 "rent_hotel":550,
 "tax":0,
-"monopoly_group_elements":[6, 9]
+"monopoly_group_elements":[6, 9],
+"monopoly_group_id": 2
 },
 9:{
 "class":"Street",
@@ -170,7 +175,8 @@ board = {
 "rent_house_4":450,
 "rent_hotel":600,
 "tax":0,
-"monopoly_group_elements":[6, 8]
+"monopoly_group_elements":[6, 8],
+"monopoly_group_id": 2
 },
 10:{
 "class":"Idle",
@@ -201,7 +207,8 @@ board = {
 "rent_house_4":625,
 "rent_hotel":750,
 "tax":0,
-"monopoly_group_elements":[13, 14]
+"monopoly_group_elements":[13, 14],
+"monopoly_group_id": 3
 },
 12:{
 "class":"Utility",
@@ -217,7 +224,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[28]
+"monopoly_group_elements":[28],
+"monopoly_group_id": 4
 },
 13:{
 "class":"Street",
@@ -233,7 +241,8 @@ board = {
 "rent_house_4":625,
 "rent_hotel":750,
 "tax":0,
-"monopoly_group_elements":[11, 14]
+"monopoly_group_elements":[11, 14],
+"monopoly_group_id": 3
 },
 14:{
 "class":"Street",
@@ -249,7 +258,8 @@ board = {
 "rent_house_4":700,
 "rent_hotel":900,
 "tax":0,
-"monopoly_group_elements":[11, 13]
+"monopoly_group_elements":[11, 13],
+"monopoly_group_id": 3
 },
 15:{
 "class":"Railroad",
@@ -265,7 +275,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[5, 25, 35]
+"monopoly_group_elements":[5, 25, 35],
+"monopoly_group_id": 1
 },
 16:{
 "class":"Street",
@@ -281,7 +292,8 @@ board = {
 "rent_house_4":750,
 "rent_hotel":950,
 "tax":0,
-"monopoly_group_elements":[18, 19]
+"monopoly_group_elements":[18, 19],
+"monopoly_group_id": 5
 },
 17:{
 "class":"Chest",
@@ -312,7 +324,8 @@ board = {
 "rent_house_4":750,
 "rent_hotel":950,
 "tax":0,
-"monopoly_group_elements":[16, 19]
+"monopoly_group_elements":[16, 19],
+"monopoly_group_id": 5
 },
 19:{
 "class":"Street",
@@ -328,7 +341,8 @@ board = {
 "rent_house_4":800,
 "rent_hotel":1000,
 "tax":0,
-"monopoly_group_elements":[16, 18]
+"monopoly_group_elements":[16, 18],
+"monopoly_group_id": 5
 },
 20:{
 "class":"Idle",
@@ -359,7 +373,8 @@ board = {
 "rent_house_4":875,
 "rent_hotel":1050,
 "tax":0,
-"monopoly_group_elements":[23, 24]
+"monopoly_group_elements":[23, 24],
+"monopoly_group_id": 6
 },
 22:{
 "class":"Chance",
@@ -390,7 +405,8 @@ board = {
 "rent_house_4":875,
 "rent_hotel":1050,
 "tax":0,
-"monopoly_group_elements":[21, 24]
+"monopoly_group_elements":[21, 24],
+"monopoly_group_id": 6
 },
 24:{
 "class":"Street",
@@ -406,7 +422,8 @@ board = {
 "rent_house_4":925,
 "rent_hotel":1100,
 "tax":0,
-"monopoly_group_elements":[21, 23]
+"monopoly_group_elements":[21, 23],
+"monopoly_group_id": 6
 },
 25:{
 "class":"Railroad",
@@ -422,7 +439,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[5, 15, 35]
+"monopoly_group_elements":[5, 15, 35],
+"monopoly_group_id": 1
 },
 26:{
 "class":"Street",
@@ -438,7 +456,8 @@ board = {
 "rent_house_4":975,
 "rent_hotel":1150,
 "tax":0,
-"monopoly_group_elements":[27, 29]
+"monopoly_group_elements":[27, 29],
+"monopoly_group_id": 7
 },
 27:{
 "class":"Street",
@@ -454,7 +473,8 @@ board = {
 "rent_house_4":975,
 "rent_hotel":1150,
 "tax":0,
-"monopoly_group_elements":[26, 29]
+"monopoly_group_elements":[26, 29],
+"monopoly_group_id": 7
 },
 28:{
 "class":"Utility",
@@ -470,7 +490,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[12]
+"monopoly_group_elements":[12],
+"monopoly_group_id": 4
 },
 29:{
 "class":"Street",
@@ -486,7 +507,8 @@ board = {
 "rent_house_4":1025,
 "rent_hotel":1200,
 "tax":0,
-"monopoly_group_elements":[26, 27]
+"monopoly_group_elements":[26, 27],
+"monopoly_group_id": 7
 },
 30:{
 "class":"GoToJail",
@@ -517,7 +539,8 @@ board = {
 "rent_house_4":1100,
 "rent_hotel":1275,
 "tax":0,
-"monopoly_group_elements":[32, 34]
+"monopoly_group_elements":[32, 34],
+"monopoly_group_id": 8
 },
 32:{
 "class":"Street",
@@ -533,7 +556,8 @@ board = {
 "rent_house_4":1100,
 "rent_hotel":1275,
 "tax":0,
-"monopoly_group_elements":[31, 34]
+"monopoly_group_elements":[31, 34],
+"monopoly_group_id": 8
 },
 33:{
 "class":"Chest",
@@ -564,7 +588,8 @@ board = {
 "rent_house_4":1200,
 "rent_hotel":1400,
 "tax":0,
-"monopoly_group_elements":[31, 32]
+"monopoly_group_elements":[31, 32],
+"monopoly_group_id": 8
 },
 35:{
 "class":"Railroad",
@@ -580,7 +605,8 @@ board = {
 "rent_house_4":0,
 "rent_hotel":0,
 "tax":0,
-"monopoly_group_elements":[5, 15, 25]
+"monopoly_group_elements":[5, 15, 25],
+"monopoly_group_id": 1
 },
 36:{
 "class":"Chance",
@@ -611,7 +637,8 @@ board = {
 "rent_house_4":1300,
 "rent_hotel":1500,
 "tax":0,
-"monopoly_group_elements":[39]
+"monopoly_group_elements":[39],
+"monopoly_group_id": 9
 },
 38:{
 "class":"Tax",
@@ -642,7 +669,8 @@ board = {
 "rent_house_4":1700,
 "rent_hotel":2000,
 "tax":0,
-"monopoly_group_elements":[37]
+"monopoly_group_elements":[37],
+"monopoly_group_id": 9
 }
 }
 
@@ -754,6 +782,19 @@ property_to_space_map = {
 27:39
 }
 """
+
+groupLengthMap = {
+0:2,
+1:4,
+2:3,
+3:3,
+4:2,
+5:3,
+6:3,
+7:3,
+8:3,
+9:2
+}
 communityChestCards = [
   {
     "id": 0,

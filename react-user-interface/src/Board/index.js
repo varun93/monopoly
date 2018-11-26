@@ -3,7 +3,7 @@ import * as constants from "./constants";
 import Space from "./Space";
 import properties from "./properties";
 import "./style.css";
-import PlayerInfo from "./PlayerInfo";
+import GameInfo from "./GameInfo";
 
 export default class Board extends Component {
   state = {
@@ -11,10 +11,12 @@ export default class Board extends Component {
     game_history: [],
     playerOnePosition: 0,
     playerTwoPosition: 0,
-    playerOneCash: 0,
-    playerTwoCash: 0,
+    playersCash: [],
+    playersDebt: [],
     constructions: {},
-    turn: 0
+    phaseNumber: 0,
+    turn: 0,
+    otherInfo: ""
   };
 
   parsePhaseText = (phaseNumber, payload) => {
@@ -31,7 +33,6 @@ export default class Board extends Component {
       // dice)
     };
     const phaseName = phaseNameMapping[phaseNumber];
-    console.log(phaseName);
 
     switch (phaseNumber) {
       case constants.BSTM:
@@ -57,6 +58,8 @@ export default class Board extends Component {
       default:
         break;
     }
+
+    return phaseName;
   };
 
   componentWillReceiveProps(nextProps) {
@@ -70,7 +73,10 @@ export default class Board extends Component {
         turn,
         properties,
         playersPosition,
-        playersCash
+        playersCash,
+        phaseNumber,
+        phasePayload,
+        playersDebt
       ] = nextProps.gameState;
 
       const constructions = {};
@@ -86,13 +92,16 @@ export default class Board extends Component {
         constructions[index] = { numberOfConstructions, owner };
       });
 
+      const otherInfo = this.parsePhaseText(phaseNumber, phasePayload);
       const [playerOnePosition, playerTwoPosition] = playersPosition;
       this.setState({
         playerOnePosition: playerOnePosition === -1 ? 10 : playerOnePosition,
         playerTwoPosition: playerTwoPosition === -1 ? 10 : playerTwoPosition,
-        playerOneCash: playersCash[0],
-        playerTwoCash: playersCash[1],
+        playersCash,
+        playersDebt: [playersDebt[1], playersDebt[3]],
+        phaseNumber,
         constructions,
+        otherInfo,
         turn
       });
     }
@@ -104,17 +113,21 @@ export default class Board extends Component {
       playerOnePosition,
       playerTwoPosition,
       constructions,
-      playerOneCash,
-      playerTwoCash
+      playersCash,
+      playersDebt,
+      otherInfo
     } = this.state;
 
     return (
       <div className="table">
         <div className="board">
-          <PlayerInfo
-            playerOneCash={playerOneCash}
-            playerTwoCash={playerTwoCash}
-          />
+          <div className="center">
+            <GameInfo
+              otherInfo={otherInfo}
+              playersCash={playersCash}
+              playersDebt={playersDebt}
+            />
+          </div>
           {/* GO */}
           <Space
             playerOnePosition={playerOnePosition}

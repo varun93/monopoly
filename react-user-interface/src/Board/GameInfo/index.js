@@ -1,11 +1,8 @@
 import React from "react";
 
-const PlayerInfo = ({
-  playerOneCash,
-  playerTwoCash,
-  playerOneDebt,
-  playerTwoDebt
-}) => {
+const GameInfo = ({ otherInfo, playersCash = [], playersDebt = [] }) => {
+  const [playerOneCash, playerTwoCash] = playersCash;
+  const [playerOneDebt, playerTwoDebt] = playersDebt;
   return (
     <div className="center">
       <div className="player-one-info">
@@ -18,8 +15,12 @@ const PlayerInfo = ({
         <div>Cash : {playerTwoCash}</div>
         <div>Debt : {playerTwoDebt}</div>
       </div>
+      <div className="other-info">
+        Other Info
+        <div>{otherInfo} </div>
+      </div>
     </div>
   );
 };
 
-export default PlayerInfo;
+export default GameInfo;
