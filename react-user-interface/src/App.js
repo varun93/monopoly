@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
 import Board from "./Board";
+import TurnChooser from "./TurnChooser";
 import "./App.css";
 
 class App extends Component {
@@ -11,7 +12,9 @@ class App extends Component {
       gameHistory: [],
       endpoint: "http://127.0.0.1:5000",
       currentStepNumber: 0,
-      turn: 0
+      turn: 0,
+      turnNumbers: [],
+      turnNumberToJump: 0
     };
   }
 
@@ -26,13 +29,23 @@ class App extends Component {
     // message handler for the when state changes
     this.socket.on("game_state_updated", gameHistory => {
       gameHistory = gameHistory.state;
-      // gameHistory.forEach(gameState => {
-      //   this.setState({ gameState: gameState[1] });
-      // });
-
-      this.setState({ gameHistory });
+      this.setState({ gameHistory }, () => {
+        const lastTurnNumber = gameHistory[gameHistory.length - 1][1][0];
+        this.setState({ turnNumbers: [...Array(lastTurnNumber + 1).keys()] });
+      });
     });
   }
+
+  getFirstInstanceOfTurn = turn => {
+    const { gameHistory } = this.state;
+    for (let index = 0; index < gameHistory.length; index++) {
+      const gameState = gameHistory[index];
+      if (gameState[1][0] === parseInt(turn)) {
+        return [index, gameState[1]];
+      }
+    }
+    return false;
+  };
 
   startGame = () => {
     this.socket.emit("start_game");
@@ -55,14 +68,26 @@ class App extends Component {
     this.setGameState(currentStepNumber, gameHistory);
   };
 
+  jumpToTurn = turnNumberToJump => {
+    const [currentStepNumber, gameState] = this.getFirstInstanceOfTurn(
+      turnNumberToJump
+    );
+    this.setState({ gameState, currentStepNumber, turnNumberToJump });
+  };
+
   render() {
-    const { gameState } = this.state;
-    const { startGame, previousMove, nextMove } = this;
+    const { gameState, turnNumberToJump, turnNumbers } = this.state;
+    const { startGame, previousMove, nextMove, jumpToTurn } = this;
     return (
       <div className="App">
         <button onClick={startGame}>Start Game</button>
         <button onClick={previousMove}>Previous Move</button>
         <button onClick={nextMove}>Next Move</button>
+        <TurnChooser
+          onChange={jumpToTurn}
+          turnNumbers={turnNumbers}
+          turnNumberToJump={turnNumberToJump}
+        />
         <Board gameState={gameState} />
       </div>
     );

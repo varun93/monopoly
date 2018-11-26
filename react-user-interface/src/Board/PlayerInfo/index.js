@@ -1,11 +1,8 @@
 import React from "react";
 
-const PlayerInfo = ({
-  playerOneCash,
-  playerTwoCash,
-  playerOneDebt,
-  playerTwoDebt
-}) => {
+const PlayerInfo = ({ playersCash = [], playersDebt = [] }) => {
+  const [playerOneCash, playerTwoCash] = playersCash;
+  const [playerOneDebt, playerTwoDebt] = playersDebt;
   return (
     <div className="center">
       <div className="player-one-info">
