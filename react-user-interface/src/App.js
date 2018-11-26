@@ -80,9 +80,27 @@ class App extends Component {
     const { startGame, previousMove, nextMove, jumpToTurn } = this;
     return (
       <div className="App">
-        <button onClick={startGame}>Start Game</button>
-        <button onClick={previousMove}>Previous Move</button>
-        <button onClick={nextMove}>Next Move</button>
+        <button
+          type="button"
+          className="start-game btn btn-primary"
+          onClick={startGame}
+        >
+          Start Game
+        </button>
+        <button
+          type="button"
+          className="previous-move btn btn-danger"
+          onClick={previousMove}
+        >
+          Previous Move
+        </button>
+        <button
+          type="button"
+          className="next-move btn btn-success"
+          onClick={nextMove}
+        >
+          Next Move
+        </button>
         <TurnChooser
           onChange={jumpToTurn}
           turnNumbers={turnNumbers}
