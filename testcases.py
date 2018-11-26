@@ -1,4 +1,4 @@
-import adjudicator
+from adjudicator import Adjudicator
 
 PLAYER_TURN_INDEX = 0
 PROPERTY_STATUS_INDEX = 1
@@ -659,8 +659,7 @@ def testcase_trade_for_invalid_action(adjudicator):
 
 def testcase_buyproperty_for_invalid_action(adjudicator):
 	print("Test Description:")
-	print(
-		"AgentOne will fall on Vermont Avenue(Position 8) and will return an erroneous value. This should start an auction phase.")
+	print("AgentOne will fall on Vermont Avenue(Position 8) and will return an erroneous value. This should start an auction phase.")
 	print("AgentTwo will bid $170 and AgentOne will bid $160")
 	print("The auction would be won by AgentTwo")
 
@@ -716,8 +715,6 @@ def testcase_buyproperty_for_invalid_action(adjudicator):
 		print("Fail")
 		print("Received Output:")
 		print(final_state)
-
-	print("")
 
 	return result
 
@@ -917,7 +914,7 @@ def testGettingOutOfJail(adjudicator):
 		def receiveState(self, state):
 			pass
 		
-	print("\nTest Case: Getting Out Of Jail")
+	print("\nTest Case: AgentOne ends up in Jail by rolling 3 doubles in a row. He pays to get out in the next turn and moves to a certain position.")
 	p1 = AgentOne(0)
 	p2 = AgentTwo(1)
 	dice = [(6, 6), (6, 6),(6, 6), (2, 3),(4,2)]
@@ -1416,5 +1413,5 @@ tests = [
 
 #Execution
 for test in tests:
-	adjudicatorObj = adjudicator.Adjudicator()
-	test(adjudicatorObj)
+	adjudicator = Adjudicator()
+	test(adjudicator)
