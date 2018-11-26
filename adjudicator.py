@@ -1531,8 +1531,8 @@ class Adjudicator:
 
 
 # for testing purposes only
-# from agent import Agent
-# agentOne = Agent(1)
-# agentTwo = Agent(2)
-# adjudicator = Adjudicator()
-# adjudicator.runGame(agentOne, agentTwo)
+#from agent import Agent
+#agentOne = Agent(1)
+#agentTwo = Agent(2)
+#adjudicator = Adjudicator()
+#adjudicator.runGame(agentOne, agentTwo)
