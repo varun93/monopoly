@@ -85,6 +85,7 @@ h6 {
   display: flex;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(7, 1fr);
+  flex-flow: row wrap;
 }
 
 .title {
@@ -98,11 +99,21 @@ h6 {
 .player-one-info {
   margin-left: 20%;
   margin-top: 50px;
+  height: 200px;
+  border: 1px solid red;
+  padding: 10px;
+  font-size: 14px;
+  flex: 1 30%;
 }
 
 .player-two-info {
   margin-left: 50px;
   margin-top: 50px;
+  height: 200px;
+  border: 1px solid blue;
+  padding: 10px;
+  font-size: 14px;
+  flex: 1 30%;
 }
 
 .chance-deck {
@@ -116,7 +127,6 @@ h6 {
 .label {
   text-align: center;
   font-weight: bold;
-  letter-spacing: 3px;
   padding-bottom: 10px;
 }
 
@@ -442,4 +452,13 @@ h6 {
 .owner-2 {
   background: blue;
   height: 5px;
+}
+
+.other-info {
+  margin-left: 5%;
+  border: 1px solid green;
+  padding: 10px;
+  font-size: 14px;
+  flex: 1 100%;
+  margin-bottom: 50px;
 }

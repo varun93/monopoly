@@ -1,6 +1,6 @@
 import React from "react";
 
-const PlayerInfo = ({ playersCash = [], playersDebt = [] }) => {
+const GameInfo = ({ playersCash = [], playersDebt = [] }) => {
   const [playerOneCash, playerTwoCash] = playersCash;
   const [playerOneDebt, playerTwoDebt] = playersDebt;
   return (
@@ -15,8 +15,9 @@ const PlayerInfo = ({ playersCash = [], playersDebt = [] }) => {
         <div>Cash : {playerTwoCash}</div>
         <div>Debt : {playerTwoDebt}</div>
       </div>
+      <div className="other-info">Other Info</div>
     </div>
   );
 };
 
-export default PlayerInfo;
+export default GameInfo;

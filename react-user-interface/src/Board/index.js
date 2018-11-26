@@ -3,7 +3,7 @@ import * as constants from "./constants";
 import Space from "./Space";
 import properties from "./properties";
 import "./style.css";
-import PlayerInfo from "./PlayerInfo";
+import GameInfo from "./GameInfo";
 
 export default class Board extends Component {
   state = {
@@ -119,7 +119,9 @@ export default class Board extends Component {
     return (
       <div className="table">
         <div className="board">
-          <PlayerInfo playersCash={playersCash} playersDebt={playersDebt} />
+          <div className="center">
+            <GameInfo playersCash={playersCash} playersDebt={playersDebt} />
+          </div>
           {/* GO */}
           <Space
             playerOnePosition={playerOnePosition}
