@@ -15,9 +15,11 @@ class Agent:
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 41
 		self.current_player = self.id - 1
 		self.threshold = 0.7
+		self.jail_counter = 0
+
 
 	def getPropertyValue(self, property_id, player):
-		pass #Return worth for the property
+		pass #Return monetary worth for the property
 
 	def getBMSTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
@@ -27,10 +29,10 @@ class Agent:
 			(total_money_required, list_of_unmortgage_property_or_buying_houses) = self.buying_houses_or_unmortgaging_strategy()
 			if total_money_required <= money:
 				return list_of_unmortgage_property_or_buying_houses
-			else:
-				mortgaged_property_ids = self.mortgaging_property_strategy(state, total_money_required - money)
-				if len(mortgaged_property_ids) != 0:
-					return mortgaged_property_ids
+			#else:
+			#	mortgaged_property_ids = self.mortgaging_property_strategy(state, total_money_required - money)
+			#	if len(mortgaged_property_ids) != 0:
+			#		return mortgaged_property_ids
 
 		elif debt > 0 and debt > money:
 			actual_debt = debt - money
@@ -41,10 +43,10 @@ class Agent:
 					if len(mortgaged_property_ids) != 0:
 						return mortgaged_property_ids
 					else:
-						selling_number_pf_houses_for_properties = self.selling_house_strategy()
+						selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 						return selling_number_pf_houses_for_properties
 				else:
-					self.storeAuctionValue()
+					self.storeAuctionValue(propertyId)
 			else:
 				mortgaged_property_ids = self.mortgaging_property_strategy(state, actual_debt)
 				if len(mortgaged_property_ids) != 0:
@@ -53,7 +55,7 @@ class Agent:
 					selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 					return selling_number_pf_houses_for_properties
 
-	def setAuctionValue(self, propertyId):
+	def storeAuctionValue(self, propertyId):
 		"""Stores the bid for Auction"""
 		pass
 
@@ -71,7 +73,7 @@ class Agent:
 		"""Mortgage only the properties with zero houses"""
 		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
 		for property in owned_properties:
-			# Calculate worth and sort them
+			#Calculate worth and sort them
 		pass
 
 
@@ -81,6 +83,7 @@ class Agent:
 
 
 	def isDebtForBuyPropertyPhase(self, state):
+		#Property id and source = 0 and debt
 		return False #Should return True or False
 
 	def estimateWealth(severityLevel={"NORMAL", "DANGER"}):
@@ -111,15 +114,77 @@ class Agent:
 		return self.getAuctionValue(property_id)
 
 	def receiveState(self, state):
-		pass
+		JAIL = 6
+		if state[self.PHASE_NUMBER_INDEX] == JAIL and state[self.PHASE_PAYLOAD_INDEX][0] == True:
+			self.jail_counter = 0
 
-	def isDanger(self, state):
+
+	def isDanger(self, state, player):
 		"""Compute the rent in 12 squares after Jail which I might need to pay"""
-		return True # True or False
+		rent = 0
+		"""
+		Expected Rent for Electric Company Utility
+		"""
+		if player == 0:
+			if state[self.PROPERTY_STATUS_INDEX][12] == -1 and state[self.PROPERTY_STATUS_INDEX][28] == -1:
+				rent = 20 #10*2(dice roll)
+			elif state[self.PROPERTY_STATUS_INDEX][12] == -1:
+				rent = 8
+		else:
+			if state[self.PROPERTY_STATUS_INDEX][12] == 1 and state[self.PROPERTY_STATUS_INDEX][28] == 1:
+				rent = 20
+			elif state[self.PROPERTY_STATUS_INDEX][12] == 1:
+				rent = 8
+
+		"""
+		Expected Rent for Penn Rail Road
+		"""
+		if player == 0:
+			if state[self.PROPERTY_STATUS_INDEX][15] == -1:
+				count = 1
+				for property in constants.board[15]["monopoly_group_elements"]:
+					if state[self.PROPERTY_STATUS_INDEX][property] == -1:
+						count = count + 1
+				rent = count * 25
+		else:
+			if state[self.PROPERTY_STATUS_INDEX][15] == 1:
+				count = 1
+				for property in constants.board[15]["monopoly_group_elements"]:
+					if state[self.PROPERTY_STATUS_INDEX][property] == 1:
+						count = count + 1
+				rent = count * 25
+		position = state[self.PLAYER_POSITION_INDEX][player]
+		property_owned_by_opponent = []
+
+		if player == 0:
+			opponent_sign = -1
+		else:
+			opponent_sign = 1
+
+		for i in range(2, 12):
+			if position + i != 12 and position + i != 15:
+				if player == 0 and state[self.PROPERTY_STATUS_INDEX][position + i] < 0 and state[self.PROPERTY_STATUS_INDEX][position + i] != -7:
+					property_owned_by_opponent.append(position + i)
+				elif player == 1 and state[self.PROPERTY_STATUS_INDEX][position + i] > 0 and state[self.PROPERTY_STATUS_INDEX][position + i] != 7:
+					property_owned_by_opponent.append(position+i)
+
+		for property in property_owned_by_opponent:
+			if state[self.PROPERTY_STATUS_INDEX][property] == -6 or state[self.PROPERTY_STATUS_INDEX][property] == 6:
+				rent += constants.board[property]["rent_hotel"]
+			elif state[self.PROPERTY_STATUS_INDEX][property] == -1 or state[self.PROPERTY_STATUS_INDEX][property] == 1:
+				rent += constants.board[property]["rent"]
+			else:
+				s = "rent_house_"
+				rent += constants.board[property][s + str(state[self.PROPERTY_STATUS_INDEX][property] * opponent_sign - 1)]
+		#Current threshold 50 percent of the player money.
+		if rent > 0.5 * state[self.PLAYER_CASH_INDEX][player]:
+			return True
+		return False
 
 	def jailDecision(self, state):
 		current_player = self.current_player
-		if self.isDanger(state):
+		if self.isDanger(state) and self.jail_counter < 2:
+			self.jail_counter = self.jail_counter + 1
 			return ("R")
 		else:
 			playerCash = state[self.PLAYER_CASH_INDEX][current_player]
