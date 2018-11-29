@@ -16,6 +16,7 @@ class Agent:
 		self.current_player = self.id - 1
 		self.threshold = 0.7
 		self.jail_counter = 0
+		self.auction_value ={}
 
 
 	def getPropertyValue(self, property_id, player):
@@ -38,6 +39,7 @@ class Agent:
 			actual_debt = debt - money
 
 			if self.isDebtForBuyPropertyPhase(state):
+				property_id = state[self.PHASE_PAYLOAD_INDEX][0]
 				if self.isPropertyWorthToBuy(state, self.current_player):
 					mortgaged_property_ids = self.mortgaging_property_strategy()
 					if len(mortgaged_property_ids) != 0:
@@ -46,7 +48,7 @@ class Agent:
 						selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 						return selling_number_pf_houses_for_properties
 				else:
-					self.storeAuctionValue(propertyId)
+					self.storeAuctionValue(property_id)
 			else:
 				mortgaged_property_ids = self.mortgaging_property_strategy(state, actual_debt)
 				if len(mortgaged_property_ids) != 0:
@@ -56,12 +58,17 @@ class Agent:
 					return selling_number_pf_houses_for_properties
 
 	def storeAuctionValue(self, propertyId):
-		"""Stores the bid for Auction"""
-		pass
+		current_player = self.current_player
+		self.auction_value[propertyId] = self.getPropertyValue(propertyId,current_player)
+
 
 	def getAuctionValue(self, propertyId):
 		"""Returns the auction value"""
-		pass
+		auctionValue = 0
+		if propertyId in self.auction_value:
+			auctionValue = self.auction_value[propertyId]
+			self.auction_value[propertyId].pop(propertyId, None)
+		return auctionValue
 
 	def selling_house_strategy(self, state, actual_debt):
 		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
@@ -209,9 +216,6 @@ class Agent:
 			money_owed = debt[3]
 			source = debt[2]
 		return (source, money_owed)
-
-	def respondMortgage(self, state):
-		pass
 
 	def get_owned_property_not_morgaged(self, state, current_player):
 		owned_properties = []
