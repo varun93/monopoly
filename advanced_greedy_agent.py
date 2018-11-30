@@ -22,6 +22,10 @@ class Agent:
 	def getPropertyValue(self, property_id, player):
 		pass #Return monetary worth for the property
 
+	def getValueForSellingHouses(self, properties, player):
+		#return [(property_id1, worth1), (property_id2, worth2 )]
+		pass
+
 	def getBMSTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
 		money = state[self.PLAYER_CASH_INDEX][self.current_player]
@@ -70,11 +74,51 @@ class Agent:
 			self.auction_value[propertyId].pop(propertyId, None)
 		return auctionValue
 
+	def find_number_of_houses(self, state, propertyId,current_player):
+		"""
+		Method returns number of houses on the given property Id and in case of hotel it will return 5.
+		:param state:
+		:param propertyId:
+		:param current_player:
+		:return:
+		"""
+		if current_player == 0:
+			sign = 1
+		else:
+			sign = -1
+		return state[self.PROPERTY_STATUS_INDEX][property] * sign - 1
+
+
 	def selling_house_strategy(self, state, actual_debt):
+		current_player = self.current_player
 		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+		properties_with_houses = []
 		for property in owned_properties:
-			#Calculate worth and sort them
-		pass #return list of properties and number of houses to be sold.
+			if self.find_number_of_houses(state, property, current_player) > 0:
+				properties_with_houses.append(property)
+		sorted_properties_worth = self.getValueForSellingHouses(properties_with_houses, self.current_player)
+		totalNumberOfHouses = {}
+		for property in sorted_properties_worth:
+			if actual_debt <= 0:
+				break
+			#Find number of houses
+			houses = self.find_number_of_houses(state, property, current_player)
+			for i in range(1, houses):
+				if actual_debt <= 0:
+					break
+				actual_debt -= constants.board[property]['build_cost'] * 0.5
+				if property in totalNumberOfHouses:
+					totalNumberOfHouses[property] = totalNumberOfHouses[property] + 1
+				else:
+					totalNumberOfHouses[property] =  1
+		selling_list = []
+
+		for property in totalNumberOfHouses:
+			selling_list.append((property,totalNumberOfHouses[property]))
+		if len(selling_list) > 0:
+			return ("S", selling_list)
+		else:
+			return None
 
 	def mortgaging_property_strategy(self, state, actual_debt):
 		"""Mortgage only the properties with zero houses"""
