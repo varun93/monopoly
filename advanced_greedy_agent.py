@@ -26,6 +26,10 @@ class Agent:
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
 
+	def getValueForMortgageProperties(self, properties, player):
+		#return [(property_id1, worth1), (property_id2, worth2 )]
+		pass
+
 	def getBMSTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
 		money = state[self.PLAYER_CASH_INDEX][self.current_player]
@@ -45,7 +49,7 @@ class Agent:
 			if self.isDebtForBuyPropertyPhase(state):
 				property_id = state[self.PHASE_PAYLOAD_INDEX][0]
 				if self.isPropertyWorthToBuy(state, self.current_player):
-					mortgaged_property_ids = self.mortgaging_property_strategy()
+					mortgaged_property_ids = self.mortgaging_property_strategy(state, actual_debt)
 					if len(mortgaged_property_ids) != 0:
 						return mortgaged_property_ids
 					else:
@@ -112,7 +116,6 @@ class Agent:
 				else:
 					totalNumberOfHouses[property] =  1
 		selling_list = []
-
 		for property in totalNumberOfHouses:
 			selling_list.append((property,totalNumberOfHouses[property]))
 		if len(selling_list) > 0:
@@ -121,11 +124,25 @@ class Agent:
 			return None
 
 	def mortgaging_property_strategy(self, state, actual_debt):
-		"""Mortgage only the properties with zero houses"""
+		current_player = self.current_player
 		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+		properties_with_zero_houses = []
 		for property in owned_properties:
-			#Calculate worth and sort them
-		pass
+			if self.find_number_of_houses(state, property, current_player) == 0:
+				properties_with_zero_houses.append(property)
+		sorted_properties_worth = self.getValueForSellingHouses(properties_with_zero_houses, self.current_player)
+		propertiesToMortgage = []
+		for property in sorted_properties_worth:
+			if actual_debt <= 0:
+				break
+			actual_debt -= constants.board[property]["price"] * 0.5
+			propertiesToMortgage.append(property)
+
+		if len(propertiesToMortgage) > 0:
+			return ("M", propertiesToMortgage)
+		else:
+			return []
+
 
 
 	def isPropertyWorthToBuy(self, state, current_player):
