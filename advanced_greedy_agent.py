@@ -30,6 +30,11 @@ class Agent:
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
 
+	def isPropertyWorthToBuy(self, state, property_id, current_player):
+		"""Calculate the worth of the property and then return boolean true or false"""
+		"""This method is same as getValueForBuying in our doc"""
+		pass
+
 	def getBMSTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
 		money = state[self.PLAYER_CASH_INDEX][self.current_player]
@@ -48,7 +53,7 @@ class Agent:
 
 			if self.isDebtForBuyPropertyPhase(state):
 				property_id = state[self.PHASE_PAYLOAD_INDEX][0]
-				if self.isPropertyWorthToBuy(state, self.current_player):
+				if self.isPropertyWorthToBuy(state, property_id, self.current_player):
 					mortgaged_property_ids = self.mortgaging_property_strategy(state, actual_debt)
 					if len(mortgaged_property_ids) != 0:
 						return mortgaged_property_ids
@@ -143,16 +148,18 @@ class Agent:
 		else:
 			return []
 
-
-
-	def isPropertyWorthToBuy(self, state, current_player):
-		"""Calculate the worth of the property and then return boolean true or false based on threshold"""
-		pass
-
-
 	def isDebtForBuyPropertyPhase(self, state):
-		#Property id and source = 0 and debt
-		return False #Should return True or False
+		"""
+		Check if debt is for buy property by checking if source of debt is bank and property status of
+		player position is zero.
+		:param state:
+		:return:
+		"""
+		tuple = self.parseDebt(state, self.current_player)
+		position = state[self.PLAYER_POSITION_INDEX][self.current_player]
+		if tuple[0] == 0 and state[self.PROPERTY_STATUS_INDEX][position] == 0:
+			return True
+		return False
 
 	def estimateWealth(severityLevel={"NORMAL", "DANGER"}):
 		"""Summation of property with zero houses and liquid money"""
