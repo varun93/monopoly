@@ -17,16 +17,22 @@ class Agent:
 		self.threshold = 0.7
 		self.jail_counter = 0
 		self.auction_value ={}
+		# In a particular BMST phase, we can decide to buy houses and then unmortgage properties.
+		# Adjudicator accept only one kind of action Buy or Mortgage at a time.
+		# So, maintain this list when next time asked send this list.
+		self.unmortgage_list = []
+		self.unmortgageMoney = 0
 
 
-	def getPropertyValue(self, property_id, player):
+
+	def getPropertyValue(self, state, property_id, player):
 		pass #Return monetary worth for the property
 
-	def getValueForSellingHouses(self, properties, player):
+	def getValueForSellingHouses(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
 
-	def getValueForMortgageProperties(self, properties, player):
+	def getValueForMortgageProperties(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
 
@@ -35,14 +41,35 @@ class Agent:
 		"""This method is same as getValueForBuying in our doc"""
 		pass
 
+	def getValueForBuyingConstructionsorUnmortgaging(self, state, buyHousesCandidateProperties, mortgageCandidateProperties, player):
+		"""Passsing buyHousesCandidates and mortgageCandidates separately to avoid parsing state in this method.
+		   If this is not helpful, remove it. Return value can still be single list with tuples of propertyId and worth.
+		"""
+		# return [(property_id1, worth1), (property_id2, worth2 )]
+		pass
+
+	def respondTrade(self, state):
+		# Need to decide strategy for this one/
+		return False
+
 	def getBMSTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
 		money = state[self.PLAYER_CASH_INDEX][self.current_player]
-
 		if debt == 0:
-			(total_money_required, list_of_unmortgage_property_or_buying_houses) = self.buying_houses_or_unmortgaging_strategy()
-			if total_money_required <= money:
-				return list_of_unmortgage_property_or_buying_houses
+			if len(self.unmortgage_list) == 0:
+				(money_building,properties_houses, money_unmort, properties_unmort) = self.buying_houses_or_unmortgaging_strategy(state)
+				if money_building <= money and len(properties_houses) > 0:
+					self.unmortgage_list = properties_unmort
+					self.unmortgageMoney = money_unmort
+					return ("B", properties_houses)
+				elif money_unmort <= money and len(properties_unmort) > 0:
+					return ("M", properties_unmort)
+			else:
+				if self.unmortgageMoney <= money and len(self.unmortgage_list) > 0:
+					unmortagageProperties = self.unmortgage_list
+					self.unmortgage_list = []
+					self.unmortgageMoney = 0
+					return ("M", unmortagageProperties)
 			#else:
 			#	mortgaged_property_ids = self.mortgaging_property_strategy(state, total_money_required - money)
 			#	if len(mortgaged_property_ids) != 0:
@@ -61,7 +88,7 @@ class Agent:
 						selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 						return selling_number_pf_houses_for_properties
 				else:
-					self.storeAuctionValue(property_id)
+					self.storeAuctionValue(state, property_id)
 			else:
 				mortgaged_property_ids = self.mortgaging_property_strategy(state, actual_debt)
 				if len(mortgaged_property_ids) != 0:
@@ -69,10 +96,11 @@ class Agent:
 				else:
 					selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 					return selling_number_pf_houses_for_properties
+		return None
 
-	def storeAuctionValue(self, propertyId):
+	def storeAuctionValue(self, state, propertyId):
 		current_player = self.current_player
-		self.auction_value[propertyId] = self.getPropertyValue(propertyId,current_player)
+		self.auction_value[propertyId] = self.getPropertyValue(state, propertyId,current_player)
 
 
 	def getAuctionValue(self, propertyId):
@@ -105,9 +133,9 @@ class Agent:
 		for property in owned_properties:
 			if self.find_number_of_houses(state, property, current_player) > 0:
 				properties_with_houses.append(property)
-		sorted_properties_worth = self.getValueForSellingHouses(properties_with_houses, self.current_player)
+		sorted_properties_worth = self.getValueForSellingHouses(state, properties_with_houses, self.current_player)
 		totalNumberOfHouses = {}
-		for property in sorted_properties_worth:
+		for property, worth in sorted_properties_worth:
 			if actual_debt <= 0:
 				break
 			#Find number of houses
@@ -135,9 +163,9 @@ class Agent:
 		for property in owned_properties:
 			if self.find_number_of_houses(state, property, current_player) == 0:
 				properties_with_zero_houses.append(property)
-		sorted_properties_worth = self.getValueForSellingHouses(properties_with_zero_houses, self.current_player)
+		sorted_properties_worth = self.getValueForMortgageProperties(state, properties_with_zero_houses, self.current_player)
 		propertiesToMortgage = []
-		for property in sorted_properties_worth:
+		for property, worth in sorted_properties_worth:
 			if actual_debt <= 0:
 				break
 			actual_debt -= constants.board[property]["price"] * 0.5
@@ -153,7 +181,7 @@ class Agent:
 		Check if debt is for buy property by checking if source of debt is bank and property status of
 		player position is zero.
 		:param state:
-		:return:
+		:return: True or False
 		"""
 		tuple = self.parseDebt(state, self.current_player)
 		position = state[self.PLAYER_POSITION_INDEX][self.current_player]
@@ -161,22 +189,58 @@ class Agent:
 			return True
 		return False
 
-	def estimateWealth(severityLevel={"NORMAL", "DANGER"}):
-		"""Summation of property with zero houses and liquid money"""
-		total_wealth = 0
-		return total_wealth
+	def estimateWealth(self,state):
+		return state[self.PLAYER_CASH_INDEX][self.current_player]
 
-	def buying_houses_or_unmortgaging_strategy(self):
+	def buying_houses_or_unmortgaging_strategy(self, state):
 		#It should evaluate the buying house and unmortgaging property as an atomic action and then return a decision.
 		#Calculate worth of both the actions by calculating the increase in rent and then return.
-		wealth = self.estimateWealth("NORMAL")
+		wealth = self.estimateWealth(state)
 		threshold_wealth = self.threshold * wealth
-		"""Decide to buy houses or unmortgaging based on threshold wealth"""
-		pass
 
-	def respondTrade(self, state):
-		# Need to decide strategy for this one/
-		return False
+		"""Decide to buy houses or unmortgaging based on threshold wealth"""
+		owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+		candidate_properties_for_building_houses = []
+		for property in owned_properties:
+			houses = self.find_number_of_houses(state, property, self.current_player)
+			if houses <= 4 : #discarding building hotel on property
+				isValidCandidate = True
+				monopoly_group_properties = constants.board[property]["monopoly_group_elements"]
+				for other_property in monopoly_group_properties:
+					if other_property not in owned_properties:
+						isValidCandidate = False
+						break
+
+					other_houses = self.find_number_of_houses(state, other_property, self.current_player)
+					if houses > other_houses:
+						isValidCandidate = False
+						break
+				if isValidCandidate:
+					candidate_properties_for_building_houses.append(property)
+
+		mortgaged_properties = self.get_mortgaged_properties(state, self.current_player)
+		sorted_worth_properties = self.getValueForBuyingConstructionsorUnmortgaging(state,candidate_properties_for_building_houses,mortgaged_properties,self.current_player)
+		buyingHouses_list = []
+		unmortgage_list = []
+		buyingHousesMoney = 0
+		unmortgageMoney = 0
+		for property, worth in sorted_worth_properties:
+			if threshold_wealth <= 0:
+				break
+			elif property in candidate_properties_for_building_houses:
+				buildcost = constants.board[property]['build_cost']
+				threshold_wealth -= buildcost
+				if threshold_wealth >= 0:
+					buyingHouses_list.append(property)
+					buyingHousesMoney += buildcost
+			elif property in mortgaged_properties:
+				unmortgageCost = constants.board[property]['price']* 0.5 + 0.1 * 0.5 * constants.board[property]['price']
+				threshold_wealth -= unmortgageCost
+				if threshold_wealth >= 0:
+					unmortgage_list.append(property)
+					unmortgageMoney += unmortgageCost
+
+		return (buyingHousesMoney, buyingHouses_list, unmortgageMoney, unmortgage_list)
 
 	def buyProperty(self, state):
 		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
@@ -289,9 +353,24 @@ class Agent:
 		owned_properties = []
 		i = 0
 		for status in state[self.PROPERTY_STATUS_INDEX]:
+			if constants.board[i]["class"] != "Street":
+				continue
 			if current_player == 0 and status > 0 and status != 7 and i in constants.property_to_space_map:
 				owned_properties.append(i)
 			elif current_player == 1 and status < 0 and status != -7 and i in constants.property_to_space_map:
+				owned_properties.append(i)
+			i = i + 1
+		return owned_properties
+
+	def get_mortgaged_properties(self, state, current_player):
+		owned_properties = []
+		i = 0
+		for status in state[self.PROPERTY_STATUS_INDEX]:
+			if constants.board[i]["class"] != "Street":
+				continue
+			if current_player == 0 and status == 7 and i in constants.property_to_space_map:
+				owned_properties.append(i)
+			elif current_player == 1 and status == -7 and i in constants.property_to_space_map:
 				owned_properties.append(i)
 			i = i + 1
 		return owned_properties
