@@ -17,7 +17,7 @@ class Agent:
 		self.COMMUNITY_GET_OUT_OF_JAIL_FREE = 41
 	
 	
-	def getBMSTDecision(self, state):
+	def getBSMTDecision(self, state):
 		current_player = self.id - 1
 		debt = self.parseDebt(state, current_player)[1]
 

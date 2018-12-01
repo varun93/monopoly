@@ -58,6 +58,125 @@ def compare_states(state,expected_output):
 	else:
 		return False
 
+def testcase_auction(adjudicator):
+	print("Test Case: Description:")
+	print("AgentTwo will fall on Vermont Avenue(Position 8) and will decide to auction it.")
+	print("AgentTwo will bid $175.5 and AgentOne $160")
+	print("The auction would be won by AgentTwo who will only pay 175")
+	
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return False
+		
+		def auctionProperty(self, state):
+			return 160
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return False
+	
+		def auctionProperty(self, state):
+			return 175.5
+		
+		def receiveState(self, state):
+			pass
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[3,5]],None,None)
+	
+	final_state = adjudicator.state
+	
+	expected_output = {
+		"cash": [1500,1500-175],
+		"position":[8,0],
+		"properties":[(8,-1)]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else:
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	print("")
+	
+	return result
+
+def testcase_payment(adjudicator):
+	print("Test Case: Description:")
+	print("AgentTwo will fall on Income Tax(Position 4) and has to pay the bank $200.")
+	
+	class AgentOne:
+		def __init__(self, id):
+			self.id = id
+		
+		def getBMSTDecision(self, state):
+			return None
+	
+		def buyProperty(self, state):
+			return False
+		
+		def auctionProperty(self, state):
+			return 160
+		
+		def receiveState(self, state):
+			pass
+		
+	class AgentTwo:
+		def __init__(self, id):
+			self.id = id
+			
+		def getBMSTDecision(self, state):
+			return None
+			
+		def buyProperty(self, state):
+			return False
+	
+		def auctionProperty(self, state):
+			return 170
+		
+		def receiveState(self, state):
+			pass
+	
+	agentOne = AgentOne(1)
+	agentTwo = AgentTwo(2)
+	[winner,final_state] = adjudicator.runGame(agentOne,agentTwo,[[3,1]],None,None)
+	
+	final_state = adjudicator.state
+	
+	expected_output = {
+		"cash": [1500-200,1500],
+		"position":[4,0]
+	}
+	
+	result = compare_states(final_state,expected_output)
+	
+	if result: print("Pass")
+	else: 
+		print("Fail")
+		print("Received Output:")
+		print(final_state)
+	
+	return result
+
 def testcase_buying_houses(adjudicator):
 	class AgentOne:
 		def __init__(self, id):
@@ -224,7 +343,7 @@ def testcase_trade(adjudicator):
 			virginia = state[PROPERTY_STATUS_INDEX][14]	
 			
 			if (virginia == 1) and (self.trade_status==None):
-				return ("T",50,[19],0,[14])
+				return ("T",50.5,[19],0,[14])
 			
 			return None
 			
@@ -1386,8 +1505,10 @@ print("This testcase validates the following:")
 Testcases that maybe invalid:
 testcase_buying_invalid_two_hotels
 """
-
+#20 Testcases in total
 tests = [
+	testcase_auction,
+	testcase_payment,
 	testcase_buying_houses,
 	testcase_selling_houses,
 	testcase_trade,
@@ -1406,10 +1527,7 @@ tests = [
 	testcase_three_jails_a_day_keeps_the_lawyer_away_2,
 	testcase_utility_chance_card_owned,
 	testcase_railroad_chance_card_owned
-	
 ]
-
-#testcase_buying_houses_beyond_max
 
 #Execution
 for test in tests:

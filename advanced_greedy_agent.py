@@ -52,7 +52,7 @@ class Agent:
 		# Need to decide strategy for this one/
 		return False
 
-	def getBMSTDecision(self, state):
+	def getBSMTDecision(self, state):
 		debt = self.parseDebt(state, self.current_player)[1]
 		money = state[self.PLAYER_CASH_INDEX][self.current_player]
 		if debt == 0:

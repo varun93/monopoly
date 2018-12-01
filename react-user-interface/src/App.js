@@ -14,7 +14,8 @@ class App extends Component {
       currentStepNumber: 0,
       turn: 0,
       turnNumbers: [],
-      turnNumberToJump: 0
+      turnNumberToJump: 0,
+      gameStarted: false
     };
   }
 
@@ -29,7 +30,7 @@ class App extends Component {
     // message handler for the when state changes
     this.socket.on("game_state_updated", gameHistory => {
       gameHistory = gameHistory.state;
-      this.setState({ gameHistory }, () => {
+      this.setState({ gameStarted: true, gameHistory }, () => {
         const lastTurnNumber = gameHistory[gameHistory.length - 1][1][0];
         this.setState({ turnNumbers: [...Array(lastTurnNumber + 1).keys()] });
       });
@@ -58,8 +59,10 @@ class App extends Component {
 
   previousMove = () => {
     let { currentStepNumber, gameHistory } = this.state;
-    currentStepNumber -= 1;
-    this.setGameState(currentStepNumber, gameHistory);
+    if (currentStepNumber > 0) {
+      currentStepNumber -= 1;
+      this.setGameState(currentStepNumber, gameHistory);
+    }
   };
 
   nextMove = () => {
@@ -76,7 +79,12 @@ class App extends Component {
   };
 
   render() {
-    const { gameState, turnNumberToJump, turnNumbers } = this.state;
+    const {
+      gameState,
+      turnNumberToJump,
+      turnNumbers,
+      gameStarted
+    } = this.state;
     const { startGame, previousMove, nextMove, jumpToTurn } = this;
     return (
       <div className="App">
@@ -91,6 +99,7 @@ class App extends Component {
           type="button"
           className="previous-move btn btn-danger"
           onClick={previousMove}
+          disabled={!gameStarted}
         >
           Previous Move
         </button>
@@ -98,6 +107,7 @@ class App extends Component {
           type="button"
           className="next-move btn btn-success"
           onClick={nextMove}
+          disabled={!gameStarted}
         >
           Next Move
         </button>

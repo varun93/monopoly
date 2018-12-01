@@ -284,7 +284,9 @@ class Adjudicator:
 		def handleBuy(agent,properties):
 			currentPlayer = agent.id
 			
-			invalidProperties = [x for x in properties if (x[1]<0) or (x[1]>5)]
+			#Checking if there are properties where houses can't be built
+			#Or has invalid number of houses to be built
+			invalidProperties = [x for x in properties if (x[1]<0) or (x[1]>5 or constants.board[x[0]]['class']!='Street' )]
 			if len(invalidProperties) > 0:
 				return False
 
@@ -333,6 +335,11 @@ class Adjudicator:
 
 		def handleSell(agent,properties):
 			currentPlayer = agent.id
+			
+			#Checking if there are properties where houses can't be built
+			invalidProperties = [x for x in properties if constants.board[x[0]]['class']!='Street' ]
+			if len(invalidProperties) > 0:
+				return False
 			
 			if not validBuyingSequence(currentPlayer,properties,-1):
 				return False
@@ -434,11 +441,15 @@ class Adjudicator:
 				propertyStatus = getPropertyStatus(state,propertyOffer)
 				if not rightOwner(propertyStatus,currentPlayer):
 					return False
+				if abs(propertyStatus) > 1 and abs(propertyStatus) < 7:
+					return False
 
 			# check if the other agent actually cash and properties to offer
 			for propertyRequest in propertiesRequest:
 				propertyStatus = getPropertyStatus(state,propertyRequest)
 				if not rightOwner(propertyStatus,otherPlayer):
+					return False
+				if abs(propertyStatus) > 1 and abs(propertyStatus) < 7:
 					return False
 				
 			
@@ -1457,7 +1468,7 @@ class Adjudicator:
 		
 		#Storing the state_history to log file
 		f = open("state_history.log", "w")
-		for history in constants.state_history:
+		for history in self.stateHistory:
 			f.write(str(history)+",\n")
 		
 		"""Determine the winner"""
@@ -1513,7 +1524,7 @@ class Adjudicator:
 		if receiveState:
 			action = player.receiveState(stateToBeSent)
 		elif current_phase == self.BSTM:
-			action = player.getBMSTDecision(stateToBeSent)
+			action = player.getBSMTDecision(stateToBeSent)
 		elif current_phase == self.TRADE_OFFER:
 			action = player.respondTrade(stateToBeSent)
 		elif current_phase == self.BUYING:
