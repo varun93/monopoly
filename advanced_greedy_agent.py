@@ -51,6 +51,7 @@ class Agent:
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
 
+	# taken from https://stackoverflow.com/questions/9242450/borda-count-using-python
 	def rank(ballots):
 
 	    def borda(ballot):
@@ -179,7 +180,7 @@ class Agent:
 		diceThrowProbabalities = self.diceThrowProbabalities
 		opponent = player%2 + 1
 		opponentsPosition = state[PLAYER_POSITION_INDEX][opponent-1]
-
+		reverse = False
 		ballots = []
 
 		for i in range(0,5):
@@ -199,12 +200,13 @@ class Agent:
 				
 				# decreasing order
 				if i == 2:
-					ownedPercentge = self.getPercentageMonopolyOwned(self, propertyStatus, space, id)
+					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, id)
 					ballot.append((propertyId,ownedPercentge))
 
 				# increasing order
 				if i == 3:
-					ownedPercentge = self.getPercentageMonopolyOwned(self, propertyStatus, space, opponent)
+					reverse = True
+					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
 					ballot.append((propertyId,ownedPercentge))
 
 				# decreasing order
@@ -222,11 +224,7 @@ class Agent:
 					ballot.append((propertyId,probabilityOfLanding))
 
 			# sort by ascending for key numbered 3
-			reverse = False
-
-			if i != 3:
-				reverse = True
-	
+		
 			ballot = sorted(ballot, key=lambda x: x[1], reverse=reverse)
 			ballot = [vote[0] for vote in ballot]
 			ballotOrder = []
@@ -257,8 +255,8 @@ class Agent:
 		if propertyPrice > opponentCash:
 			return False
 
-		currentPlayerMonopolyPercent = getPercentageMonopolyOwned(self, propertyStatus, space, id)
-		opponentPlayerMonopolyPercent = getPercentageMonopolyOwned(self, propertyStatus, space, opponent)
+		currentPlayerMonopolyPercent = getPercentageMonopolyOwned(propertyStatus, space, id)
+		opponentPlayerMonopolyPercent = getPercentageMonopolyOwned(propertyStatus, space, opponent)
 
 		if currentPlayerMonopolyPercent > 0 and opponentPlayerMonopolyPercent > 0:
 			return False 
