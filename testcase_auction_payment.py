@@ -77,7 +77,7 @@ def testcase_auction(Adjudicator):
 			return False
 	
 		def auctionProperty(self, state):
-			return 170
+			return 170.5
 		
 		def receiveState(self, state):
 			pass

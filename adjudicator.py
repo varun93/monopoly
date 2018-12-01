@@ -131,14 +131,16 @@ class Adjudicator:
 		except:
 			return default
 		
-	def check_valid_bid(self,cash):
+	#Function checks cash passed in through actions by the agent.
+	#If cash can't be typecast to int, the cash amount is considered invalid and invalid flows for defaulting would take place.
+	def check_valid_cash(self,cash):
 		try:
 			cash = int(cash)
 		except:
-			return False
+			return 0
 		if cash < 0:
-			return False
-		return True
+			return 0
+		return cash
 	
 	def getOtherPlayer(self,currentPlayer):
 		if currentPlayer == self.AGENTONE:
@@ -413,10 +415,8 @@ class Adjudicator:
 		def handleTrade(agent,otherAgent,cashOffer,propertiesOffer,cashRequest,propertiesRequest):
 			currentPlayer = agent.id
 			
-			if not self.check_valid_bid(cashRequest):
-				cashRequest = 0
-			if not self.check_valid_bid(cashOffer):
-				cashOffer = 0
+			cashRequest = self.check_valid_cash(cashRequest)
+			cashOffer = self.check_valid_cash(cashOffer)
 			
 			otherPlayer = self.getOtherPlayer(currentPlayer)
 			
@@ -692,10 +692,8 @@ class Adjudicator:
 		
 		winner = None
 		
-		if not self.check_valid_bid(actionCurrentPlayer):
-			actionCurrentPlayer = 0
-		if not self.check_valid_bid(actionOpponent):
-			actionOpponent = 0
+		actionCurrentPlayer = self.check_valid_cash(actionCurrentPlayer)
+		actionOpponent = self.check_valid_cash(actionOpponent)
 		
 		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
 		
