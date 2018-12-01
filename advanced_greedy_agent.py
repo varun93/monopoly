@@ -1,4 +1,11 @@
 import constants
+import itertools
+import collections
+
+# Get property status
+# Get player cash
+# Current Player; Opponent Player 	
+#  
 
 class Agent:
 	def __init__(self, id):
@@ -43,56 +50,245 @@ class Agent:
 	def getValueForSellingHouses(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
+
+	def rank(ballots):
+
+	    def borda(ballot):
+	        n = len([c for c in ballot if c.isalpha()]) - 1
+	        score = itertools.count(n, step = -1)
+	        result = {}
+	        for group in [item.split('=') for item in ballot.split('>')]:
+	            s = sum(next(score) for item in group)/float(len(group))
+	            for pref in group:
+	                result[pref] = s
+	        return result
+
+	    def tally():
+	        result = collections.defaultdict(int)
+	        for ballot in ballots:
+	            for pref,score in borda(ballot).items():
+	                result[pref]+=score
+	        result = dict(result)
+	        return result
+
+   
+	    return list(tally(ballots))
+
+
+	def getPropertyStatus(self, state,propertyId):
+		return state[self.PROPERTY_STATUS_INDEX][propertyId]
+	
+	def updatePropertyStatus(self, state,propertyId,propertyStatus):
+		mappingId = constants.space_to_property_map[propertyId]
+		self.updateState(state,self.PROPERTY_STATUS_INDEX,mappingId,propertyStatus)
+
+	def getPlayerCash(self, state,player):
+		return state[self.PLAYER_CASH_INDEX][player-1]
+
+	def doIOwn(self, propertyStatus, id):
+		if id == 1 and propertyStatus <= 0:
+			return False
+		if id == 2 and propertyStatus  >= 0:
+			return False
+
+		return True
+	  
+
+	def getPropertyRent(self, space, propertyStatus):
+		numberOfConstructions = abs(propertyStatus) - 1
+		totalRent = 0
+		for i in range(1,numberOfConstructions):
+			key = i
+			if i == 5:
+				key = "hotel"
+
+			totalRent += space["rent_house_" + key]
+		
+		return totalRent
+	
+	def getTotalNumberOfConstructions(self,state):
+		numberOfHouses = 0
+		numberOfHotels = 0
+		properties = state[self.PROPERTY_STATUS_INDEX]
+
+		for propertyId in properties:
+			propertyStatus = self.getPropertyStatus(state,propertyId)
+			propertyStatus = abs(propertyStatus)-1
+			
+			if propertyStatus > 1 and propertyStatus < 6:
+				numberOfHouses += propertyStatus
+			if propertyStatus == 6:
+				numberOfHotels += 1
+		
+
+		return (numberOfHouses, numberOfHotels)	
+
+	# def getPropertyPrice(self,propertyid)
+
+	def canConstructOnProperty(self, state, space, propertyId, propertyStatus):
+		
+		(numberOfHouses, numberOfHotels) = self.getTotalNumberOfConstructions(state)	
+		
+		currentConstructionCount = abs(propertyStatus) - 1
+
+		if space["class"] != "Street":
+			return False
+
+		if not self.doIOwn(state,propertyStatus):
+			return False
+
+		if currentConstructionCount >= 5:
+			return False
+
+		# the agent intends to build a hotel
+		if currentConstructionCount == 4 and numberOfHotels == 12:
+			return False
+
+		if currentConstructionCount > 0 and currentConstructionCount < 5 and numberOfHouses == 32:
+			return False		
+
+		monopolyGroupElements = space["monopolyGroupElements"]
+
+		for monopolyGroupElement in monopolyGroupElements:
+			monopolyGroupElementStatus = self.getPropertyStatus(state,propertyId)
+			numberOfConstructionsInGroupElement = abs(monopolyGroupElementStatus) - 1
+			if currentConstructionCount > numberOfConstructionsInGroupElement:
+				return False
+
+		return True
+
+	def getPercentageMonopolyOwned(self, propertyStatus, space, player):
+			monopolyGroupElements = space["monopoly_group_elements"] 
+			
+			if len(monopolyGroupElements) == 0:
+				return 0
+
+			ownedCount = 0
+								
+			for monopolyGroupElement in monopolyGroupElements:
+				groupElementPropertyStatus = propertyStatus[monopolyGroupElement]
+				if ((player == 1 and groupElementPropertyStatus > 0) or (player == 2 and groupElementPropertyStatus > 0)):
+					ownedCount += 1
+		
+			ownedPercentage = ownedCount/len(monopolyGroupElements)
+			return ownedPercentage
+
 	def getValueForMortgageProperties(self, state, properties, player):
-		#return [(property_id1, worth1), (property_id2, worth2 )]
-		# 
-		# currentPlayerPosition = state[PLAYER_POSITION_INDEX][(player-1)%2]
-		# otherPlayerPosition = state[PLAYER_POSITION_INDEX][player%2]
-		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
-		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
-		result = []
+
 		visitationFrequencies = self.visitationFrequencies
 		diceThrowProbabalities = self.diceThrowProbabalities
-		
+		opponent = player%2 + 1
+		opponentsPosition = state[PLAYER_POSITION_INDEX][opponent-1]
+
+		ballots = []
+
 		for i in range(0,5):
-			votes = []
+			ballot = []
 			for propertyId in properties:
-
+				space = constants.board[propertyId]
+				propertyStatus = self.getPropertyStatus(state,propertyId)
+				
+				# decreasing order
 				if i == 0:
-					#votes visitation frequency
-					votes.append(visitationFrequencies[propertyId])
+					ballot.append((propertyId,visitationFrequencies[propertyId]))
+				
+				# decreasing order
 				if i == 1:
-					# "rent_house_1":10,
-					# "rent_house_2":30,
-					# "rent_house_3":90,
-					# "rent_house_4":160,
-					# "rent_hotel":250,
-
-					pass
+					totalRent = self.getPropertyRent(propertyStatus,space)
+					ballot.append((propertyId,totalRent))
+				
+				# decreasing order
 				if i == 2:
-					# monopoly owned by you 
-					pass
+					ownedPercentge = self.getPercentageMonopolyOwned(self, propertyStatus, space, id)
+					ballot.append((propertyId,ownedPercentge))
 
+				# increasing order
 				if i == 3:
-					# by opponent 
-					pass
+					ownedPercentge = self.getPercentageMonopolyOwned(self, propertyStatus, space, opponent)
+					ballot.append((propertyId,ownedPercentge))
 
-				if i == 4 :
-					pass
-		
-		pass
+				# decreasing order
+				if i == 4:
+					diff = opponentsPosition - propertyId
 
-	def isPropertyWorthToBuy(self, state, property_id, current_player):
+					if diff < 0:
+						diff += 40
+
+					probabilityOfLanding = diceThrowProbabalities[diff]
+
+					if not probabilityOfLanding:
+						probabilityOfLanding = 0
+				
+					ballot.append((propertyId,probabilityOfLanding))
+
+			# sort by ascending for key numbered 3
+			reverse = False
+
+			if i != 3:
+				reverse = True
+	
+			ballot = sorted(ballot, key=lambda x: x[1], reverse=reverse)
+			ballot = [vote[0] for vote in ballot]
+			ballotOrder = []
+			for index in range(0,len(ballot)-1):
+				comparisionOperator = ">"
+				if ballot[index] == ballot[index+1]:
+					comparisionOperator = "="
+				ballotOrder.append(ballot[index])				 
+				ballotOrder.append(comparisionOperator)
+				ballotOrder.append(ballot[index+1])
+
+			ballotOrder = "".join(ballotOrder)
+			ballots.append(ballot)
+
+		ballots = self.rank(ballots)
+		orderedProperties = [int(ballot) for ballot in ballots]
+		return orderedProperties
+
+	def isPropertyWorthToBuy(self, state, propertyId, currentPlayer):
 		"""Calculate the worth of the property and then return boolean true or false"""
 		"""This method is same as getValueForBuying in our doc"""
-		pass
+		
+		opponent = currentPlayer%2 + 1
+		space = constants.board[propertyId]
+		propertyPrice = space["price"]
+		opponentCash = self.playerCash(state,opponent)
 
-	def getValueForBuyingConstructionsorUnmortgaging(self, state, buyHousesCandidateProperties, mortgageCandidateProperties, player):
+		if propertyPrice > opponentCash:
+			return False
+
+		currentPlayerMonopolyPercent = getPercentageMonopolyOwned(self, propertyStatus, space, id)
+		opponentPlayerMonopolyPercent = getPercentageMonopolyOwned(self, propertyStatus, space, opponent)
+
+		if currentPlayerMonopolyPercent > 0 and opponentPlayerMonopolyPercent > 0:
+			return False 
+		if currentPlayerMonopolyPercent >= 0 and opponentPlayerMonopolyPercent == 0:
+			return True
+		
+		return False
+
+	# call this method seperately for buying and umortgaging seperately
+	def getValueForBuyingConstructionsorUnmortgaging(self, state, candidates, player):
 		"""Passsing buyHousesCandidates and mortgageCandidates separately to avoid parsing state in this method.
 		   If this is not helpful, remove it. Return value can still be single list with tuples of propertyId and worth.
 		"""
-		# return [(property_id1, worth1), (property_id2, worth2 )]
-		pass
+		ballots = []
+
+		for propertyId in candidates:
+			space = constants.board[propertyId]
+			propertyStatus = self.getPropertyStatus(state,propertyId)
+
+			if not self.canConstructOnProperty(state,space,propertyId,propertyStatus):
+				continue
+
+			currentPropertyRent = self.getPropertyRent(propertyStatus,space) 
+			potentialRentIfConstructed = self.getPropertyRent(propertyStatus, space)
+			delta = potentialRentIfConstructed - currentPropertyRent
+			ballots.append((propertyId,delta))
+
+		ballots = sorted(ballots,lambda x : x[1], reverse=True)
+		orderedProperties = [int(ballot) for ballot in ballots]
+		return orderedProperties
 
 	def respondTrade(self, state):
 		# Need to decide strategy for this one/
