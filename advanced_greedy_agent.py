@@ -34,18 +34,23 @@ class Agent:
 		# otherPlayerPosition = state[PLAYER_POSITION_INDEX][player%2]
 		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
 		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
-
-
 		result = []
-
+		visitationFrequencies = constants.visitationFrequencies
+		
 		for i in range(0,5):
+			votes = []
 			for propertyId in properties:
 
 				if i == 0:
 					#votes visitation frequency
-					pass
+					votes.append(visitationFrequencies[propertyId])
 				if i == 1:
-					# rent
+					# "rent_house_1":10,
+					# "rent_house_2":30,
+					# "rent_house_3":90,
+					# "rent_house_4":160,
+					# "rent_hotel":250,
+					
 					pass
 				if i == 2:
 					# monopoly owned by you 
@@ -57,8 +62,6 @@ class Agent:
 
 				if i == 4 :
 
-		visitationFrequencies = constants.visitationFrequencies
-		
 		
 		pass
 
