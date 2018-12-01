@@ -23,6 +23,24 @@ class Agent:
 		self.unmortgage_list = []
 		self.unmortgageMoney = 0
 
+		self.visitationFrequencies = [.0368, .0252, .0223, .0256, .0277, .0352, .0268, .0102, .0274, .0272, .0269, .0321, .0310, .0281, .0293, .0346, .0331, .0307, .0349, .0366, .0343, .0336, .0125, .0325, .0377, .0364, .0321, .0318, .0333, .0307, .0469, .0318, .0312, .0282, .0297, .0289, .0102, .0260, .0260, .0312]
+
+		self.diceThrowProbabalities = {
+		  1 : 0/36,
+		  2 : 1/36,
+		  3 : 2/36,
+		  4 : 3/36,
+		  5 : 4/36,
+		  6 : 5/36,
+		  7 : 6/36,
+		  8 : 5/36,
+		  9 : 4/36,
+		  10 : 3/36,
+		  11 : 2/36,
+		  12 : 1/36
+		}
+
+
 
 	def getValueForSellingHouses(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
@@ -35,7 +53,8 @@ class Agent:
 		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
 		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
 		result = []
-		visitationFrequencies = constants.visitationFrequencies
+		visitationFrequencies = self.visitationFrequencies
+		diceThrowProbabalities = self.diceThrowProbabalities
 		
 		for i in range(0,5):
 			votes = []
@@ -50,7 +69,7 @@ class Agent:
 					# "rent_house_3":90,
 					# "rent_house_4":160,
 					# "rent_hotel":250,
-					
+
 					pass
 				if i == 2:
 					# monopoly owned by you 
