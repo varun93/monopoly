@@ -24,16 +24,42 @@ class Agent:
 		self.unmortgageMoney = 0
 
 
-
-	def getPropertyValue(self, state, property_id, player):
-		pass #Return monetary worth for the property
-
 	def getValueForSellingHouses(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
-
 	def getValueForMortgageProperties(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
+		# 
+		# currentPlayerPosition = state[PLAYER_POSITION_INDEX][(player-1)%2]
+		# otherPlayerPosition = state[PLAYER_POSITION_INDEX][player%2]
+		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
+		# currentPlayerVisitationFrequency = visitationFrequencies[currentPlayerPosition]
+
+
+		result = []
+
+		for i in range(0,5):
+			for propertyId in properties:
+
+				if i == 0:
+					#votes visitation frequency
+					pass
+				if i == 1:
+					# rent
+					pass
+				if i == 2:
+					# monopoly owned by you 
+					pass
+
+				if i == 3:
+					# by opponent 
+					pass
+
+				if i == 4 :
+
+		visitationFrequencies = constants.visitationFrequencies
+		
+		
 		pass
 
 	def isPropertyWorthToBuy(self, state, property_id, current_player):
