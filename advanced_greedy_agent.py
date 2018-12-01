@@ -124,19 +124,36 @@ class Agent:
 
 		return (numberOfHouses, numberOfHotels)	
 
-	# def getPropertyPrice(self,propertyid)
+	def doIOwnMonopoly(self, state, monopolyGroupElements, player):
 
-	def canConstructOnProperty(self, state, space, propertyId, propertyStatus):
+		for monopolyGroupElement in monopolyGroupElements:
+			monopolyGroupElementStatus = self.getPropertyStatus(state,monopolyGroupElement)
+
+			if not doIOwn(self, monopolyGroupElementStatus, player):
+				return False
+
+			if abs(monopolyGroupElementStatus) in [1,7]:
+				return False
+
+		return True
+
+	def canConstructOnProperty(self, state, space, propertyStatus, player):
 		
-		(numberOfHouses, numberOfHotels) = self.getTotalNumberOfConstructions(state)	
-		
-		currentConstructionCount = abs(propertyStatus) - 1
+		monopolyGroupElements = space["monopolyGroupElements"]
+
 
 		if space["class"] != "Street":
 			return False
 
 		if not self.doIOwn(state,propertyStatus):
 			return False
+
+
+		if not self.doIOwnMonopoly(state,monopolyGroupElements,player):
+			return False
+
+		currentConstructionCount = abs(propertyStatus) - 1
+		(numberOfHouses, numberOfHotels) = self.getTotalNumberOfConstructions(state)	
 
 		if currentConstructionCount >= 5:
 			return False
@@ -148,10 +165,9 @@ class Agent:
 		if currentConstructionCount > 0 and currentConstructionCount < 5 and numberOfHouses == 32:
 			return False		
 
-		monopolyGroupElements = space["monopolyGroupElements"]
-
+		# diff between current and rest should never be more than one
 		for monopolyGroupElement in monopolyGroupElements:
-			monopolyGroupElementStatus = self.getPropertyStatus(state,propertyId)
+			monopolyGroupElementStatus = self.getPropertyStatus(state,monopolyGroupElement)
 			numberOfConstructionsInGroupElement = abs(monopolyGroupElementStatus) - 1
 			if currentConstructionCount > numberOfConstructionsInGroupElement:
 				return False
@@ -180,7 +196,7 @@ class Agent:
 		diceThrowProbabalities = self.diceThrowProbabalities
 		opponent = player%2 + 1
 		opponentsPosition = state[PLAYER_POSITION_INDEX][opponent-1]
-		reverse = False
+		reverse = True
 		ballots = []
 
 		for i in range(0,5):
@@ -205,7 +221,7 @@ class Agent:
 
 				# increasing order
 				if i == 3:
-					reverse = True
+					reverse = False
 					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
 					ballot.append((propertyId,ownedPercentge))
 
@@ -223,7 +239,6 @@ class Agent:
 				
 					ballot.append((propertyId,probabilityOfLanding))
 
-			# sort by ascending for key numbered 3
 		
 			ballot = sorted(ballot, key=lambda x: x[1], reverse=reverse)
 			ballot = [vote[0] for vote in ballot]
@@ -255,8 +270,8 @@ class Agent:
 		if propertyPrice > opponentCash:
 			return False
 
-		currentPlayerMonopolyPercent = getPercentageMonopolyOwned(propertyStatus, space, id)
-		opponentPlayerMonopolyPercent = getPercentageMonopolyOwned(propertyStatus, space, opponent)
+		currentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(propertyStatus, space, id)
+		opponentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
 
 		if currentPlayerMonopolyPercent > 0 and opponentPlayerMonopolyPercent > 0:
 			return False 
@@ -265,7 +280,7 @@ class Agent:
 		
 		return False
 
-	# call this method seperately for buying and umortgaging seperately
+	# call this method seperately for buying and umortgaging
 	def getValueForBuyingConstructionsorUnmortgaging(self, state, candidates, player):
 		"""Passsing buyHousesCandidates and mortgageCandidates separately to avoid parsing state in this method.
 		   If this is not helpful, remove it. Return value can still be single list with tuples of propertyId and worth.
@@ -276,7 +291,7 @@ class Agent:
 			space = constants.board[propertyId]
 			propertyStatus = self.getPropertyStatus(state,propertyId)
 
-			if not self.canConstructOnProperty(state,space,propertyId,propertyStatus):
+			if not self.canConstructOnProperty(state,space,propertyStatus):
 				continue
 
 			currentPropertyRent = self.getPropertyRent(propertyStatus,space) 
