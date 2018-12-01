@@ -574,7 +574,7 @@ class Adjudicator:
 		self.dice.double = False
 		
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
-		log("jail","Player "+str(currentPlayer)+" has been sent to jail")
+		log("jail","Agent "+str(currentPlayer+1)+" has been sent to jail")
 		self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,-1)
 		self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.JAIL)
 	
@@ -673,7 +673,7 @@ class Adjudicator:
 	def start_auction(self,state):
 		currentPlayer = state[self.PLAYER_TURN_INDEX] % 2
 		
-		log("auction","Player "+str(currentPlayer)+" is starting an Auction")
+		log("auction","Agent "+str(currentPlayer+1)+" is starting an Auction")
 		
 		opponent = abs(currentPlayer - 1)
 		playerPosition = state[self.PLAYER_POSITION_INDEX][currentPlayer]
@@ -706,7 +706,7 @@ class Adjudicator:
 		actionCurrentPlayer = self.check_valid_cash(actionCurrentPlayer)
 		actionOpponent = self.check_valid_cash(actionOpponent)
 		
-		log("auction","Bids from the players: "+str(actionCurrentPlayer)+","+str(actionOpponent))	
+		log("auction","Bids from the players: Current Player: "+str(actionCurrentPlayer)+",Opponent: "+str(actionOpponent))	
 		
 		if actionCurrentPlayer > actionOpponent:
 			#Current Player wins the auction
@@ -717,7 +717,7 @@ class Adjudicator:
 			winner = opponent
 			winningBid = actionOpponent
 		
-		log("auction","Player "+str(winner)+" won the Auction")
+		log("auction","Player "+str(winner+1)+" won the Auction")
 		
 		playerCash = state[self.PLAYER_CASH_INDEX][winner]
 		if playerCash>=winningBid:
