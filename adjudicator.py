@@ -608,12 +608,11 @@ class Adjudicator:
 				Assuming player has the money
 				"""
 				playerCash = state[self.PLAYER_CASH_INDEX][currentPlayer]
-				if playerCash >= 50:
-					playerCash -= 50
-					self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash)
-					self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
-					self.agentJailCounter[currentPlayer]=0
-					return [True,False]
+				#This could cause Bankruptcy. Would cause playerCash to go below 0.
+				self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash-50)
+				self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
+				self.agentJailCounter[currentPlayer]=0
+				return [True,False]
 			
 			elif action[0] == 'C':
 				#Check if the player has the mentioned property card.

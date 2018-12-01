@@ -40,8 +40,6 @@ class Agent:
 		  12 : 1/36
 		}
 
-
-
 	def getValueForSellingHouses(self, state, properties, player):
 		#return [(property_id1, worth1), (property_id2, worth2 )]
 		pass
@@ -80,7 +78,7 @@ class Agent:
 					pass
 
 				if i == 4 :
-
+					pass
 		
 		pass
 
@@ -145,6 +143,16 @@ class Agent:
 					selling_number_pf_houses_for_properties = self.selling_house_strategy(state, actual_debt)
 					return selling_number_pf_houses_for_properties
 		return None
+	
+	"""
+	This method estimates how much a property is worth to the given player.
+	Factors:
+	Short term probability of the opponent falling on the property
+	Number of Properties I own in the monopoly group of the current property
+	Visitation Frequency of the property*(Rent from the property)
+	"""
+	def getPropertyValue(self, state, properties, player):
+		pass
 
 	def storeAuctionValue(self, state, propertyId):
 		current_player = self.current_player
