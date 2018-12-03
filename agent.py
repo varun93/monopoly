@@ -210,7 +210,7 @@ class Agent:
 
 	def buyProperty(self, state):
 		(debt, receiver) = self.parseDebt(state, self.id - 1)
-		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
+		property_id = state[self.PHASE_PAYLOAD_INDEX]
 		property = constants.board[property_id]
 		
 		current_player = state[self.PLAYER_TURN_INDEX] % 2

@@ -68,7 +68,7 @@ def testcase_auction(adjudicator):
 		def __init__(self, id):
 			self.id = id
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 	
 		def buyProperty(self, state):
@@ -84,7 +84,7 @@ def testcase_auction(adjudicator):
 		def __init__(self, id):
 			self.id = id
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -128,7 +128,7 @@ def testcase_payment(adjudicator):
 		def __init__(self, id):
 			self.id = id
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 	
 		def buyProperty(self, state):
@@ -144,7 +144,7 @@ def testcase_payment(adjudicator):
 		def __init__(self, id):
 			self.id = id
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -183,7 +183,7 @@ def testcase_buying_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -207,7 +207,7 @@ def testcase_buying_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -247,7 +247,7 @@ def testcase_selling_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -273,7 +273,7 @@ def testcase_selling_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -313,7 +313,7 @@ def testcase_trade(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -338,7 +338,7 @@ def testcase_trade(adjudicator):
 			self.erronous_bstm_counter = 0
 			self.trade_status = None
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			stcharles = state[PROPERTY_STATUS_INDEX][11]
 			virginia = state[PROPERTY_STATUS_INDEX][14]	
 			
@@ -386,7 +386,7 @@ def testcase_buying_houses_invalid_1(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -411,7 +411,7 @@ def testcase_buying_houses_invalid_1(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			stcharles = state[PROPERTY_STATUS_INDEX][11]	
 			if (stcharles == -1) and (self.erronous_bstm_counter < 1):
 				self.erronous_bstm_counter += 1
@@ -455,7 +455,7 @@ def testcase_buying_houses_invalid_2(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -479,7 +479,7 @@ def testcase_buying_houses_invalid_2(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -519,7 +519,7 @@ def testcase_mortgaging_unmortgaging(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -545,7 +545,7 @@ def testcase_mortgaging_unmortgaging(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -585,7 +585,7 @@ def testcase_invalid_mortgaging(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			newyork = state[PROPERTY_STATUS_INDEX][19]
 			waterworks = state[PROPERTY_STATUS_INDEX][28]
 			
@@ -610,7 +610,7 @@ def testcase_invalid_mortgaging(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -654,7 +654,7 @@ def testcase_auction_for_invalid_action(adjudicator):
 		def __init__(self, id):
 			self.id = id
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 
 		def buyProperty(self, state):
@@ -670,7 +670,7 @@ def testcase_auction_for_invalid_action(adjudicator):
 		def __init__(self, id):
 			self.id = id
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 
 		def buyProperty(self, state):
@@ -718,7 +718,7 @@ def testcase_trade_for_invalid_action(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			if oriental == 1 and self.erronous_bstm_counter == 0:
 				self.erronous_bstm_counter = 1
@@ -741,7 +741,7 @@ def testcase_trade_for_invalid_action(adjudicator):
 		def __init__(self, id):
 			self.id = id
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 
 		def buyProperty(self, state):
@@ -786,7 +786,7 @@ def testcase_buyproperty_for_invalid_action(adjudicator):
 		def __init__(self, id):
 			self.id = id
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 
 		def buyProperty(self, state):
@@ -802,7 +802,7 @@ def testcase_buyproperty_for_invalid_action(adjudicator):
 		def __init__(self, id):
 			self.id = id
 
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 
 		def buyProperty(self, state):
@@ -843,7 +843,7 @@ def testcase_buying_invalid_two_hotels(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -867,7 +867,7 @@ def testcase_buying_invalid_two_hotels(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -906,7 +906,7 @@ def testcase_buying_max_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -926,7 +926,7 @@ def testcase_buying_max_houses(adjudicator):
 				return None
 	
 		def buyProperty(self, state):
-			propertyId = state[PHASE_PAYLOAD_INDEX][0]
+			propertyId = state[PHASE_PAYLOAD_INDEX]
 			if propertyId == 39:
 				return False
 			return True
@@ -942,7 +942,7 @@ def testcase_buying_max_houses(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][11]
 			vermont = state[PROPERTY_STATUS_INDEX][13]
 			connecticut = state[PROPERTY_STATUS_INDEX][14]
@@ -1001,7 +1001,7 @@ def testGettingOutOfJail(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 	
 		def buyProperty(self, state):
@@ -1021,7 +1021,7 @@ def testGettingOutOfJail(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -1062,7 +1062,7 @@ def testcase_selling_hotel_aftermax(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -1083,7 +1083,7 @@ def testcase_selling_hotel_aftermax(adjudicator):
 				return None
 	
 		def buyProperty(self, state):
-			propertyId = state[PHASE_PAYLOAD_INDEX][0]
+			propertyId = state[PHASE_PAYLOAD_INDEX]
 			if propertyId == 39:
 				return False
 			return True
@@ -1099,7 +1099,7 @@ def testcase_selling_hotel_aftermax(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][11]
 			vermont = state[PROPERTY_STATUS_INDEX][13]
 			connecticut = state[PROPERTY_STATUS_INDEX][14]
@@ -1158,7 +1158,7 @@ def testcase_trade_mortgage(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -1185,7 +1185,7 @@ def testcase_trade_mortgage(adjudicator):
 			self.erronous_bstm_counter = 0
 			self.trade_status = None
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			virginia = state[PROPERTY_STATUS_INDEX][14]	
 			
 			if (state[PROPERTY_STATUS_INDEX][19] == -1):
@@ -1234,7 +1234,7 @@ def testcase_three_jails_a_day_keeps_the_lawyer_away(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -1261,7 +1261,7 @@ def testcase_three_jails_a_day_keeps_the_lawyer_away(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -1302,7 +1302,7 @@ def testcase_three_jails_a_day_keeps_the_lawyer_away_2(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			oriental = state[PROPERTY_STATUS_INDEX][6]
 			vermont = state[PROPERTY_STATUS_INDEX][8]
 			connecticut = state[PROPERTY_STATUS_INDEX][9]
@@ -1329,7 +1329,7 @@ def testcase_three_jails_a_day_keeps_the_lawyer_away_2(adjudicator):
 			self.id = id
 			self.erronous_bstm_counter = 0
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -1372,7 +1372,7 @@ def testcase_utility_chance_card_owned(adjudicator):
 		def __init__(self, id):
 			self.id = id
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 	
 		def buyProperty(self, state):
@@ -1388,7 +1388,7 @@ def testcase_utility_chance_card_owned(adjudicator):
 		def __init__(self, id):
 			self.id = id
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -1427,7 +1427,7 @@ def testcase_railroad_chance_card_owned(adjudicator):
 		def __init__(self, id):
 			self.id = id
 		
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 	
 		def buyProperty(self, state):
@@ -1443,7 +1443,7 @@ def testcase_railroad_chance_card_owned(adjudicator):
 		def __init__(self, id):
 			self.id = id
 			
-		def getBMSTDecision(self, state):
+		def getBSMTDecision(self, state):
 			return None
 			
 		def buyProperty(self, state):
@@ -1477,6 +1477,7 @@ def testcase_railroad_chance_card_owned(adjudicator):
 	
 	return result
 
+"""
 print("Testcase flow Description:")
 print("Turn 0:")
 print("AgentOne falls on Oriental Avenue and buys it.")
@@ -1498,7 +1499,7 @@ print("Turn 6:")
 print("AgentOne falls on Virginia Avenue and buys it.")
 print("During the post turn BSTM, AgentTwo proposes a trade of $50 and New York Avenue for Virginia Avenue.")
 print("AgentOne accepts.\n")
-
+"""
 print("This testcase validates the following:")
 
 """

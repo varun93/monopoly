@@ -142,6 +142,54 @@ class Adjudicator:
 			return 0
 		return cash
 	
+	"""
+	Checks if a particular action given by the agent to BSMT is valid.
+	Return True if the action was correctly parsed. False otherwise
+	"""
+	def bsmt_input_validator(self,action):
+		type = action[0]
+		if (type=="B") or (type=="S"):
+			if len(action)<2:
+				return False
+			if not isinstance(action[1], list) and not isinstance(action[1], tuple):
+				return False
+			else:
+				for prop in action[1]:
+					if not isinstance(prop, list) and not isinstance(prop, tuple):
+						return False
+					else:
+						if len(prop)<2:
+							return False
+						if self.typecast(prop[0],int,-1) == -1:
+							return False
+						if self.typecast(prop[1],int,-1) == -1:
+							return False
+		elif type == "M":
+			if len(action)<2:
+				return False
+			if not isinstance(action[1], list) and not isinstance(action[1], tuple):
+				return False
+			else:
+				for prop in action[1]:
+					if self.typecast(prop,int,-1) == -1:
+							return False
+		elif type == "T":
+			if len(action)<5:
+				return False
+			if not isinstance(action[2], list) and not isinstance(action[2], tuple):
+				return False
+			else:
+				for prop in action[2]:
+					if self.typecast(prop,int,-1) == -1:
+							return False
+			if not isinstance(action[4], list) and not isinstance(action[4], tuple):
+				return False
+			else:
+				for prop in action[4]:
+					if self.typecast(prop,int,-1) == -1:
+							return False
+		return True
+	
 	def getOtherPlayer(self,currentPlayer):
 		if currentPlayer == self.AGENTONE:
 			return self.AGENTTWO
@@ -516,6 +564,9 @@ class Adjudicator:
 			nonlocal agentTwoTradeDone
 			
 			intent = action[0]
+			
+			if not self.bsmt_input_validator(action):
+				return False
 			
 			if intent == "B":
 				return handleBuy(agent,action[1])
@@ -991,7 +1042,7 @@ class Adjudicator:
 		if propertyValue == 0:
 			#Unowned
 			output['phase'] = self.BUYING
-			output['phase_properties'] = [playerPosition]
+			output['phase_properties'] = playerPosition
 			output['debt'] = (0,constants.board[playerPosition]['price'])
 		else:
 			#Check if owned by opponent
@@ -1182,7 +1233,7 @@ class Adjudicator:
 				phaseNumber = self.BUYING
 				debt[2*currentPlayer] = 0
 				debt[2*currentPlayer+1] = constants.board[playerPosition]['price']
-				phasePayload.append(playerPosition)
+				phasePayload = playerPosition
 			else:
 				#Check if owned by opponent
 				if currentPlayer == 0:
@@ -1424,11 +1475,13 @@ class Adjudicator:
 						"""State now contain info about the position the player landed on"""
 						"""Performing the actual effect of the current position"""
 						result = self.turn_effect(self.state,currentPlayer,opponent)
+						#AgentOne wasn't able to make payment
 						if not result[0]:
-							winner = opponent.id
+							winner = self.agentTwo.id
 							break
+						#AgentTwo wasn't able to make payment
 						elif not result[1]:
-							winner = currentPlayer.id
+							winner = self.agentOne.id
 							break
 						if True in self.timeoutTracker:
 							if self.timeoutTracker[currentPlayer]:
@@ -1539,7 +1592,7 @@ class Adjudicator:
 
 
 # for testing purposes only
-#from agent import Agent
+#from advanced_greedy_agent import Agent
 #agentOne = Agent(1)
 #agentTwo = Agent(2)
 #adjudicator = Adjudicator()

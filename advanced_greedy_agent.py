@@ -95,7 +95,7 @@ class Agent:
 		return True
 	  
 
-	def getPropertyRent(self, space, propertyStatus):
+	def getPropertyRent(self, propertyStatus,space):
 		numberOfConstructions = abs(propertyStatus) - 1
 		totalRent = 0
 		for i in range(1,numberOfConstructions):
@@ -114,16 +114,18 @@ class Agent:
 
 		for propertyId in properties:
 			propertyStatus = self.getPropertyStatus(state,propertyId)
-			propertyStatus = abs(propertyStatus)-1
+			propertyStatus = abs(propertyStatus)
 			
 			if propertyStatus > 1 and propertyStatus < 6:
 				numberOfHouses += propertyStatus
 			if propertyStatus == 6:
 				numberOfHotels += 1
 		
-
 		return (numberOfHouses, numberOfHotels)	
-
+	
+	"""
+	Used to decide if we can build houses on these properties
+	"""
 	def doIOwnMonopoly(self, state, monopolyGroupElements, player):
 
 		for monopolyGroupElement in monopolyGroupElements:
@@ -131,8 +133,9 @@ class Agent:
 
 			if not doIOwn(self, monopolyGroupElementStatus, player):
 				return False
-
-			if abs(monopolyGroupElementStatus) in [1,7]:
+			
+			#If monopoly property is mortgaged, can't construct here.
+			if abs(monopolyGroupElementStatus) == 7:
 				return False
 
 		return True
@@ -141,13 +144,11 @@ class Agent:
 		
 		monopolyGroupElements = space["monopolyGroupElements"]
 
-
 		if space["class"] != "Street":
 			return False
 
 		if not self.doIOwn(state,propertyStatus):
 			return False
-
 
 		if not self.doIOwnMonopoly(state,monopolyGroupElements,player):
 			return False
@@ -508,7 +509,7 @@ class Agent:
 		return (buyingHousesMoney, buyingHouses_list, unmortgageMoney, unmortgage_list)
 
 	def buyProperty(self, state):
-		property_id = state[self.PHASE_PAYLOAD_INDEX][0]
+		property_id = state[self.PHASE_PAYLOAD_INDEX]
 		if self.getAuctionValue(property_id) > 0: #This should decide whether I planned auction for this property in previous bmst.
 			return False
 		return True
