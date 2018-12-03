@@ -52,7 +52,7 @@ class Agent:
 		pass
 
 	# taken from https://stackoverflow.com/questions/9242450/borda-count-using-python
-	def rank(ballots):
+	def rank(self,ballots):
 
 	    def borda(ballot):
 	        n = len([c for c in ballot if c.isalpha()]) - 1
@@ -130,12 +130,7 @@ class Agent:
 
 		for monopolyGroupElement in monopolyGroupElements:
 			monopolyGroupElementStatus = self.getPropertyStatus(state,monopolyGroupElement)
-
 			if not doIOwn(self, monopolyGroupElementStatus, player):
-				return False
-			
-			#If monopoly property is mortgaged, can't construct here.
-			if abs(monopolyGroupElementStatus) == 7:
 				return False
 
 		return True
@@ -205,7 +200,16 @@ class Agent:
 			for propertyId in properties:
 				space = constants.board[propertyId]
 				propertyStatus = self.getPropertyStatus(state,propertyId)
-				
+				numberOfConstructions = abs(propertyStatus) - 1
+				space = constants.board[propertyId]
+				monopolyGroupElements = space["monopoly_group_elements"]
+
+				if numberOfConstructions > 0:
+					continue
+
+				if self.doIOwnMonopoly(state, monopolyGroupElements, id):
+					continue
+
 				# decreasing order
 				if i == 0:
 					ballot.append((propertyId,visitationFrequencies[propertyId]))
@@ -221,14 +225,19 @@ class Agent:
 					ballot.append((propertyId,ownedPercentge))
 
 				# increasing order
+				# actually 
 				if i == 3:
 					reverse = False
 					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
 					ballot.append((propertyId,ownedPercentge))
 
 				# decreasing order
+				# jail condition; treat as 10
 				if i == 4:
-					diff = opponentsPosition - propertyId
+					if opponentsPosition == -1:
+						opponentsPosition = 10
+
+					diff = propertyId - opponentsPosition
 
 					if diff < 0:
 						diff += 40
@@ -274,11 +283,12 @@ class Agent:
 		currentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(propertyStatus, space, id)
 		opponentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
 
-		if currentPlayerMonopolyPercent > 0 and opponentPlayerMonopolyPercent > 0:
-			return False 
+		if currentPlayerMonopolyPercent == 0 and opponentPlayerMonopolyPercent > 0:
+			return True
+
 		if currentPlayerMonopolyPercent >= 0 and opponentPlayerMonopolyPercent == 0:
 			return True
-		
+
 		return False
 
 	# call this method seperately for buying and umortgaging
@@ -296,7 +306,7 @@ class Agent:
 				continue
 
 			currentPropertyRent = self.getPropertyRent(propertyStatus,space) 
-			potentialRentIfConstructed = self.getPropertyRent(propertyStatus, space)
+			potentialRentIfConstructed = self.getPropertyRent(propertyStatus+1, space)
 			delta = potentialRentIfConstructed - currentPropertyRent
 			ballots.append((propertyId,delta))
 
