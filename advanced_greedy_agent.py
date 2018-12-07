@@ -221,15 +221,15 @@ class Agent:
 				
 				# decreasing order
 				if i == 2:
-					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, id)
-					ballot.append((propertyId,ownedPercentge))
+					ownedPercentage = self.getPercentageMonopolyOwned(propertyStatus, space, id)
+					ballot.append((propertyId,ownedPercentage))
 
 				# increasing order
 				# actually 
 				if i == 3:
 					reverse = False
-					ownedPercentge = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
-					ballot.append((propertyId,ownedPercentge))
+					ownedPercentage = self.getPercentageMonopolyOwned(propertyStatus, space, opponent)
+					ballot.append((propertyId,ownedPercentage))
 
 				# decreasing order
 				# jail condition; treat as 10
