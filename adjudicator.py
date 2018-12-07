@@ -706,6 +706,7 @@ class Adjudicator:
 			self.updateState(state,self.PLAYER_CASH_INDEX,currentPlayer,playerCash-50)
 			self.updateState(state,self.PLAYER_POSITION_INDEX,currentPlayer,self.JUST_VISTING)
 			self.agentJailCounter[currentPlayer]=0
+			log("jail","Agent "+str(currentPlayer+1)+" has been in jail for 3 turns. Forcing him to pay $50 to get out.")
 			return [True,True]
 		return [False,True]
 
@@ -1537,8 +1538,13 @@ class Adjudicator:
 		#add to the state history
 		#Clearing the payload as it might contain some internal info used by the adjudicator
 		self.updateState(self.state,self.PHASE_PAYLOAD_INDEX,None,[])
-		finalState = self.transformState(self.state)
+		finalState = list(self.state)
+		finalState.pop(7)
+		finalState = self.transformState(finalState)
+		log("win","Final State:")
+		log("win",finalState)
 		self.notifyUI()
+		
 		return [winner,finalState]
 	
 	"""
