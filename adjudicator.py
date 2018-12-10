@@ -123,6 +123,10 @@ class Adjudicator:
 
 		return tuple(transformedState)
 	
+	"""
+	Validation function which checks if the variable `var` can be typecast to datatype `thetype`.
+	If there was any exception encountered, return the default value specified
+	"""
 	def typecast(self,val,thetype,default):
 		try:
 			if (thetype == bool) and not isinstance(val, thetype):
@@ -547,10 +551,13 @@ class Adjudicator:
 					updatePropertyStatus(state,propertyRequest,propertyStatus*-1)
 			
 			#Receive State
+			#Making the phase number BSTM so that tradeResponse isnt called again
+			self.updateState(state,self.PHASE_NUMBER_INDEX,None,self.BSTM)
 			phasePayload.insert(0,tradeResponse)
 			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 			
 			self.runPlayerOnStateWithTimeout(agent,state,receiveState=True)
+			self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
 			return True
 		
 		previousPhaseNumber = state[self.PHASE_NUMBER_INDEX]
@@ -937,6 +944,9 @@ class Adjudicator:
 		phasePayload = [self.dice.die_1,self.dice.die_2,self.dice.double]
 		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,phasePayload)
 		self.broadcastState(state)
+		#Clearing phasePayload after DIce roll
+		self.updateState(state,self.PHASE_PAYLOAD_INDEX,None,[])
+		
 		
 		if self.dice.double_counter == 3:
 			self.send_player_to_jail(state)
@@ -1598,8 +1608,8 @@ class Adjudicator:
 
 
 # for testing purposes only
-#from advanced_greedy_agent import Agent
-#agentOne = Agent(1)
-#agentTwo = Agent(2)
+#import agent
+#agentOne = agent.Agent(1)
+#agentTwo = agent.Agent(2)
 #adjudicator = Adjudicator()
 #adjudicator.runGame(agentOne, agentTwo)

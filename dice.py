@@ -1,6 +1,6 @@
 from config import log
-import numpy as np
 import config
+import random
 
 class Dice:
 
@@ -19,7 +19,7 @@ class Dice:
 			log("dice","Choosing the debug dice")
 			roll = dice
 		else:
-			roll = np.random.choice(np.arange(1, 7), 2)
+			roll = [random.randint(1, 6), random.randint(1, 6)]
 		
 		self.die_1 = roll[0]
 		self.die_2 = roll[1]
