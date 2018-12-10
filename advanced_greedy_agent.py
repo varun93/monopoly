@@ -374,27 +374,39 @@ class Agent:
         return False
 
     # call this method seperately for buying and umortgaging
-    def getValueForBuyingConstructionsorUnmortgaging(self, state, candidates, player):
-        """Passsing buyHousesCandidates and mortgageCandidates separately to avoid parsing state in this method.
-           If this is not helpful, remove it. Return value can still be single list with tuples of propertyId and worth.
-        """
-        ballots = []
-
-        for propertyId in candidates:
-            space = constants.board[propertyId]
-            propertyStatus = self.getPropertyStatus(state, propertyId)
-
-            if not self.canConstructOnProperty(state, space, propertyStatus):
-                continue
-
-            currentPropertyRent = self.getPropertyRent(propertyStatus, space)
-            potentialRentIfConstructed = self.getPropertyRent(propertyStatus + 1, space)
-            delta = potentialRentIfConstructed - currentPropertyRent
-            ballots.append((propertyId, delta))
-
-        ballots = sorted(ballots, key=lambda x: x[1], reverse=True)
-        orderedProperties = [int(ballot) for ballot in ballots]
-        return orderedProperties
+    def getValueForBuyingConstructionsorUnmortgaging(self,state,buyHousesCandidates,mortgageCandidates,player):
+		"""
+		Passing buyHousesCandidates and mortgageCandidates separately to avoid parsing state in this method.
+		Return value can still be single list with tuples of propertyId.
+		If houses can be constructed anywhere, that takes precedence over unmortgaging.
+		Except in the case where unmortgaging opens up a new completed monopoly where houses can be built.
+		List returned should either consist fully of properties where hosues can be built or which can be unmortgaged
+		Take into account
+		"""
+		ballots = []
+		
+		if len(buyHousesCandidates)!=0:
+			#Buying houses
+			pass
+		else:
+			#Unortgaging
+			pass
+		
+		for propertyId in candidates:
+		    space = constants.board[propertyId]
+		    propertyStatus = self.getPropertyStatus(state, propertyId)
+		
+		    if not self.canConstructOnProperty(state, space, propertyStatus):
+		        continue
+		
+		    currentPropertyRent = self.getPropertyRent(propertyStatus, space)
+		    potentialRentIfConstructed = self.getPropertyRent(propertyStatus + 1, space)
+		    delta = potentialRentIfConstructed - currentPropertyRent
+		    ballots.append((propertyId, delta))
+		
+		ballots = sorted(ballots, key=lambda x: x[1], reverse=True)
+		orderedProperties = [int(ballot) for ballot in ballots]
+		return orderedProperties
 
     def respondTrade(self, state):
         # Need to decide strategy for this one/
@@ -490,7 +502,7 @@ class Agent:
 
     def selling_house_strategy(self, state, actual_debt):
         current_player = self.current_player
-        owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+        owned_properties = self.get_mortgagable_properties(state, self.current_player)
         properties_with_houses = []
         for property in owned_properties:
             if self.find_number_of_houses(state, property, current_player) > 0:
@@ -523,7 +535,7 @@ class Agent:
 
     def mortgaging_property_strategy(self, state, actual_debt):
         current_player = self.current_player
-        owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+        owned_properties = self.get_mortgagable_properties(state, self.current_player)
         properties_with_zero_houses = []
 
         for property in owned_properties:
@@ -560,17 +572,30 @@ class Agent:
             return True
         return False
 
-    def estimateWealth(self, state):
-        return state[self.PLAYER_CASH_INDEX][self.current_player]
-
+	"""
+	Gets the cash that the player can obtain by mortgaging properties
+	"""
+    def getCashReserve(self, state):
+    	mortgagable_properties = self.get_mortgagable_properties(state, self.current_player)
+    	wealth = 0
+    	for mortgagable_property in mortgagable_properties:
+    		wealth += (constants.board['price']/2)
+        return wealth
+	
+	"""
+	During a given BSMT, the function should only return either building houses/mortgaging.
+	No point in returning both
+	so, function return syntax: ("B/M",props,cash_needed)
+	"""
     def buying_houses_or_unmortgaging_strategy(self, state):
         # It should evaluate the buying house and unmortgaging property as an atomic action and then return a decision.
         # Calculate worth of both the actions by calculating the increase in rent and then return.
-        wealth = self.estimateWealth(state)
-        threshold_wealth = self.threshold * wealth
+        cash = self.getPlayerCash(state, self.current_player)
+        wealth = self.getCashReserve(state)
+        threshold_wealth = self.threshold * cash
 
         """Decide to buy houses or unmortgaging based on threshold wealth"""
-        owned_properties = self.get_owned_property_not_morgaged(state, self.current_player)
+        owned_properties = self.get_mortgagable_properties(state, self.current_player)
         candidate_properties_for_building_houses = []
         for property in owned_properties:
             houses = self.find_number_of_houses(state, property, self.current_player)
@@ -590,12 +615,11 @@ class Agent:
                     candidate_properties_for_building_houses.append(property)
 
         mortgaged_properties = self.get_mortgaged_properties(state, self.current_player)
-        candidates = candidate_properties_for_building_houses + mortgaged_properties
-        if len(candidates) == 0:
+        if len(candidate_properties_for_building_houses + mortgaged_properties) == 0:
             return (0,[],0,[])
 
-        sorted_worth_properties = self.getValueForBuyingConstructionsorUnmortgaging(state,candidates,
-                                                                                    self.current_player)
+        sorted_worth_properties = self.getValueForBuyingConstructionsorUnmortgaging(state,
+			candidate_properties_for_building_houses,mortgaged_properties,self.current_player)
         buyingHouses_list = []
         unmortgage_list = []
         buyingHousesMoney = 0
@@ -610,8 +634,7 @@ class Agent:
                     buyingHouses_list.append(property)
                     buyingHousesMoney += buildcost
             elif property in mortgaged_properties:
-                unmortgageCost = constants.board[property]['price'] * 0.5 + 0.1 * 0.5 * constants.board[property][
-                    'price']
+                unmortgageCost = constants.board[property]['price'] * 0.5* 1.1
                 threshold_wealth -= unmortgageCost
                 if threshold_wealth >= 0:
                     unmortgage_list.append(property)
@@ -728,17 +751,37 @@ class Agent:
             money_owed = debt[3]
             source = debt[2]
         return (source, money_owed)
-
-    def get_owned_property_not_morgaged(self, state, current_player):
+       
+    """
+    Returns the sign of the property as per ownership
+    """
+    def get_property_sign(self,current_player):
+    	if current_player == 0:
+            return 1
+        elif current_player == 1:
+            return -1
+    
+	"""
+	Gets the list of properties which can be mortgaged.
+	"""
+    def get_mortgagable_properties(self, state, current_player):
         owned_properties = []
         i = 0
         for status in state[self.PROPERTY_STATUS_INDEX]:
-            if constants.board[i]["class"] != "Street":
+            if constants.board[i]["class"] != "Street" or constants.board[i]["class"] != "Utility" or constants.board[i]["class"] != "Railroad":
                 continue
-            if current_player == 0 and status > 0 and status != 7 and i in constants.property_to_space_map:
-                owned_properties.append(i)
-            elif current_player == 1 and status < 0 and status != -7 and i in constants.property_to_space_map:
-                owned_properties.append(i)
+            
+            propSign = get_property_sign(current_player)
+            if (status*propSign==1) and i in constants.property_to_space_map:
+				monopolies = constants.board[i]['monopoly_group_elements']
+				flag = True
+				for monopoly in monopolies:
+					if getPropertyStatus(monopoly)*propSign!=1:
+						#its either mortgaged or has a house
+						flag=False
+						break
+				if flag:
+					owned_properties.append(i)
             i = i + 1
         return owned_properties
 
