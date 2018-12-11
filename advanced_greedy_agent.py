@@ -802,6 +802,7 @@ class Agent:
 				buildcost = constants.board[property]['build_cost']
 				threshold_wealth -= buildcost
 				if threshold_wealth >= 0:
+					moneyNeeded += buildcost
 					currentMonopolyDict[property] = 1
 					candidate_properties_for_building_houses.remove(property)
 				else:
@@ -816,6 +817,7 @@ class Agent:
 						buildcost = constants.board[property]['build_cost']
 						threshold_wealth -= buildcost
 						if threshold_wealth >= 0:
+							moneyNeeded += buildcost
 							currentMonopolyDict[monopoly_elem] = 1
 							candidate_properties_for_building_houses.remove(monopoly_elem)
 						else:
@@ -831,6 +833,7 @@ class Agent:
 						space = constants.board[key]
 						propertyStatus = self.getPropertyStatus(state, key)
 						if threshold_wealth-buildcost >= 0 and self.canConstructOnProperty(state, space, propertyStatus,self.current_player,shouldAllowHotels=False):
+							moneyNeeded += buildcost
 							threshold_wealth-=buildcost
 							currentMonopolyDict[key]+=1
 				
