@@ -616,7 +616,7 @@ class Agent:
 	def getPropertyWithZeroHouses(self, state, properties):
 		properties_with_zero_houses = []
 		for property in properties:
-			if self.find_number_of_houses(state, property, current_player) == 0:
+			if self.find_number_of_houses(state, property, self.current_player) == 0:
 				properties_with_zero_houses.append(property)
 		return properties_with_zero_houses
 
@@ -837,8 +837,8 @@ class Agent:
 							threshold_wealth-=buildcost
 							currentMonopolyDict[key]+=1
 				
-				for key in currentMonopolyDict:
-					propList.append((key,currentMonopolyDict[key]))
+				for entry in currentMonopolyDict:
+					propList.append((entry,currentMonopolyDict[entry]))
 				
 			elif property in mortgaged_properties:
 				action = "M"
