@@ -278,20 +278,23 @@ class Agent:
 
 		return True
 
-	def getPercentageMonopolyOwned(self, state, propertyStatus, space, player):
-		monopolyGroupElements = space["monopoly_group_elements"]
+	def getPercentageMonopolyOwned(self, state, propertyStatus, propertyId, player):
+		monopolyGroupElements = constants.board[propertyId]["monopoly_group_elements"]
 
 		if len(monopolyGroupElements) == 0:
 			return 0
 
 		ownedCount = 0
-
+		
+		if propertyStatus == 10:
+			ownedCount +=1
+		
 		for monopolyGroupElement in monopolyGroupElements:
 			groupElementPropertyStatus = self.getPropertyStatus(state, monopolyGroupElement)
 			if ((player == 0 and groupElementPropertyStatus > 0) or (player == 1 and groupElementPropertyStatus < 0)):
 				ownedCount += 1
 
-		ownedPercentage = ownedCount / len(monopolyGroupElements)
+		ownedPercentage = ownedCount / (len(monopolyGroupElements)+1)
 		return ownedPercentage
 
 	def getValueForMortgageProperties(self, state, properties, player):
@@ -328,14 +331,14 @@ class Agent:
 
 				# decreasing order
 				if i == 2:
-					ownedPercentage = self.getPercentageMonopolyOwned(state, propertyStatus, space, id)
+					ownedPercentage = self.getPercentageMonopolyOwned(state, propertyStatus, propertyId, id)
 					ballot.append((propertyId, ownedPercentage))
 
 				# increasing order
 				# actually
 				if i == 3:
 					reverse = False
-					ownedPercentage = self.getPercentageMonopolyOwned(state, propertyStatus, space, opponent)
+					ownedPercentage = self.getPercentageMonopolyOwned(state, propertyStatus, propertyId, opponent)
 					ballot.append((propertyId, ownedPercentage))
 
 				# decreasing order
@@ -387,8 +390,8 @@ class Agent:
 		if propertyPrice > opponentCash:
 			return False
 
-		currentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, propertyStatus, space, id)
-		opponentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, propertyStatus, space, opponent)
+		currentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, propertyStatus, propertyId, id)
+		opponentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, propertyStatus, propertyId, opponent)
 
 		if currentPlayerMonopolyPercent == 0 and opponentPlayerMonopolyPercent > 0:
 			return True
@@ -534,7 +537,40 @@ class Agent:
 
 		space = constants.board[propertyId]
 		propertyPrice = space["price"]
-		return propertyPrice * 0.7
+		
+		opponent = (player + 1) % 2
+		cash = self.getPlayerCash(state, player)
+		#Minimum cash we should keep as reserve
+		THRESHOLD_CASH = self.getMinCash(state)
+		
+		
+		if space['class'] != 'Utility':
+			#Factor: Monopoly Percent
+			currentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, 10, propertyId, player)
+			opponentPlayerMonopolyPercent = self.getPercentageMonopolyOwned(state, 0, propertyId, opponent)
+			
+			bid = 0
+			
+			if currentPlayerMonopolyPercent == 0 and opponentPlayerMonopolyPercent > 0:
+				bid = propertyPrice+1
+	
+			if currentPlayerMonopolyPercent >= 0 and opponentPlayerMonopolyPercent == 0:
+				if currentPlayerMonopolyPercent<=0.5:
+					bid = propertyPrice+1
+				elif currentPlayerMonopolyPercent<=0.75:
+					#Will own 2 props from a 3 prop monopoly if we get this prop. So, want it really
+					bid = propertyPrice+1
+				else:
+					#This will complete a monopoly. So,all your money
+					bid = propertyPrice*2+1
+			
+			if bid > (cash - THRESHOLD_CASH):
+				bid = cash - THRESHOLD_CASH
+			
+			return bid
+		
+		
+		return propertyPrice * 0.6
 
 	def storeAuctionValue(self, state, propertyId):
 		"""
@@ -776,7 +812,7 @@ class Agent:
 		reserveWealth = self.getCashReserve(state)
 		
 		RESERVEWEALTH_THRESHOLD = 0.7
-		THRESHOLD_CASH = self.getMinCash(state)
+		THRESHOLD_CASH = self.getMinCash(state) + 50
 		threshold_wealth = cash - THRESHOLD_CASH
 		
 		"""Decide to buy houses or unmortgaging based on threshold wealth"""
