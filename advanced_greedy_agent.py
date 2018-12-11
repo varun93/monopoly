@@ -442,7 +442,7 @@ class Agent:
 			ballots.append((propertyId, delta))
 		
 		ballots = sorted(ballots, key=lambda x: x[1], reverse=True)
-		orderedProperties = [int(ballot) for ballot in ballots]
+		orderedProperties = [int(ballot[0]) for ballot in ballots]
 		return orderedProperties
 
 	# call this method seperately for buying and umortgaging
@@ -470,7 +470,7 @@ class Agent:
 				ballots.append((propertyId, monopolyCode))
 			
 			ballots = sorted(ballots, key=lambda x: x[1], reverse=True)
-			orderedProperties = [int(ballot) for ballot in ballots]
+			orderedProperties = [int(ballot[0]) for ballot in ballots]
 			return orderedProperties
 		else:
 			#Unmortgaging
@@ -627,7 +627,7 @@ class Agent:
 		owned_properties = []
 		for property in properties:
 			if property not in exclusion_list:
-				owned_properties.add[property]
+				owned_properties.append(property)
 		properties_with_zero_houses = self.getPropertyWithZeroHouses(state, owned_properties)
 		sorted_properties_worth = self.getValueForMortgageProperties(state, properties_with_zero_houses,
 																	 self.current_player)
@@ -660,11 +660,12 @@ class Agent:
 		return False
 
 	"""
-	Returns the expected rent from the next x places from the current position
+	Returns the rent from the top 3 properties of the opponent in the next x places from the current position
 	"""
-	def expectedRentNextNPlaces(self,state,x=12,useProb=True):
+	def expectedRentNextNPlaces(self,state,x=12,topX=3):
 		currentPosition = state[self.PLAYER_POSITION_INDEX][self.current_player]
 		totalRent = 0
+		rents = []
 		propSign = self.get_property_sign(self.current_player)
 		
 		for j in range(currentPosition+2,currentPosition+x):
@@ -699,8 +700,9 @@ class Agent:
 						monopolyStatus = self.getPropertyStatus(state, monopoly)
 						if monopolyStatus*propSign >= 0:
 							flag = False
+							break
 					
-					rent = constants.board[i]['price']
+					rent = constants.board[i]['rent']
 					if flag:
 						rent = rent*2
 				elif propStatus*propSign == -6:
@@ -709,10 +711,11 @@ class Agent:
 					s = "rent_house_"
 					rent = constants.board[i][s + str( (propStatus*propSign*-1)-1 )]
 			
-			if useProb:
-				totalRent += (rent*self.diceThrowProbabalities[dice_sum])
-			else:
-				totalRent += (rent)
+			rents.append(rent)
+		
+		rents = sorted(rents,reverse=True)
+		for i in range(topX):
+			totalRent += rents[i]
 		return math.ceil(totalRent)
 	
 	"""
@@ -737,26 +740,27 @@ class Agent:
 		for i in range(1,40):
 			status = state[self.PROPERTY_STATUS_INDEX][i]
 			propClass = constants.board[i]["class"]
-			if propClass != "Street" and propClass != "Utility" and propClass != "Railroad":
+			if propClass != "Street":
 				continue
 
-			propSign = self.get_property_sign(current_player)
+			propSign = self.get_property_sign(self.current_player)
 			if (status * propSign >= 1):
-				houses = self.find_number_of_houses(state, property, self.current_player)
+				houses = self.find_number_of_houses(state, i, self.current_player)
 				if houses <= 4:  # discarding building hotel on property
 					isValidCandidate = True
-					monopoly_group_properties = constants.board[property]["monopoly_group_elements"]
+					monopoly_group_properties = constants.board[i]["monopoly_group_elements"]
 					for other_property in monopoly_group_properties:
-						if other_property not in candidate_properties_for_building_houses:
+						otherStatus = state[self.PROPERTY_STATUS_INDEX][other_property]
+						if (otherStatus * propSign < 1):
 							isValidCandidate = False
 							break
-			
+							
 						other_houses = self.find_number_of_houses(state, other_property, self.current_player)
 						if houses > other_houses:
 							isValidCandidate = False
 							break
 					if isValidCandidate:
-						candidate_properties_for_building_houses.append(property)
+						candidate_properties_for_building_houses.append(i)
 		return candidate_properties_for_building_houses
 	
 	"""
@@ -822,8 +826,10 @@ class Agent:
 				
 				#At this point, we have built houses evenly on this monopoly.
 				#Now, we can build on all three.
-				while threshold_wealth>=0:
+				while threshold_wealth-buildcost>=0:
 					for key in currentMonopolyDict:
+						space = constants.board[key]
+						propertyStatus = self.getPropertyStatus(state, key)
 						if threshold_wealth-buildcost >= 0 and self.canConstructOnProperty(state, space, propertyStatus,self.current_player,shouldAllowHotels=False):
 							threshold_wealth-=buildcost
 							currentMonopolyDict[key]+=1
@@ -879,7 +885,7 @@ class Agent:
 			self.jail_counter = 0
 
 	def isDanger(self, state, player):
-		rent = self.expectedRentNextNPlaces(state, x=40, useProb=False)
+		rent = self.expectedRentNextNPlaces(state, x=40)
 		# Current threshold 50 percent of the player money.
 		if rent > state[self.PLAYER_CASH_INDEX][player]:
 			return True
