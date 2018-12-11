@@ -961,8 +961,7 @@ class Agent:
 		owned_properties = []
 		for i in range(1,40):
 			status = state[self.PROPERTY_STATUS_INDEX][i]
-			if constants.board[i]["class"] != "Street" or constants.board[i]["class"] != "Utility" or \
-							constants.board[i]["class"] != "Railroad":
+			if constants.board[i]["class"] != "Street" and constants.board[i]["class"] != "Utility" and constants.board[i]["class"] != "Railroad":
 				continue
 			if current_player == 0 and status == 7 and i in constants.property_to_space_map:
 				owned_properties.append(i)
