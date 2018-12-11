@@ -433,11 +433,12 @@ class Agent:
 	Uses bordas to get sorted set of propids for unmortgaging scenario
 	"""
 	def checkBordasForUnmortgaging(self,state,mortgageCandidates):
+		ballots = []
 		for propertyId in mortgageCandidates:
 			space = constants.board[propertyId]
 			propertyStatus = self.getPropertyStatus(state, propertyId)
 		
-			potentialRentIfUnmortgaged = self.getPropertyRent(1, space)
+			potentialRentIfConstructed = self.getPropertyRent(1, space)
 			delta = potentialRentIfConstructed
 			ballots.append((propertyId, delta))
 		
@@ -476,7 +477,7 @@ class Agent:
 			#Unmortgaging
 			compMonopolyUnmortgagableProps = self.getMortgagedPropertiesThatCompleteMonopolies(state,mortgageCandidates)
 			otherProps = [x for x in mortgageCandidates if x not in compMonopolyUnmortgagableProps]
-			otherProps_sorted = checkBordasForUnmortgaging(otherProps)
+			otherProps_sorted = self.checkBordasForUnmortgaging(state,otherProps)
 			return compMonopolyUnmortgagableProps + otherProps
 
 	def respondTrade(self, state):
@@ -746,7 +747,7 @@ class Agent:
 			propSign = self.get_property_sign(self.current_player)
 			if (status * propSign >= 1):
 				houses = self.find_number_of_houses(state, i, self.current_player)
-				if houses <= 4:  # discarding building hotel on property
+				if houses < 4:  # discarding building hotel on property
 					isValidCandidate = True
 					monopoly_group_properties = constants.board[i]["monopoly_group_elements"]
 					for other_property in monopoly_group_properties:
@@ -799,24 +800,28 @@ class Agent:
 				action = "B"
 				currentMonopolyDict = {}
 				
+				propertyStatus = abs(self.getPropertyStatus(state, property))
 				buildcost = constants.board[property]['build_cost']
 				threshold_wealth -= buildcost
-				if threshold_wealth >= 0:
+				if threshold_wealth >= 0 and propertyStatus<6:
 					moneyNeeded += buildcost
 					currentMonopolyDict[property] = 1
 					candidate_properties_for_building_houses.remove(property)
 				else:
-					break
+					for entry in currentMonopolyDict:
+						propList.append((entry,currentMonopolyDict[entry]))
+					continue
 					
 				#We will now build on this property and the other properties in the 
-				#same monopoly provided they are also in the list.
+				#The monopoly elements may not be in the list. They might become available for building now.
 				breakFlag = False
 				monopoly_elems = constants.board[property]['monopoly_group_elements']
 				for monopoly_elem in monopoly_elems:
 					if monopoly_elem in candidate_properties_for_building_houses:
+						propertyStatus = abs(self.getPropertyStatus(state, monopoly_elem))
 						buildcost = constants.board[property]['build_cost']
 						threshold_wealth -= buildcost
-						if threshold_wealth >= 0:
+						if threshold_wealth >= 0 and propertyStatus<6:
 							moneyNeeded += buildcost
 							currentMonopolyDict[monopoly_elem] = 1
 							candidate_properties_for_building_houses.remove(monopoly_elem)
@@ -824,25 +829,44 @@ class Agent:
 							breakFlag = True
 							break
 				if breakFlag:
-					break
+					for entry in currentMonopolyDict:
+						propList.append((entry,currentMonopolyDict[entry]))
+					continue
 				
 				#At this point, we have built houses evenly on this monopoly.
 				#Now, we can build on all three.
+				viableBuyingPropList = [property]
+				viableBuyingPropList.extend(monopoly_elems)
+				
 				while threshold_wealth-buildcost>=0:
-					for key in currentMonopolyDict:
-						space = constants.board[key]
-						propertyStatus = self.getPropertyStatus(state, key)
-						if threshold_wealth-buildcost >= 0 and self.canConstructOnProperty(state, space, propertyStatus,self.current_player,shouldAllowHotels=False):
+					breakCount = 0
+					
+					for viableProp in viableBuyingPropList:
+						propertyStatus = abs(self.getPropertyStatus(state, viableProp))
+						
+						no_of_houses = propertyStatus-1
+						if viableProp in currentMonopolyDict:
+							no_of_houses += currentMonopolyDict[viableProp]
+						
+						if no_of_houses>=4:
+							breakCount+=1
+						elif threshold_wealth-buildcost >= 0:
 							moneyNeeded += buildcost
 							threshold_wealth-=buildcost
-							currentMonopolyDict[key]+=1
+							if viableProp in currentMonopolyDict:
+								currentMonopolyDict[viableProp]+=1
+							else:
+								currentMonopolyDict[viableProp]=1
+					
+					if breakCount >= len(currentMonopolyDict):
+						break
 				
 				for entry in currentMonopolyDict:
 					propList.append((entry,currentMonopolyDict[entry]))
 				
 			elif property in mortgaged_properties:
 				action = "M"
-				unmortgageCost = constants.board[property]['price'] * 0.5* 1.1
+				unmortgageCost = math.ceil(constants.board[property]['price'] * 0.5* 1.1)
 				threshold_wealth -= unmortgageCost
 				if threshold_wealth >= 0:
 					propList.append(property)
