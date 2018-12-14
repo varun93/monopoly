@@ -42,6 +42,10 @@ gunicorn --worker-class eventlet -w 1 app:app -b 0.0.0.0:3000 &
 If you want you can setup nginx by proxying the requests to gunicorn. Left as an exercise! 
 ```
 
+## Link to the Demo  
+
+http://35.237.33.254:3000/
+
 ## Issue Log
 1) If you face issues with running the code on Windows, please check the Issues list.
 
