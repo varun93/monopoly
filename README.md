@@ -59,6 +59,9 @@ The advanced model is based on common strategies seen in the game of Monopoly. M
 
 We also identified that if we are faced with a decision to buy houses or mortgage/unmortage properties, there are multiple factors that could affect our decision. These include the limiting probabilities of falling on each board position (based off representing the game as a Markov Process), the current position of the opponent (i.e., is he likely to fall here in the near future?) and how much extra rent we would earn through this transaction. Since we had multiple factors, we used Borda's method to establish a score to select the desired property in each of these cases.<br>
 
+Following link is our scratchpad where we brainstormed for ideas about the agent.<br>
+https://docs.google.com/document/d/1OmUSZ9OPpmeR7BmtGUNCYLaiqCzW21j5nsIRH2tjNNM/edit?usp=sharing
+
 ## Adjudicator
 The master branch consists of the implementation of the Adjudicator for the monopoly game.
 The implementation also consists of a UI for going through the various game states after a game has been completed. 
