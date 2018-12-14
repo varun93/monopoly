@@ -27,10 +27,19 @@ To run the user interface:
 export FLASK_APP=app.py
 flask run
 #In a separate terminal window, run the below mentioned code
+Dev Build  
 cd react-user-interface
-npm install
-npm start
-#The server starts up on part 3000
+npm install  
+npm start  
+Production Build
+To build and deploy the app  
+cd react-user-interface  
+npm run build  
+cd ..  
+cp react-user-interface/build/index.html templates/index.html  
+cp -r react-user-user-interface/build/static static  
+gunicorn --worker-class eventlet -w 1 app:app -b 0.0.0.0:3000 &   
+If you want you can setup nginx by proxying the requests to gunicorn. Left as an exercise! 
 ```
 
 ## Issue Log
