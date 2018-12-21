@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 from agent import Agent
 from adjudicator import Adjudicator
@@ -14,6 +14,10 @@ def startGame():
 	agentTwo = Agent(2)
 	adjudicator = Adjudicator(socketio)
 	adjudicator.runGame(agentOne,agentTwo)
+
+@app.route('/')
+def index():
+	return render_template('index.html')
 
 if __name__ == '__main__':
 	socketio.run(app, debug=True)

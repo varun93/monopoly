@@ -27,17 +27,42 @@ To run the user interface:
 export FLASK_APP=app.py
 flask run
 #In a separate terminal window, run the below mentioned code
+Dev Build  
 cd react-user-interface
-npm install
-npm start
-#The server starts up on part 3000
+npm install  
+npm start  
+Production Build
+To build and deploy the app  
+cd react-user-interface  
+npm run build  
+cd ..  
+cp react-user-interface/build/index.html templates/index.html  
+cp -r react-user-user-interface/build/static static  
+gunicorn --worker-class eventlet -w 1 app:app -b 0.0.0.0:3000 &   
+If you want you can setup nginx by proxying the requests to gunicorn. Left as an exercise! 
 ```
+
+## Link to the Demo  
+
+http://35.237.33.254:3000/
 
 ## Issue Log
 1) If you face issues with running the code on Windows, please check the Issues list.
-2) The code doesn't contain an agent. You would need to add your agent in. You can check out testcases.py to get an idea of some sample agents.
 
-## App Structure
+## Agent
+We had worked on 4 implementations of agents for this project.<br>
+
+The first one was a greedy agent which tries to buy properties always and if possible, build houses as well. The code for this agent is in `agent.py`<br>
+We then created a random policy agent. This was based off of the greedy agent but with the additional component that it randomly decides to do or not do each action. This was mainly intended to verify the performance of the greedy agent and future agents as the decisions of this agent are more unpredictable. The code is in `random_agent.py`.<br>
+Then, we split our work among 2 agents, an advanced model which we built using intuitions we got from the game (`advanced_greedy_agent.py`) and one based off of the reinforcement learning technique, Q learning(`RL_Agent\agent.py`). We primarily focussed on the former as we had felt the time constraints would mean we wouldn't be able to complete the RL based Model.<br>
+The advanced model is based on common strategies seen in the game of Monopoly. Most of these strategies involve collecting properties as much as possible, with particular focus on completing monopolies, and then aggressively building houses. The agent also sets aside some of its money so that it can handle imminent rent payments that it might have to make. An additional strategy we implemented was how we forumulated the agent's wealth. We considered both the cash in hand and cash that could be acquired through mortgaging properties as the total wealth of the agent. Our idea was that if more cash is needed than is available in hand, proeprties should be mortgaged to acquire more. This would allow for more aggressive house building thus putting us in a more advantageous position.<br>
+
+We also identified that if we are faced with a decision to buy houses or mortgage/unmortage properties, there are multiple factors that could affect our decision. These include the limiting probabilities of falling on each board position (based off representing the game as a Markov Process), the current position of the opponent (i.e., is he likely to fall here in the near future?) and how much extra rent we would earn through this transaction. Since we had multiple factors, we used Borda's method to establish a score to select the desired property in each of these cases.<br>
+
+Following link is our scratchpad where we brainstormed for ideas about the agent.<br>
+https://docs.google.com/document/d/1OmUSZ9OPpmeR7BmtGUNCYLaiqCzW21j5nsIRH2tjNNM/edit?usp=sharing
+
+## Adjudicator
 The master branch consists of the implementation of the Adjudicator for the monopoly game.
 The implementation also consists of a UI for going through the various game states after a game has been completed. 
 NOTE: The UI currently shows the board representation and basic information about each Agent on any given turn such as properties owned, cash constructions on each property etc. Finer information regarding the state still remains to be implemented for the UI and is in progress.

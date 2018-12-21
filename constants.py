@@ -783,18 +783,6 @@ property_to_space_map = {
 }
 """
 
-groupLengthMap = {
-0:2,
-1:4,
-2:3,
-3:3,
-4:2,
-5:3,
-6:3,
-7:3,
-8:3,
-9:2
-}
 communityChestCards = [
   {
     "id": 0,
