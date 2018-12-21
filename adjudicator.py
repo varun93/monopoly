@@ -51,8 +51,6 @@ class Adjudicator:
 		
 		self.MAX_HOUSES = 32
 		self.MAX_HOTELS = 12
-		self.remaining_houses = 32
-		self.remaining_hotels = 12
 		
 		"""
 		Phases
@@ -1396,6 +1394,9 @@ class Adjudicator:
 			[]
 		]
 		
+		self.remaining_houses = 32
+		self.remaining_hotels = 12
+		
 		#Setting an initial state. Used during testing.
 		#if isinstance(state,list) and len(state)==6:
 		#	self.state = state
@@ -1568,7 +1569,7 @@ class Adjudicator:
 	self.POSTTURN_BSTM = 10
 	"""
 
-	@timeout_decorator.timeout(3, timeout_exception=TimeoutError)
+	@timeout_decorator.timeout(3000, timeout_exception=TimeoutError)
 	def runPlayerOnStateWithTimeout(self, player,state,receiveState=False):
 		try:
 			return self.runPlayerOnState(player,state,receiveState)
@@ -1609,7 +1610,8 @@ class Adjudicator:
 
 # for testing purposes only
 #import agent
+#import advanced_greedy_agent
 #agentOne = agent.Agent(1)
-#agentTwo = agent.Agent(2)
+#agentTwo = advanced_greedy_agent.Agent(2)
 #adjudicator = Adjudicator()
 #adjudicator.runGame(agentOne, agentTwo)
